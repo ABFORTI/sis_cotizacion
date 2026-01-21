@@ -9,10 +9,12 @@ $piezaLargoOld = oldValue('pieza_largo', $aux);
 $piezaAnchoOld = oldValue('pieza_ancho', $aux);
 $piezaAltoOld = oldValue('pieza_alto', $aux);
 $materialOld = oldValue('material', $aux);
+$materialOtroOld = oldValue('material_otro', $aux);
 $calibreOld = oldValue('calibre', $aux);
 $colorOld = oldValue('color', $aux);
 $franjaActiva = oldValue('franja_color_si', $aux, false);
 $franjaColorOld = oldValue('franja_color', $aux, 'NA');
+$materialOtroActivo = $materialOld === 'Otros';
 @endphp
 
 
@@ -60,7 +62,7 @@ $franjaColorOld = oldValue('franja_color', $aux, 'NA');
         <div class="form-grid">
             <div class="form-group">
                 <label for="material">Material:</label>
-                <select name="material" id="material" title="seleccione el material">
+                <select name="material" id="material" title="seleccione el material" data-toggle="material_otro_input" data-toggle-value="Otros">
                     <option value="" {{ $materialOld == '' ? 'selected' : '' }}>Selecciona una opción</option>
                     <option value="ABS" {{ $materialOld == 'ABS' ? 'selected' : '' }}>ABS</option>
                     <option value="PS" {{ $materialOld == 'PS' ? 'selected' : '' }}>PS</option>
@@ -69,7 +71,12 @@ $franjaColorOld = oldValue('franja_color', $aux, 'NA');
                     <option value="PP" {{ $materialOld == 'PP' ? 'selected' : '' }}>PP</option>
                     <option value="PET ESD" {{ $materialOld == 'PET ESD' ? 'selected' : '' }}>PET ESD</option>
                     <option value="PET-POLIPROPILENO" {{ $materialOld == 'PET-POLIPROPILENO' ? 'selected' : '' }}>PET-POLIPROPILENO</option>
+                    <option value="Otros" {{ $materialOld == 'Otros' ? 'selected' : '' }}>Otros</option>
                 </select>
+            </div>
+            <div class="form-group {{ $materialOtroActivo ? '' : 'is-hidden' }}" id="material_otro_input">
+                <label for="material_otro">Especificar material:</label>
+                <input type="text" id="material_otro" name="material_otro" placeholder="Ingrese el material personalizado" value="{{ $materialOtroOld }}">
             </div>
             <div class="form-group">
                 <label for="calibre">Calibre (mm):</label>
