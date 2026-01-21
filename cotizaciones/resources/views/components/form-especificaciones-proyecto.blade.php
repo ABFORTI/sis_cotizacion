@@ -21,7 +21,7 @@ $franjaColorOld = oldValue('franja_color', $aux, 'NA');
     <div class="form-grid">
         <div class="form-group">
             <label for="frecuencia_compra">Frecuencia de compra: <span class="text-red-600">*</span></label>
-            <select id="frecuencia_compra" name="frecuencia_compra" title="Seleccione la frecuencia de compra">
+            <select id="frecuencia_compra" name="frecuencia_compra" title="Seleccione la frecuencia de compra" required>
                 <option value="Única" {{ $frecuenciaOld == 'Única' || empty($frecuenciaOld) ? 'selected' : '' }}>Única vez</option>
                 <option value="Semanal" {{ $frecuenciaOld == 'Semanal' ? 'selected' : '' }}>Semanal</option>
                 <option value="Mensual" {{ $frecuenciaOld == 'Mensual' ? 'selected' : '' }}>Mensual</option>
@@ -41,16 +41,16 @@ $franjaColorOld = oldValue('franja_color', $aux, 'NA');
         <legend class="sub-legend">Dimensiones de la pieza</legend>
         <div class="form-grid">
             <div class="form-group">
-                <label for="pieza_largo">Largo (mm): <span class="text-red-600">*</span></label>
-                <input type="number" id="pieza_largo" name="pieza_largo" step="0.10" placeholder="0.00" value="{{ $piezaLargoOld }}" required>
+                <label for="pieza_largo">Largo (mm):</label>
+                <input type="number" id="pieza_largo" name="pieza_largo" step="0.10" placeholder="0.00" value="{{ $piezaLargoOld }}">
             </div>
             <div class="form-group">
-                <label for="pieza_ancho">Ancho (mm): <span class="text-red-600">*</span></label>
-                <input type="number" id="pieza_ancho" name="pieza_ancho" step="0.10" placeholder="0.00" value="{{ $piezaAnchoOld }}" required>
+                <label for="pieza_ancho">Ancho (mm):</label>
+                <input type="number" id="pieza_ancho" name="pieza_ancho" step="0.10" placeholder="0.00" value="{{ $piezaAnchoOld }}">
             </div>
             <div class="form-group">
-                <label for="pieza_alto">Alto (mm): <span class="text-red-600">*</span></label>
-                <input type="number" id="pieza_alto" name="pieza_alto" step="0.10" placeholder="0.00" value="{{ $piezaAltoOld }}" required>
+                <label for="pieza_alto">Alto (mm):</label>
+                <input type="number" id="pieza_alto" name="pieza_alto" step="0.10" placeholder="0.00" value="{{ $piezaAltoOld }}">
             </div>
         </div>
     </fieldset>
@@ -59,8 +59,8 @@ $franjaColorOld = oldValue('franja_color', $aux, 'NA');
         <legend class="sub-legend">Especificaciones del material</legend>
         <div class="form-grid">
             <div class="form-group">
-                <label for="material">Material: <span class="text-red-600">*</span></label>
-                <select name="material" id="material" title="seleccione el material" required>
+                <label for="material">Material:</label>
+                <select name="material" id="material" title="seleccione el material">
                     <option value="" {{ $materialOld == '' ? 'selected' : '' }}>Selecciona una opción</option>
                     <option value="ABS" {{ $materialOld == 'ABS' ? 'selected' : '' }}>ABS</option>
                     <option value="PS" {{ $materialOld == 'PS' ? 'selected' : '' }}>PS</option>
@@ -72,8 +72,8 @@ $franjaColorOld = oldValue('franja_color', $aux, 'NA');
                 </select>
             </div>
             <div class="form-group">
-                <label for="calibre">Calibre (mm): <span class="text-red-600">*</span></label>
-                <input type="number" id="calibre" name="calibre" step="0.01" placeholder="0.00" value="{{ $calibreOld }}" required>
+                <label for="calibre">Calibre (mm):</label>
+                <input type="number" id="calibre" name="calibre" step="0.01" placeholder="0.00" value="{{ $calibreOld }}">
             </div>
             <div class="form-group">
                 <label for="color">Color:</label>
