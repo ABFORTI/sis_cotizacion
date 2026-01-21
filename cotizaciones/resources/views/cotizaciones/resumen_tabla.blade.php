@@ -55,11 +55,11 @@
                 <thead class="bg-[#848484] text-white">
                     <tr>
                         <th class="border border-gray-300 p-2">Concepto</th>
-                        <th class="border border-gray-300 p-2">Costo total</th>
+                        <th class="border border-gray-300 p-2">Costo total<br><span class="text-xs font-normal">(MXN)</span></th>
                         <th class="border border-gray-300 p-2">Piezas</th>
-                        <th class="border border-gray-300 p-2">Costo Unit</th>
+                        <th class="border border-gray-300 p-2">Costo Unit<br><span class="text-xs font-normal">(MXN)</span></th>
                         <th class="border border-gray-300 p-2">Margen</th>
-                        <th class="border border-gray-300 p-2">Precio venta</th>
+                        <th class="border border-gray-300 p-2">Precio venta<br><span class="text-xs font-normal">(MXN)</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -399,13 +399,13 @@
                     <input type="number" name="coeficiente_merma" step="0.0001" class="form-input mt-1 w-full" value="{{ old('coeficiente_merma', $ventasResumen->coeficiente_merma ?? $costeoRequisicion->coeficiente_merma ?? '') }}">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Costo total (calculado)</label>
+                    <label class="block text-sm font-medium">Costo total (MXN)</label>
                     <input type="number" name="costo_total" step="0.01" readonly class="form-input mt-1 w-full bg-gray-100" value="{{ old('costo_total', $ventasResumen->costo_total ?? '') }}">
                 </div>
             </div>
  -->
             <div class="mt-4 text-right">
-                <label class="block text-sm font-medium">Precio de venta final (calculado)</label>
+                <label class="block text-sm font-medium">Precio de venta final (MXN)</label>
                 <input type="number" name="precio_venta_final" step="0.01" readonly class="form-input mt-1 w-48 inline-block bg-blue-100 text-right font-bold" value="{{ old('precio_venta_final', $ventasResumen->precio_venta_final ?? $costeoRequisicion->resumen_total_precio_venta ?? '') }}">
             </div>
            

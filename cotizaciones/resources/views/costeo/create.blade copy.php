@@ -2523,7 +2523,7 @@ $esCorridaPiloto = false;
 
                     <!-- FILAS DE TOTALES -->
                     <tr class="border-2 border-gray-500 bg-gray-50 font-semibold">
-                        <td colspan="3" class="text-right text-gray-700 px-2 ">TOTAL</td>
+                        <td colspan="3" class="text-right text-gray-700 px-2 ">TOTAL (MXN)</td>
                         <td>
                             <input type="number" step="0.01" name="TOTAL_FINAL" value="{{old('TOTAL_FINAL', $costeoRequisicion->TOTAL_FINAL)}}"
                                 class="w-full border rounded px-1 py-1 text-right font-bold text-gray-700"
@@ -2531,7 +2531,7 @@ $esCorridaPiloto = false;
                         </td>
                     </tr>
                     <tr class="border-2 border-gray-500 bg-gray-50 font-semibold">
-                        <td colspan="3" class="text-right text-gray-700 px-2" onclick="calcularTotalVentas()">TOTAL VENTAS</td>
+                        <td colspan="3" class="text-right text-gray-700 px-2" onclick="calcularTotalVentas()">TOTAL VENTAS (MXN)</td>
                         <td>
                             <input type="number" step="0.01" name="TOTAL_VENTAS" value="{{old('TOTAL_VENTAS', $costeoRequisicion->TOTAL_VENTAS)}}"
                                 class="w-full border rounded px-1 py-1 text-right font-bold text-gray-700"

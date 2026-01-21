@@ -1042,7 +1042,7 @@ $esCorridaPiloto = false;
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="font-bold block mb-2">Costo por Kilo ($):</label>
+                    <label class="font-bold block mb-2">Costo por Kilo (MXN):</label>
                     <input type="number" step="0.01" name="costo_kilo"
                         value="{{ $costo_kilo }}" placeholder="ingrese costo"
                         class="w-full border-gray-300 border rounded-md p-2" oninput="calcularPrecioPorKg()">
@@ -1056,20 +1056,20 @@ $esCorridaPiloto = false;
                 </div>
 
                 <div>
-                    <label class="font-bold block mb-2">Costo Flete MP:</label>
+                    <label class="font-bold block mb-2">Costo Flete MP (MXN):</label>
                     <input type="number" step="0.01" name="costo_flete"
                         value="{{ $costo_flete }}" placeholder="ingrese costo del flete"
                         class="w-full border-gray-300 border rounded-md p-2" oninput="calcularPrecioPorKg()">
                 </div>
 
                 <div>
-                    <label class="font-bold block mb-2">Precio por KG ($):</label>
+                    <label class="font-bold block mb-2">Precio por KG (MXN):</label>
                     <input type="number" step="0.0001" name="precio_kg"
                         value="{{ $precio_kg}}" oninput="calcularCostoMP()"
                         class="w-full border-gray-300 border rounded-md p-2 bg-gray-50">
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Costo Lámina ($):</label>
+                    <label class="font-bold block mb-2">Costo Lámina (MXN):</label>
                     <input type="number" step="0.01" name="costo_lamina" placeholder="ingrese el costo de lamina"
                         value="{{ $costo_lamina }}" oninput="calcularPrecioLamina()"
                         class="w-full border-gray-300 border rounded-md p-2">
@@ -1081,13 +1081,13 @@ $esCorridaPiloto = false;
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Costo de Flete ($):</label>
+                    <label class="font-bold block mb-2">Costo de Flete (MXN):</label>
                     <input type="number" step="0.0001" name="costo_flete_lamina" placeholder="ingrese costo de flete"
                         value="{{ $costo_flete_lamina }}" oninput="calcularPrecioLamina()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Precio Lámina ($):</label>
+                    <label class="font-bold block mb-2">Precio Lámina (MXN):</label>
                     <input type="number" step="0.0001" name="precio_lamina"
                         value="{{ $precio_lamina }}" oninput="calcularCostoMP()"
                         class="w-full border-gray-300 border rounded-md p-2">
@@ -1146,7 +1146,7 @@ $esCorridaPiloto = false;
                             <th class="border border-gray-300 p-2">Bajadas por Minuto</th>
                             <th class="border border-gray-300 p-2">Total Hojas por Turno</th>
                             <th class="border border-gray-300 p-2">Total Días (2 Turnos)</th>
-                            <th class="border border-gray-300 p-2">Costo Termoformado ($)</th>
+                            <th class="border border-gray-300 p-2">Costo Termoformado (MXN)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1239,7 +1239,7 @@ $esCorridaPiloto = false;
                             <th class="border border-gray-300 p-2">Total Hojas por Turno</th>
                             <th class="border border-gray-300 p-2">Total Piezas por Turno</th>
                             <th class="border border-gray-300 p-2">Total Días (2 Turnos)</th>
-                            <th class="border border-gray-300 p-2">Costo Suaje ($)</th>
+                            <th class="border border-gray-300 p-2">Costo Suaje (MXN)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1326,8 +1326,8 @@ $esCorridaPiloto = false;
                     <thead class="bg-[#848484] text-white">
                         <tr>
                             <th class="border border-gray-400 p-2 w-1/3 text-left">Concepto</th>
-                            <th class="border border-gray-400 p-2 w-1/3">Costo ($)</th>
-                            <th class="border border-gray-400 p-2 w-1/3">Costo por Hoja ($)</th>
+                            <th class="border border-gray-400 p-2 w-1/3">Costo (MXN)</th>
+                            <th class="border border-gray-400 p-2 w-1/3">Costo por Hoja (MXN)</th>
                         </tr>
                     </thead>
                     <tbody>
