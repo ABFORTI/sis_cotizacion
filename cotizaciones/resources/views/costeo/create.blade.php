@@ -2218,7 +2218,7 @@ $esCorridaPiloto = false;
                 <thead class="bg-[#848484] text-white">
                     <tr class="border-b font-semibold">
                         <th class="px-2 py-2">Concepto</th>
-                        <th class="px-2 py-2">$ Material</th>
+                        <th class="px-2 py-2">$ Material MXN</th>
                         <th class="px-2 py-2">
                             <div class="grid gap-2 items-center" id="grid-header-hrs-maquinado">
                                 <button type="button" onclick="toggleHrsMaquinadoMolde()" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" title="Mostrar/Ocultar campo para configurar el costo por hora de maquinado">
@@ -2249,7 +2249,7 @@ $esCorridaPiloto = false;
                                 }
                             </script>
                         </th>
-                        <th class="px-2 py-2">$ TOTAL</th>
+                        <th class="px-2 py-2">$ TOTAL MXN</th>
                     </tr>
                 </thead>
 
