@@ -46,6 +46,7 @@
                     <th>Fecha</th>
                     <th>Nombre del Proyecto</th>
                     <th>Estados</th>
+                    <th>Días en Costeos</th>
                     <th class="text-center">Acciones</th>
                 </tr>
             </thead>
@@ -123,6 +124,26 @@
                         </span>
                         @endif
                         @endif
+                    </td>
+
+                    <!-- Días en Costeos -->
+                    <td class="text-center">
+                        @php
+                            $diasTranscurridos = 0;
+                            if ($cotizacion->fecha_envio_ventas && $cotizacion->fecha_envio_costeos) {
+                                $fechaEnvio = \Carbon\Carbon::parse($cotizacion->fecha_envio_ventas);
+                                $fechaRetorno = \Carbon\Carbon::parse($cotizacion->fecha_envio_costeos);
+
+                                if ($fechaEnvio->isSameDay($fechaRetorno)) {
+                                    $diasTranscurridos = 0;
+                                } else {
+                                    $diasTranscurridos = $fechaEnvio
+                                    ->startOfDay()
+                                    ->diffInDays($fechaRetorno->startOfDay());
+                                 }
+                            }
+                        @endphp
+                        {{ $diasTranscurridos }}
                     </td>
 
                     <!-- Acciones -->
