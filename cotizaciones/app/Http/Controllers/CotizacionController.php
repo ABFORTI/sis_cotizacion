@@ -684,7 +684,49 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
             'costeoRequisicion'
         ])->findOrFail($id);
 
-        return view('costeo.lineamientos_proyecto', compact('cotizacion'));
+        return view('costeo.cotizacion_innovet', compact('cotizacion'));
+    }
+
+
+    /**
+     * Guardar los lineamientos de la cotización.
+     */
+    public function guardarLineamientos(Request $request, $id)
+    {
+        $request->validate([
+            'lineamiento_1' => 'nullable|string',
+            'lineamiento_2' => 'nullable|string',
+            'lineamiento_3' => 'nullable|string',
+            'lineamiento_4' => 'nullable|string',
+            'lineamiento_5' => 'nullable|string',
+            'lineamiento_6' => 'nullable|string',
+            'lineamiento_7' => 'nullable|string',
+            'lineamiento_8' => 'nullable|string',
+            'lineamiento_9' => 'nullable|string',
+            'lineamiento_10' => 'nullable|string',
+            'tiempo_herramentales' => 'nullable|string',
+            'puesto_contacto' => 'nullable|string',
+        ]);
+
+        $cotizacion = Cotizacion::findOrFail($id);
+        
+        $cotizacion->update([
+            'lineamiento_1' => $request->lineamiento_1,
+            'lineamiento_2' => $request->lineamiento_2,
+            'lineamiento_3' => $request->lineamiento_3,
+            'lineamiento_4' => $request->lineamiento_4,
+            'lineamiento_5' => $request->lineamiento_5,
+            'lineamiento_6' => $request->lineamiento_6,
+            'lineamiento_7' => $request->lineamiento_7,
+            'lineamiento_8' => $request->lineamiento_8,
+            'lineamiento_9' => $request->lineamiento_9,
+            'lineamiento_10' => $request->lineamiento_10,
+            'tiempo_herramentales' => $request->tiempo_herramentales,
+            'puesto_contacto' => $request->puesto_contacto,
+        ]);
+
+        return redirect()->route('cotizacion.lineamientos', $id)
+            ->with('success', 'Lineamientos guardados correctamente.');
     }
 
     /**

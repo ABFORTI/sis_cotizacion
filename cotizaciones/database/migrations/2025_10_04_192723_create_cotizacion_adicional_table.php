@@ -26,7 +26,7 @@ return new class extends Migration
             $table->boolean('otros_checkbox')->default(false);
             $table->string('otro1')->nullable();
             $table->string('otro2')->nullable();
-            $table->decimal('altura_maxima_estiba', 8, 2)->nullable();
+            $table->string('altura_maxima_estiba')->nullable();
             $table->decimal('peso_maximo_caja', 8, 2)->nullable();
             $table->decimal('peso_componente', 8, 2)->nullable();
             $table->integer('componentes_por_charola')->nullable();
