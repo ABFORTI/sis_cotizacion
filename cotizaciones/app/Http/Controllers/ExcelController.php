@@ -399,7 +399,7 @@ class ExcelController extends Controller
         // --- 2. LÓGICA DE IMÁGENES (Convertir a Base64) ---
 
         // Logo de Innovet
-        $logoPath = public_path('./public/images/innovet-logo.png');
+        $logoPath = public_path('./images/innovet-logo.png');
         $logoBase64 = '';
         if (file_exists($logoPath)) {
             $logoType = pathinfo($logoPath, PATHINFO_EXTENSION);
@@ -667,7 +667,7 @@ class ExcelController extends Controller
         $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
         $drawing->setName('Logo');
         $drawing->setDescription('Logo de INNOVET');
-        $drawing->setPath(public_path('images/innovet-logo.png'));
+        $drawing->setPath(public_path('public\images\innovet-logo.png'));
         $drawing->setHeight(80);
         $drawing->setCoordinates('A1');
         $drawing->setWorksheet($sheet);
