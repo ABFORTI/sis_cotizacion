@@ -399,7 +399,7 @@ class ExcelController extends Controller
         // --- 2. LÓGICA DE IMÁGENES (Convertir a Base64) ---
 
         // Logo de Innovet
-        $logoPath = public_path('images/innovet-logo.png');
+        $logoPath = public_path('./public/images/innovet-logo.png');
         $logoBase64 = '';
         if (file_exists($logoPath)) {
             $logoType = pathinfo($logoPath, PATHINFO_EXTENSION);
@@ -691,19 +691,19 @@ class ExcelController extends Controller
         $tiempoEntrega = ceil((is_numeric($cotizacion->costeoRequisicion->tiempo_pt ?? 0) ? $cotizacion->costeoRequisicion->tiempo_pt : 0) / 5);
         $lugarEntrega = $cotizacion->lugar_entrega ?? '0';
 
-        // Lineamientos y condiciones
+        // Lineamientos y condiciones - Usar los guardados en BD o defaults
         $lineamientos = [
-            'Precios en USD. No incluyen I.V.A. Se considera fabricación, facturación y entrega en una sola exhibición.',
-            'Los precios pueden ajustarse en respuesta a cambios en aranceles, impuestos o restricciones fiscales y comerciales establecidos por la autoridad.',
-            'La vigencia de la presente cotización es de 12 meses y/o incrementos en MP superior al 5%.',
-            'Condiciones de pago son por anticipado.',
-            'Tiempo de desarrollo de herramentales y muestras para liberación ( ) semanas.',
-            'Tiempo de entrega de producto terminado: ' . $tiempoEntrega . ' semanas (todos los tiempos se confirman con disponibilidad de maquinaria).',
-            'El producto se entrega en: ' . $lugarEntrega,
-            'Considerar una variación ±10% en la entrega de producto terminado, sobre lote de producción (MOQ cotizado).',
-            'Especificación de empaque: se confirma después de la 1ª. producción.',
-            'Cualquier condición distinta al escenario cotizado implica una revisión de costos.',
-            'La responsabilidad respecto de la mercancía producida por INNOVET, es única y exclusivamente por defectos de fabricación. La inspección de la pieza deformada o fuera de calor, causa deformaciones e invalida garantías. Es responsabilidad del CLIENTE aquellos desperfectos que sufra el producto por mal uso, transportación, almacenamiento o análogas derivadas de la actividad del CLIENTE.'
+            $cotizacion->lineamiento_1 ?? 'Precios en USD. No incluyen I.V.A. Se considera fabricación, facturación y entrega en una sola exhibición.',
+            $cotizacion->lineamiento_2 ?? 'Los precios pueden ajustarse en respuesta a cambios en aranceles, impuestos o restricciones fiscales y comerciales establecidos por la autoridad.',
+            $cotizacion->lineamiento_3 ?? 'La vigencia de la presente cotización es de 12 meses y/o incrementos en MP superior al 5%.',
+            $cotizacion->lineamiento_4 ?? 'Condiciones de pago son por anticipado.',
+            'Tiempo de desarrollo de herramentales y muestras para liberación (' . ($cotizacion->tiempo_herramentales ?? '') . ') semanas.',
+            $cotizacion->lineamiento_5 ?? 'Tiempo de entrega de producto terminado: ' . $tiempoEntrega . ' semanas (todos los tiempos se confirman con disponibilidad de maquinaria).',
+            $cotizacion->lineamiento_6 ?? 'El producto se entrega en: ' . $lugarEntrega,
+            $cotizacion->lineamiento_7 ?? 'Considerar una variación ±10% en la entrega de producto terminado, sobre lote de producción (MOQ cotizado).',
+            $cotizacion->lineamiento_8 ?? 'Especificación de empaque: se confirma después de la 1ª. producción.',
+            $cotizacion->lineamiento_9 ?? 'Cualquier condición distinta al escenario cotizado implica una revisión de costos.',
+            $cotizacion->lineamiento_10 ?? 'La responsabilidad respecto de la mercancía producida por INNOVET, es única y exclusivamente por defectos de fabricación. La inspección de la pieza deformada o fuera de calor, causa deformaciones e invalida garantías. Es responsabilidad del CLIENTE aquellos desperfectos que sufra el producto por mal uso, transportación, almacenamiento o análogas derivadas de la actividad del CLIENTE.'
         ];
 
         // Insertar cada lineamiento
@@ -726,15 +726,12 @@ class ExcelController extends Controller
 
         $currentRow += 2;
 
-        // --- CAMBIO: Leer datos desde la Request (URL) ---
-        // Obtener datos del usuario autenticado si existe, o usar el default
+        // --- CAMBIO: Usar datos guardados en BD o de Request ---
         $defaultName = Auth::check() ? Auth::user()->name : 'Colocar aquí nombre de quien atiende la cuenta';
-        // Leer 'nombre_contacto' de la URL, si no existe, usar $defaultName
-        $nombreContacto = $request->input('nombre_contacto', $defaultName);
-        // Leer 'puesto_contacto' de la URL, si no existe, usar 'Puesto'
-        $puestoContacto = $request->input('puesto_contacto', 'Puesto');
+        $nombreContacto = $cotizacion->nombre_contacto ?? $request->input('nombre_contacto', $defaultName);
+        $puestoContacto = $cotizacion->puesto_contacto ?? $request->input('puesto_contacto', 'Puesto');
 
-        // Usar las variables leídas de la Request
+        // Usar las variables leídas de la BD o Request
         $sheet->setCellValue('A' . $currentRow, $nombreContacto);
         $sheet->getStyle('A' . $currentRow)->applyFromArray($normalTextStyle);
         $sheet->mergeCells('A' . $currentRow . ':G' . $currentRow);
@@ -788,28 +785,26 @@ class ExcelController extends Controller
         $tiempoEntrega = ceil((is_numeric($cotizacion->costeoRequisicion->tiempo_pt ?? 0) ? $cotizacion->costeoRequisicion->tiempo_pt : 0) / 5);
         $lugarEntrega = $cotizacion->lugar_entrega ?? '0';
 
-        // Lineamientos y condiciones
+        // Lineamientos y condiciones - Usar los guardados en BD o defaults
         $lineamientos = [
-            'Precios en USD. No incluyen I.V.A. Se considera fabricación, facturación y entrega en una sola exhibición.',
-            'Los precios pueden ajustarse en respuesta a cambios en aranceles, impuestos o restricciones fiscales y comerciales establecidos por la autoridad.',
-            'La vigencia de la presente cotización es de 12 meses y/o incrementos en MP superior al 5%.',
-            'Condiciones de pago son por anticipado.',
-            'Tiempo de desarrollo de herramentales y muestras para liberación ( ) semanas.',
-            'Tiempo de entrega de producto terminado: ' . $tiempoEntrega . ' semanas (todos los tiempos se confirman con disponibilidad de maquinaria).',
-            'El producto se entrega en: ' . $lugarEntrega,
-            'Considerar una variación ±10% en la entrega de producto terminado, sobre lote de producción (MOQ cotizado).',
-            'Especificación de empaque: se confirma después de la 1ª. producción.',
-            'Cualquier condición distinta al escenario cotizado implica una revisión de costos.',
-            'La responsabilidad respecto de la mercancía producida por INNOVET, es única y exclusivamente por defectos de fabricación. La inspección de la pieza deformada o fuera de calor, causa deformaciones e invalida garantías. Es responsabilidad del CLIENTE aquellos desperfectos que sufra el producto por mal uso, transportación, almacenamiento o análogas derivadas de la actividad del CLIENTE.'
+            $cotizacion->lineamiento_1 ?? 'Precios en USD. No incluyen I.V.A. Se considera fabricación, facturación y entrega en una sola exhibición.',
+            $cotizacion->lineamiento_2 ?? 'Los precios pueden ajustarse en respuesta a cambios en aranceles, impuestos o restricciones fiscales y comerciales establecidos por la autoridad.',
+            $cotizacion->lineamiento_3 ?? 'La vigencia de la presente cotización es de 12 meses y/o incrementos en MP superior al 5%.',
+            $cotizacion->lineamiento_4 ?? 'Condiciones de pago son por anticipado.',
+            'Tiempo de desarrollo de herramentales y muestras para liberación (' . ($cotizacion->tiempo_herramentales ?? '') . ') semanas.',
+            $cotizacion->lineamiento_5 ?? 'Tiempo de entrega de producto terminado: ' . $tiempoEntrega . ' semanas (todos los tiempos se confirman con disponibilidad de maquinaria).',
+            $cotizacion->lineamiento_6 ?? 'El producto se entrega en: ' . $lugarEntrega,
+            $cotizacion->lineamiento_7 ?? 'Considerar una variación ±10% en la entrega de producto terminado, sobre lote de producción (MOQ cotizado).',
+            $cotizacion->lineamiento_8 ?? 'Especificación de empaque: se confirma después de la 1ª. producción.',
+            $cotizacion->lineamiento_9 ?? 'Cualquier condición distinta al escenario cotizado implica una revisión de costos.',
+            $cotizacion->lineamiento_10 ?? 'La responsabilidad respecto de la mercancía producida por INNOVET, es única y exclusivamente por defectos de fabricación. La inspección de la pieza deformada o fuera de calor, causa deformaciones e invalida garantías. Es responsabilidad del CLIENTE aquellos desperfectos que sufra el producto por mal uso, transportación, almacenamiento o análogas derivadas de la actividad del CLIENTE.'
         ];
 
-        // --- CAMBIO: Leer datos desde la Request (URL) ---
-        // Obtener datos del usuario autenticado si existe, o usar el default
+        // --- Leer datos desde la BD o REQUEST (URL) ---
+        // Usar el nombre guardado en BD, sino obtener de la Request, sino usar el usuario autenticado
         $defaultName = Auth::check() ? Auth::user()->name : 'Colocar aquí nombre de quien atiende la cuenta';
-        // Leer 'nombre_contacto' de la URL, si no existe, usar $defaultName
-        $nombreContacto = $request->input('nombre_contacto', $defaultName);
-        // Leer 'puesto_contacto' de la URL, si no existe, usar 'Puesto'
-        $puestoContacto = $request->input('puesto_contacto', 'Puesto');
+        $nombreContacto = $cotizacion->nombre_contacto ?? $request->input('nombre_contacto', $defaultName);
+        $puestoContacto = $cotizacion->puesto_contacto ?? $request->input('puesto_contacto', 'Puesto');
 
 
         // --- 2. LÓGICA DE IMÁGENES (Solo Logo) ---
@@ -1936,6 +1931,549 @@ if ($c->resumen && $c->resumen->archivos->count() > 0) {
         $fileName = 'Resumen_Costos_CP_' . ($cotizacion->no_proyecto ?? $cotizacion->id) . '.pdf';
         $dompdf->stream($fileName, ["Attachment" => false]);
         exit;
+    }
+
+    /**
+     * Generar Excel combinado: Cotización + Lineamientos (COMPLETO)
+     */
+    public function generarCotizacionLineamientosExcel(Request $request, $id)
+    {
+        $cotizacion = Cotizacion::with([
+            'especificacionProyecto',
+            'costeoRequisicion'
+        ])->findOrFail($id);
+
+        $spreadsheet = new Spreadsheet();
+        
+        // HOJA 1: Cotización Completa
+        $sheet1 = $spreadsheet->getActiveSheet();
+        $sheet1->setTitle('Cotización');
+        
+        $this->llenarHojaCotizacionCompleta($sheet1, $cotizacion);
+
+        // HOJA 2: Lineamientos
+        $sheet2 = $spreadsheet->createSheet();
+        $sheet2->setTitle('Lineamientos');
+        
+        $this->llenarHojaLineamientos($sheet2, $cotizacion, $request);
+
+        // Descargar
+        $writer = new Xlsx($spreadsheet);
+        $fileName = 'Cotizacion_Completa_' . $cotizacion->no_proyecto . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $fileName . '"');
+        $writer->save('php://output');
+        exit;
+    }
+
+    /**
+     * Generar PDF combinado: Cotización Completa + Lineamientos
+     */
+    public function generarCotizacionLineamientosPdf(Request $request, $id)
+    {
+        $cotizacion = Cotizacion::with([
+            'especificacionProyecto',
+            'costeoRequisicion'
+        ])->findOrFail($id);
+
+        // Generar HTML completo
+        $htmlCompleto = $this->generarHtmlCotizacionCompleta($cotizacion);
+
+        // Crear PDF con DomPDF
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($htmlCompleto);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $fileName = 'Cotizacion_Completa_' . ($cotizacion->no_proyecto ?? $cotizacion->id) . '.pdf';
+        $dompdf->stream($fileName, ["Attachment" => true]);
+        exit;
+    }
+
+    /**
+     * Helper: Llenar hoja de cotización
+     */
+    private function llenarHojaCotizacion($sheet, $cotizacion)
+    {
+        // Configuración inicial
+        $sheet->getDefaultColumnDimension()->setWidth(15);
+        $sheet->getDefaultRowDimension()->setRowHeight(25);
+
+        // Logo
+        $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+        $drawing->setName('Logo');
+        $drawing->setDescription('Logo de INNOVET');
+        $drawing->setPath(public_path('images/innovet-logo.png'));
+        $drawing->setHeight(80);
+        $drawing->setCoordinates('A1');
+        $drawing->setWorksheet($sheet);
+
+        // Información del folio
+        $sheet->setCellValue('F1', 'Folio:');
+        $sheet->setCellValue('G1', $cotizacion->no_proyecto);
+        $sheet->setCellValue('F2', 'Fecha:');
+        $sheet->setCellValue('G2', $cotizacion->fecha);
+
+        // Estilos
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2B2B2B']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]]
+        ];
+
+        // Encabezado de tabla
+        $currentRow = 4;
+        $sheet->setCellValue('A' . $currentRow, '');
+        $sheet->setCellValue('B' . $currentRow, 'Descripcion del proyecto');
+        $sheet->setCellValue('C' . $currentRow, 'Piezas (MOQ)');
+        $sheet->setCellValue('D' . $currentRow, 'Precio Unitario (MXN)');
+
+        $sheet->getStyle('A' . $currentRow . ':D' . $currentRow)->applyFromArray($headerStyle);
+
+        $currentRow++;
+        
+        // Datos de la cotización
+        $sheet->setCellValue('A' . $currentRow, '1');
+        $sheet->setCellValue('B' . $currentRow, $cotizacion->nombre_del_proyecto);
+        $sheet->setCellValue('C' . $currentRow, $cotizacion->especificacionProyecto->lote_compra ?? 'N/C');
+        
+        $ventasResumen = $cotizacion->ventasResumen ?? null;
+        $precioUnitario = $ventasResumen->resumen_total_costo_unit ?? ($cotizacion->costeoRequisicion->resumen_total_costo_unit ?? null);
+        $sheet->setCellValue('D' . $currentRow, '$ ' . ($precioUnitario ? number_format($precioUnitario, 2) : 'N/C'));
+    }
+
+    /**
+     * Helper: Llenar hoja de cotización COMPLETA (con todas las secciones)
+     */
+    private function llenarHojaCotizacionCompleta($sheet, $cotizacion)
+    {
+        // Configuración inicial
+        $sheet->getDefaultColumnDimension()->setWidth(20);
+        $sheet->getDefaultRowDimension()->setRowHeight(30);
+
+        // Agregar logo
+        $logoPath = public_path('images/innovet-logo.png');
+        if (file_exists($logoPath)) {
+            $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+            $drawing->setName('Logo');
+            $drawing->setDescription('Logo de INNOVET');
+            $drawing->setPath($logoPath);
+            $drawing->setHeight(60);
+            $drawing->setCoordinates('A1');
+            $drawing->setWorksheet($sheet);
+        }
+
+        $titleStyle = [
+            'font' => ['bold' => true, 'size' => 14, 'color' => ['rgb' => 'B50B0B']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true]
+        ];
+
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2B2B2B']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]]
+        ];
+
+        $normalStyle = [
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true]
+        ];
+
+        $currentRow = 2;
+
+        // Información general
+        $sheet->setCellValue('A' . $currentRow, 'COTIZACIÓN');
+        $sheet->getStyle('A' . $currentRow)->applyFromArray($titleStyle);
+        $currentRow += 2;
+
+        $sheet->setCellValue('A' . $currentRow, 'Folio:');
+        $sheet->setCellValue('B' . $currentRow, $cotizacion->no_proyecto);
+        $currentRow++;
+
+        $sheet->setCellValue('A' . $currentRow, 'Fecha:');
+        $sheet->setCellValue('B' . $currentRow, $cotizacion->fecha);
+        $currentRow++;
+
+        $sheet->setCellValue('A' . $currentRow, 'Cliente:');
+        $sheet->setCellValue('B' . $currentRow, $cotizacion->cliente);
+        $currentRow++;
+
+        $sheet->setCellValue('A' . $currentRow, 'Puesto:');
+        $sheet->setCellValue('B' . $currentRow, $cotizacion->puesto);
+        $currentRow++;
+
+        $sheet->setCellValue('A' . $currentRow, 'Email:');
+        $sheet->setCellValue('B' . $currentRow, $cotizacion->correo);
+        $currentRow++;
+
+        $sheet->setCellValue('A' . $currentRow, 'Teléfono:');
+        $sheet->setCellValue('B' . $currentRow, $cotizacion->telefono);
+        $currentRow += 2;
+
+        // Tabla de productos
+        $sheet->setCellValue('A' . $currentRow, '#');
+        $sheet->setCellValue('B' . $currentRow, 'Descripción');
+        $sheet->setCellValue('C' . $currentRow, 'Dimensiones');
+        $sheet->setCellValue('D' . $currentRow, 'Material');
+        $sheet->setCellValue('E' . $currentRow, 'Color');
+        $sheet->setCellValue('F' . $currentRow, 'MOQ');
+        $sheet->setCellValue('G' . $currentRow, 'Precio Unitario (MXN)');
+
+        $sheet->getStyle('A' . $currentRow . ':G' . $currentRow)->applyFromArray($headerStyle);
+        $currentRow++;
+
+        // Datos producto 1
+        $sheet->setCellValue('A' . $currentRow, '1');
+        $sheet->setCellValue('B' . $currentRow, $cotizacion->nombre_del_proyecto);
+        $sheet->setCellValue('C' . $currentRow, ($cotizacion->especificacionProyecto->pieza_largo ?? '') . ' x ' . ($cotizacion->especificacionProyecto->pieza_ancho ?? '') . ' x ' . ($cotizacion->especificacionProyecto->pieza_alto ?? ''));
+        $sheet->setCellValue('D' . $currentRow, $cotizacion->especificacionProyecto->material ?? 'N/C');
+        $sheet->setCellValue('E' . $currentRow, $cotizacion->especificacionProyecto->color ?? 'N/C');
+        $sheet->setCellValue('F' . $currentRow, $cotizacion->especificacionProyecto->lote_compra ?? 'N/C');
+        
+        $ventasResumen = $cotizacion->ventasResumen ?? null;
+        $precioUnitario = $ventasResumen->resumen_total_costo_unit ?? ($cotizacion->costeoRequisicion->resumen_total_costo_unit ?? null);
+        $sheet->setCellValue('G' . $currentRow, '$ ' . ($precioUnitario ? number_format($precioUnitario, 2) : 'N/C'));
+        $currentRow += 2;
+
+        // Herramentales
+        $sheet->setCellValue('A' . $currentRow, '#');
+        $sheet->setCellValue('B' . $currentRow, 'Descripción');
+        $sheet->setCellValue('C' . $currentRow, 'Notas');
+        $sheet->setCellValue('D' . $currentRow, 'Precio Unitario (MXN)');
+
+        $sheet->getStyle('A' . $currentRow . ':D' . $currentRow)->applyFromArray($headerStyle);
+        $currentRow++;
+
+        $sheet->setCellValue('A' . $currentRow, '2');
+        $sheet->setCellValue('B' . $currentRow, 'Desarrollo de Herramentales');
+        $sheet->setCellValue('C' . $currentRow, 'Se considera entrega de 3 muestras para liberación');
+        
+        $precioHerramentales = $ventasResumen->resumen_total_precio_venta ?? ($cotizacion->costeoRequisicion->TOTAL_VENTAS ?? null);
+        $sheet->setCellValue('D' . $currentRow, '$ ' . ($precioHerramentales ? number_format($precioHerramentales, 2) : 'N/C'));
+        $currentRow += 2;
+
+        // Agregar imagen si existe
+        $imagen = $cotizacion->archivosAdjuntos
+            ->filter(fn($a) => preg_match('/\.(jpg|jpeg|png|gif)$/i', $a->path))
+            ->last();
+
+        if ($imagen) {
+            $imagenPath = storage_path('app/public/' . $imagen->path);
+            if (file_exists($imagenPath)) {
+                $sheet->setCellValue('A' . $currentRow, 'Imagen Ilustrativa:');
+                $currentRow++;
+                
+                $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+                $drawing->setName('Imagen Ilustrativa');
+                $drawing->setDescription('Imagen del proyecto');
+                $drawing->setPath($imagenPath);
+                $drawing->setHeight(150);
+                $drawing->setCoordinates('A' . $currentRow);
+                $drawing->setWorksheet($sheet);
+            }
+        }
+    }
+
+    /**
+     * Helper: Llenar hoja de lineamientos
+     */
+    private function llenarHojaLineamientos($sheet, $cotizacion, $request)
+    {
+        $sheet->getDefaultColumnDimension()->setWidth(15);
+        $sheet->getDefaultRowDimension()->setRowHeight(25);
+
+        $titleRedStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'B50B0B'], 'size' => 16],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true]
+        ];
+
+        $normalTextStyle = [
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true]
+        ];
+
+        // Título
+        $currentRow = 2;
+        $sheet->setCellValue('A' . $currentRow, 'Lineamientos del Proyecto');
+        $sheet->getStyle('A' . $currentRow)->applyFromArray($titleRedStyle);
+        $sheet->mergeCells('A' . $currentRow . ':G' . $currentRow);
+
+        $currentRow += 2;
+
+        // Lineamientos
+        $lineamientos = [
+            $cotizacion->lineamiento_1 ?? 'Precios en USD. No incluyen I.V.A. Se considera fabricación, facturación y entrega en una sola exhibición.',
+            $cotizacion->lineamiento_2 ?? 'Los precios pueden ajustarse en respuesta a cambios en aranceles, impuestos o restricciones fiscales y comerciales establecidos por la autoridad.',
+            $cotizacion->lineamiento_3 ?? 'La vigencia de la presente cotización es de 12 meses y/o incrementos en MP superior al 5%.',
+            $cotizacion->lineamiento_4 ?? 'Condiciones de pago son por anticipado.',
+            'Tiempo de desarrollo de herramentales y muestras para liberación (' . ($cotizacion->tiempo_herramentales ?? '') . ') semanas.',
+            $cotizacion->lineamiento_5 ?? 'Tiempo de entrega de producto terminado.',
+            $cotizacion->lineamiento_6 ?? 'El producto se entrega en: ' . ($cotizacion->lugar_entrega ?? ''),
+            $cotizacion->lineamiento_7 ?? 'Considerar una variación ±10% en la entrega de producto terminado, sobre lote de producción (MOQ cotizado).',
+            $cotizacion->lineamiento_8 ?? 'Especificación de empaque: se confirma después de la 1ª. producción.',
+            $cotizacion->lineamiento_9 ?? 'Cualquier condición distinta al escenario cotizado implica una revisión de costos.',
+            $cotizacion->lineamiento_10 ?? 'La responsabilidad respecto de la mercancía producida por INNOVET...'
+        ];
+
+        foreach ($lineamientos as $lineamiento) {
+            $sheet->setCellValue('A' . $currentRow, $lineamiento);
+            $sheet->getStyle('A' . $currentRow)->applyFromArray($normalTextStyle);
+            $sheet->mergeCells('A' . $currentRow . ':G' . $currentRow);
+            $sheet->getRowDimension($currentRow)->setRowHeight(40);
+            $currentRow++;
+        }
+
+        $currentRow += 2;
+
+        // Atentamente
+        $sheet->setCellValue('A' . $currentRow, 'Atentamente');
+        $sheet->getStyle('A' . $currentRow)->applyFromArray($titleRedStyle);
+        $sheet->mergeCells('A' . $currentRow . ':G' . $currentRow);
+
+        $currentRow += 2;
+
+        $defaultName = Auth::check() ? Auth::user()->name : 'Nombre';
+        $nombreContacto = $cotizacion->nombre_contacto ?? $request->input('nombre_contacto', $defaultName);
+        $puestoContacto = $cotizacion->puesto_contacto ?? $request->input('puesto_contacto', 'Puesto');
+
+        $sheet->setCellValue('A' . $currentRow, $nombreContacto);
+        $sheet->getStyle('A' . $currentRow)->applyFromArray($normalTextStyle);
+        $currentRow++;
+
+        $sheet->setCellValue('A' . $currentRow, $puestoContacto);
+        $sheet->getStyle('A' . $currentRow)->applyFromArray($normalTextStyle);
+    }
+
+    /**
+     * Helper: Generar HTML para cotización COMPLETA
+     */
+    private function generarHtmlCotizacionCompleta($cotizacion)
+    {
+        $ventasResumen = $cotizacion->ventasResumen ?? null;
+        $precioUnitario = $ventasResumen->resumen_total_costo_unit ?? ($cotizacion->costeoRequisicion->resumen_total_costo_unit ?? null);
+        $precioHerramentales = $ventasResumen->resumen_total_precio_venta ?? ($cotizacion->costeoRequisicion->TOTAL_VENTAS ?? null);
+
+        // Obtener imagen si existe
+        $imagen = $cotizacion->archivosAdjuntos
+            ->filter(fn($a) => preg_match('/\.(jpg|jpeg|png|gif)$/i', $a->path))
+            ->last();
+        
+        $imagenHtml = '';
+        if ($imagen) {
+            $imagenPath = storage_path('app/public/' . $imagen->path);
+            if (file_exists($imagenPath)) {
+                // Usar data URI para embeber la imagen directamente
+                $imagenData = base64_encode(file_get_contents($imagenPath));
+                $mimeType = mime_content_type($imagenPath);
+                $imagenHtml = '<div style="text-align: center; margin: 30px 0;">
+                                <h3 style="color: #b50b0b; margin-bottom: 15px;">Imagen Ilustrativa:</h3>
+                                <img src="data:' . $mimeType . ';base64,' . $imagenData . '" style="max-width: 400px; max-height: 400px; border: 1px solid #ddd; padding: 10px;">
+                            </div>';
+            }
+        }
+
+        $html = '<style>
+            body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+            .header-section { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #2b2b2b; padding-bottom: 20px; }
+            .logo-section { flex: 1; }
+            .logo-section img { max-width: 150px; height: auto; }
+            .folio-section { text-align: right; }
+            .folio-section p { margin: 5px 0; font-size: 14px; }
+            .folio-section strong { font-weight: bold; }
+            .client-info { background-color: #f5f5f5; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+            .client-info p { margin: 5px 0; font-size: 13px; }
+            .title-red { color: #b50b0b; font-weight: bold; font-size: 16px; margin: 20px 0 10px 0; }
+            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+            th { background-color: #2b2b2b; color: white; font-weight: bold; padding: 10px; text-align: left; border: 1px solid #333; }
+            td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            .price-cell { background-color: #92d050; color: white; font-weight: bold; text-align: center; }
+            .spec-table { width: 100%; border-collapse: collapse; background-color: #d9d9d9; font-size: 12px; }
+            .spec-table th { background-color: #bfbfbf; color: #000; padding: 5px; font-size: 12px; }
+            .spec-table td { background-color: #bfbfbf; padding: 5px; border: 1px solid #999; text-align: center; }
+            .contact { color: #b50b0b; font-weight: 600; }
+            .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 12px; color: #666; }
+            .page-break { page-break-after: always; }
+        </style>';
+
+        // Header con logo
+        $logoUrl = asset('images/innovet-logo.png');
+        $html .= '<div class="header-section">
+                    <div class="logo-section">
+                        <img src="' . $logoUrl . '" alt="Innovet">
+                    </div>
+                    <div class="folio-section">
+                        <p><strong>Folio:</strong> ' . htmlspecialchars($cotizacion->no_proyecto) . '</p>
+                        <p><strong>Fecha:</strong> ' . htmlspecialchars($cotizacion->fecha) . '</p>
+                    </div>
+                </div>';
+
+        // Información del cliente
+        $html .= '<div class="client-info">
+                    <h2 style="margin-top: 0; color: #333; text-align: center;">' . htmlspecialchars($cotizacion->cliente) . '</h2>
+                    <p><strong>Puesto:</strong> ' . htmlspecialchars($cotizacion->puesto) . '</p>
+                    <p><span class="contact">' . htmlspecialchars($cotizacion->correo) . '</span></p>
+                    <p>Tel. <span class="contact">' . htmlspecialchars($cotizacion->telefono) . '</span></p>
+                </div>';
+
+        // Tabla de productos
+        $html .= '<div class="title-red">Productos</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 30%;">Descripción</th>
+                            <th style="width: 30%;">Especificaciones</th>
+                            <th style="width: 15%;">MOQ</th>
+                            <th style="width: 20%;">Precio Unitario (MXN)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td><strong>' . htmlspecialchars($cotizacion->nombre_del_proyecto) . '</strong></td>
+                            <td>
+                                <table class="spec-table">
+                                    <tr>
+                                        <th>Dimensiones</th>
+                                        <td>' . htmlspecialchars($cotizacion->especificacionProyecto->pieza_largo ?? '0') . ' x ' . htmlspecialchars($cotizacion->especificacionProyecto->pieza_ancho ?? '0') . ' x ' . htmlspecialchars($cotizacion->especificacionProyecto->pieza_alto ?? '0') . ' mm</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Material</th>
+                                        <td>' . htmlspecialchars($cotizacion->especificacionProyecto->material ?? 'N/C') . '</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Color</th>
+                                        <td>' . htmlspecialchars($cotizacion->especificacionProyecto->color ?? 'N/C') . '</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Calibre</th>
+                                        <td>' . htmlspecialchars($cotizacion->especificacionProyecto->calibre ?? 'N/C') . '</td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td>' . htmlspecialchars($cotizacion->especificacionProyecto->lote_compra ?? 'N/C') . '</td>
+                            <td class="price-cell">$ ' . ($precioUnitario ? number_format($precioUnitario, 2) : 'N/C') . '</td>
+                        </tr>
+                    </tbody>
+                </table>';
+
+        // Tabla de herramentales
+        $html .= '<div class="title-red">Desarrollo de Herramentales</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 40%;">Descripción</th>
+                            <th style="width: 35%;">Notas</th>
+                            <th style="width: 20%;">Precio (MXN)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2</td>
+                            <td><strong>Desarrollo de Herramentales</strong></td>
+                            <td>Se considera entrega de 3 muestras para liberación</td>
+                            <td class="price-cell">$ ' . ($precioHerramentales ? number_format($precioHerramentales, 2) : 'N/C') . '</td>
+                        </tr>
+                    </tbody>
+                </table>';
+
+        // Imagen si existe
+        $html .= $imagenHtml;
+
+        // Lineamientos en nueva página
+        $html .= '<div style="page-break-before: always;"></div>
+                <div class="title-red" style="font-size: 18px;">Lineamientos del Proyecto</div>';
+
+        $lineamientos = [
+            $cotizacion->lineamiento_1 ?? 'Precios en USD. No incluyen I.V.A. Se considera fabricación, facturación y entrega en una sola exhibición.',
+            $cotizacion->lineamiento_2 ?? 'Los precios pueden ajustarse en respuesta a cambios en aranceles, impuestos o restricciones fiscales y comerciales establecidos por la autoridad.',
+            $cotizacion->lineamiento_3 ?? 'La vigencia de la presente cotización es de 12 meses y/o incrementos en MP superior al 5%.',
+            $cotizacion->lineamiento_4 ?? 'Condiciones de pago son por anticipado.',
+            'Tiempo de desarrollo de herramentales y muestras para liberación (' . htmlspecialchars($cotizacion->tiempo_herramentales ?? '') . ') semanas.',
+            $cotizacion->lineamiento_5 ?? 'Tiempo de entrega de producto terminado.',
+            $cotizacion->lineamiento_6 ?? 'El producto se entrega en: ' . htmlspecialchars($cotizacion->lugar_entrega ?? ''),
+            $cotizacion->lineamiento_7 ?? 'Considerar una variación ±10% en la entrega de producto terminado, sobre lote de producción (MOQ cotizado).',
+            $cotizacion->lineamiento_8 ?? 'Especificación de empaque: se confirma después de la 1ª. producción.',
+            $cotizacion->lineamiento_9 ?? 'Cualquier condición distinta al escenario cotizado implica una revisión de costos.',
+            $cotizacion->lineamiento_10 ?? 'La responsabilidad respecto de la mercancía producida por INNOVET, es única y exclusivamente por defectos de fabricación.'
+        ];
+
+        $html .= '<ol style="line-height: 1.8; font-size: 13px;">';
+        foreach ($lineamientos as $item) {
+            $html .= '<li>' . htmlspecialchars($item) . '</li>';
+        }
+        $html .= '</ol>';
+
+        // Firma
+        $defaultName = Auth::check() ? Auth::user()->name : 'Nombre';
+        $nombreContacto = $cotizacion->nombre_contacto ?? $defaultName;
+        $puestoContacto = $cotizacion->puesto_contacto ?? 'Puesto';
+
+        $html .= '<div style="margin-top: 50px;">
+                    <p style="margin: 0;"><strong style="color: #b50b0b;">Atentamente,</strong></p>
+                    <p style="margin: 20px 0 0 0; border-top: 1px solid #000; padding-top: 10px;">
+                        <strong>' . htmlspecialchars($nombreContacto) . '</strong><br>
+                        ' . htmlspecialchars($puestoContacto) . '
+                    </p>
+                </div>';
+
+        // Footer
+        $html .= '<div class="footer">
+                    <p>Av Del Marqués lote 7. Parque industrial Bernardo Quintana. El Marqués, Querétaro, C.P 76246</p>
+                    <p>ACF10 | Fecha de efectividad: 01-septiembre-2025 | Revisión: 03</p>
+                </div>';
+
+        return $html;
+    }
+
+    /**
+     * Helper: Generar HTML para lineamientos
+     */
+    private function generarHtmlLineamientos($cotizacion, $request)
+    {
+        $lineamientos = [
+            $cotizacion->lineamiento_1 ?? 'Precios en USD. No incluyen I.V.A. Se considera fabricación, facturación y entrega en una sola exhibición.',
+            $cotizacion->lineamiento_2 ?? 'Los precios pueden ajustarse en respuesta a cambios en aranceles, impuestos o restricciones fiscales y comerciales establecidos por la autoridad.',
+            $cotizacion->lineamiento_3 ?? 'La vigencia de la presente cotización es de 12 meses y/o incrementos en MP superior al 5%.',
+            $cotizacion->lineamiento_4 ?? 'Condiciones de pago son por anticipado.',
+            'Tiempo de desarrollo de herramentales y muestras para liberación (' . ($cotizacion->tiempo_herramentales ?? '') . ') semanas.',
+            $cotizacion->lineamiento_5 ?? 'Tiempo de entrega de producto terminado.',
+            $cotizacion->lineamiento_6 ?? 'El producto se entrega en: ' . ($cotizacion->lugar_entrega ?? ''),
+            $cotizacion->lineamiento_7 ?? 'Considerar una variación ±10%',
+            $cotizacion->lineamiento_8 ?? 'Especificación de empaque',
+            $cotizacion->lineamiento_9 ?? 'Cualquier condición distinta',
+            $cotizacion->lineamiento_10 ?? 'Responsabilidad de INNOVET'
+        ];
+
+        $defaultName = Auth::check() ? Auth::user()->name : 'Nombre';
+        $nombreContacto = $cotizacion->nombre_contacto ?? $request->input('nombre_contacto', $defaultName);
+        $puestoContacto = $cotizacion->puesto_contacto ?? $request->input('puesto_contacto', 'Puesto');
+
+        $html = '<style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .title-red { color: #b50b0b; font-weight: bold; font-size: 18px; margin-bottom: 15px; }
+            .lineamiento { margin-bottom: 10px; }
+        </style>';
+
+        $html .= '<div class="title-red">Lineamientos del Proyecto</div>';
+        $html .= '<div style="margin-bottom: 30px;">';
+        
+        foreach ($lineamientos as $item) {
+            $html .= '<div class="lineamiento">' . htmlspecialchars($item) . '</div>';
+        }
+        
+        $html .= '</div>';
+
+        $html .= '<div class="title-red" style="margin-top: 40px;">Atentamente</div>';
+        $html .= '<div style="margin-top: 20px;">';
+        $html .= '<p>' . htmlspecialchars($nombreContacto) . '</p>';
+        $html .= '<p>' . htmlspecialchars($puestoContacto) . '</p>';
+        $html .= '</div>';
+
+        return $html;
     }
 
 }

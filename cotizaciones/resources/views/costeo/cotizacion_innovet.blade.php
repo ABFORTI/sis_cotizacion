@@ -276,10 +276,9 @@
 
 <div class="container mx-auto px-4 py-6 font-sans text-sm">
     <div class="bg-white rounded-lg shadow-lg p-6 md:p-6 p-3">
-    <!-- Header: logo left, folio/fecha right -->
+    <!-- Header -->
     <div class="flex items-start justify-between mb-4 header-mobile">
         <div>
-            <!-- Ajusta la ruta del logo según tu proyecto -->
             <img src="{{ asset('images/innovet-logo.png') }}" alt="Innovet" style="max-width: 220px; width: 100%; height: auto;">
         </div>
         <div class="text-right w-1/2">
@@ -294,31 +293,26 @@
                 </tr>
             </table>
             <div class="mt-2 flex justify-end gap-2 font-bold btn-container-mobile">
-                <!-- Botón para generar Excel -->
-                <a href="{{ route('cotizacion.excel', $cotizacion->id) }}" class="inline-block bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 transition-colors text-center">
+                <a href="{{ route('cotizacion.excel.completo', $cotizacion->id) }}" class="inline-block bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 transition-colors text-center">
                     <i class="fas fa-file-excel"></i> Descargar Excel
                 </a>
-                <!-- Botón para generar PDF -->
-                <a href="{{ route('cotizacion.pdf', $cotizacion->id) }}"  target="_blank" class="inline-block bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors text-center">
+                <a href="{{ route('cotizacion.pdf.completo', $cotizacion->id) }}"  target="_blank" class="inline-block bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors text-center">
                     <i class="fas fa-file-pdf"></i> Descargar PDF
                 </a>
-                <!-- Botón para ir a Lineamientos -->
-                <a href="{{ route('cotizacion.lineamientos', $cotizacion->id) }}" class="inline-block bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 transition-colors text-center">
-                    <i class="fas fa-info-circle"></i> Lineamientos Proyecto
-                </a>
+
             </div>
         </div>
     </div>
 
-    <!-- Nombre cliente centrado y contacto -->
+    <!-- Información del Cliente -->
     <div class="text-center mb-2">
         <div class="text-2xl font-semibold client-name-mobile">{{ $cotizacion->cliente }}</div>
-        <div class="text-lg text-gray-600 client-position-mobile">{{ $cotizacion->puesto }}</div>
-    </div>
-
-    <div class="grid grid-cols-12 gap-2 items-center mb-6 contact-mobile">
-        <div class="col-span-9 text-sm contacto-rojo">{{ $cotizacion->correo }}</div>
-        <div class="col-span-3 text-right text-sm text-gray-700">Tel. <span class="font-semibold contacto-rojo">{{ $cotizacion->telefono }}</span></div>
+            <p><strong>Proyecto:</strong> {{ $cotizacion->nombre_del_proyecto }}</p>
+                <div class="mb-6 p-4 bg-gray-50 rounded-lg flex flex-col md:flex-row justify-center items-center gap-4">
+                    <p><strong>Puesto:</strong> {{ $cotizacion->puesto }}</p>
+                    <p><strong>Email:</strong> {{ $cotizacion->correo }}</p>
+                    <p><strong>Teléfono:</strong> {{ $cotizacion->telefono }}</p>
+                </div>
     </div>
 
     <!-- Tabla principal -->
@@ -377,7 +371,7 @@
             </tbody>
         </table>
     </div>
-    <!-- Segunda tabla con espacio -->
+    <!-- Segunda tabla -->
     <div class="shadow-sm border border-gray-200 mt-10 table-wrapper">
         <table class="w-full border-collapse cotizacion-table" style="min-width: 650px;">
             <thead>
@@ -422,7 +416,7 @@
     <br><br><br>
     {{-- Archivos ya cargados (solo imágenes) --}}
     {{-- SUBIR / REEMPLAZAR IMAGEN --}}
-<form action="{{ route('archivos.store') }}"
+    <form action="{{ route('archivos.store') }}"
       method="POST"
       enctype="multipart/form-data"
       class="mt-10 text-center">
@@ -488,108 +482,170 @@
 @endif
     <div class="mt-10 mb-4 text-center text-red-600 font-semibold">Imágen ilustrativa:</div>
 
-    <!-- Footer address -->
+    <!-- SECCION DE LINEAMIENTOS -->
+        @if (session('success'))
+            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
+                {{ session('success') }}
+            </div>
+        @endif
 
-    <div class="text-gray-600 text-xs border-t pt-4 mt-8">
-        <p>Av Del Marqués lote 7. Parque industrial Bernardo Quintana. El Marqués, Querétaro, C.P 76246</p>
-        <p class="mt-1">ACF10 | Fecha de efectividad: 01-septiembre-2025 | Revisión: 03</p>
-    </div>
-</div>
-</div>
-<!-- ✅ BOTÓN FLOTANTE 
-<button id="abrirCorreoModal"
-    class="fixed bottom-6 right-6 bg-[#991B1B] text-white font-bold px-6 py-3 rounded-full shadow-lg hover:bg-[#7f1515] transition-transform transform hover:scale-110 z-40">
-    📧 Enviar Excel
-</button>
+        <!-- Encabezado -->
+        <div class="flex items-start justify-between mb-4 header-mobile">
+            <div>
+                <img src="{{ asset('images/innovet-logo.png') }}" alt="Innovet" style="max-width: 220px; width: 100%; height: auto;">
+            </div>
+            <div class="text-right w-1/2">
+                <table class="ml-auto text-sm">
+                    <tr>
+                        <td class="pr-2 text-gray-600 font-semibold">Folio:</td>
+                        <td class="font-bold font-semibold">{{ $cotizacion->no_proyecto }}</td>
+                    </tr>
+                    <tr>
+                        <td class="pr-2 text-gray-600 font-semibold">Fecha:</td>
+                        <td class="font-semibold">{{ $cotizacion->fecha }}</td>
+                    </tr>
+                </table>
+            
+            </div>
+        </div>
 
-✅ MODAL FLOTANTE 
-<div id="correoModal"
-    class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    
-    <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md relative animate-fadeIn">
-         Botón de cerrar 
-        <button id="cerrarCorreoModal"
-            class="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-2xl leading-none">
-            &times;
-        </button>
+        <!-- Lineamientos -->
+        <form id="form-lineamientos" method="POST" action="{{ route('cotizacion.lineamientos.save', $cotizacion->id) }}" class="mb-6">
+        @csrf
+        @method('PUT') 
+            <h1 class="text-2xl font-bold text-gray-800">Lineamientos del Proyecto</h1>
+            <div class="space-y-4">
+                <div class="p-4 rounded border border-gray-300">
+                    <textarea name="lineamiento_1" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_1 ?? 'Precios en USD. No incluyen I.V.A. Se considera fabricación, facturación y entrega en una sola exhibición.' }}</textarea>
+                </div>
 
-        Título 
-        <h2 class="text-2xl font-bold text-[#991B1B] mb-4 text-center">
-            Enviar Cotización por Correo
-        </h2>
+                <div class="p-4 rounded border border-gray-300">
+                    <textarea name="lineamiento_2" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_2 ?? 'Los precios pueden ajustarse en respuesta a cambios en aranceles, impuestos o restricciones fiscales y comerciales establecidos por la autoridad.' }}</textarea>
+                </div>
 
-        FORMULARIO 
-        <form id="formEnviarCorreo" method="POST" 
-              action="{{ route('cotizacion.enviarCorreo', $cotizacion->id) }}">
-            @csrf
+                <div class="p-4 rounded border border-gray-300">
+                    <textarea name="lineamiento_3" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_3 ?? 'La vigencia de la presente cotización es de 12 meses y/o incrementos en MP superior al 5%.' }}</textarea>
+                </div>
 
-            Campo de correo 
-            <div class="mb-4">
-                <label for="correo_destino" class="block text-gray-700 font-semibold mb-2">
-                    Correo destino:
-                </label>
-                <input type="email" id="correo_destino" name="correo_destino" required
-                    placeholder="ejemplo@empresa.com"
-                    class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#991B1B]">
+                <div class="p-4 rounded border border-gray-300">
+                    <textarea name="lineamiento_4" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_4 ?? 'Condiciones de pago son por anticipado.' }}</textarea>
+                </div>
+
+                <div class="p-4 rounded border border-gray-300">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Tiempo de desarrollo de herramentales y muestras para liberación:</label>
+                        <input type="text" name="tiempo_herramentales" placeholder="Ej: 4" value="{{ $cotizacion->tiempo_herramentales ?? '' }}" class="w-24 border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-red-600"> semanas.
+                </div>
+
+                <div class="p-4 rounded border border-gray-300">
+                    <textarea name="lineamiento_5" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_5 ?? 'Tiempo de entrega de producto terminado: ' . ($cotizacion->costeoRequisicion ? ceil((is_numeric($cotizacion->costeoRequisicion->tiempo_pt ?? 0) ? $cotizacion->costeoRequisicion->tiempo_pt : 0) / 5) : 'N/C') . ' semanas (todos los tiempos se confirman con disponibilidad de maquinaria).' }}</textarea>
+                </div>
+
+                <div class="p-4 rounded border border-gray-300">
+                    <textarea name="lineamiento_6" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_6 ?? 'El producto se entrega en: ' . ($cotizacion->lugar_entrega ?? '') }}</textarea>
+                </div>
+
+                <div class="p-4 rounded border border-gray-300">
+                    <textarea name="lineamiento_7" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_7 ?? 'Considerar una variación ±10% en la entrega de producto terminado, sobre lote de producción (MOQ cotizado).' }}</textarea>
+                </div>
+
+                <div class="p-4 rounded border border-gray-300">
+                    <textarea name="lineamiento_8" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_8 ?? 'Especificación de empaque: se confirma después de la 1ª. producción.' }}</textarea>
+                </div>
+
+                <div class="p-4 rounded border border-gray-300">
+                    <textarea name="lineamiento_9" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_9 ?? 'Cualquier condición distinta al escenario cotizado implica una revisión de costos.' }}</textarea>
+                </div>
+
+                <div class="p-4 rounded border border-gray-300">
+                    <textarea name="lineamiento_10" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="3">{{ $cotizacion->lineamiento_10 ?? 'La responsabilidad respecto de la mercancía producida por INNOVET, es única y exclusivamente por defectos de fabricación. La inspección de la pieza deformada o fuera de calor, causa deformaciones e invalida garantías. Es responsabilidad del CLIENTE aquellos desperfectos que sufra el producto por mal uso, transportación, almacenamiento o análogas derivadas de la actividad del CLIENTE.' }}</textarea>
+                </div>
             </div>
 
-            Botones 
-            <div class="flex justify-center gap-4 mt-6">
-                <button type="submit"
-                    class="bg-[#991B1B] text-white px-6 py-2 rounded-lg hover:bg-[#7f1515] transition-colors">
-                    📤 Enviar Excel
-                </button>
+            <!-- Sección Atentamente dentro del formulario -->
+            <div class="mt-8 p-4 bg-gray-10">
+                <h3 class="text-lg font-semibold text-red-600 mb-4">Atentamente,</h3>
+                    <p class="mb-2 text-left">
+                        <p class="text-black">{{ $cotizacion->nombre_contacto ?? Auth::user()->name }}</p>
+                    </p>
+                    <p class="text-left text-gray-600">
+                        <input id="puesto_contacto_input" name="puesto_contacto" value="{{ $cotizacion->puesto_contacto ?? 'Puesto' }}" class="w-full bg-white border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-600 focus:outline-none" placeholder="Ingrese su puesto">
+                    </p>
+            </div>
 
-                <button type="button" id="cancelarCorreo"
-                    class="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors">
-                    Cancelar
+            <div class="mt-6 flex gap-4">
+                <button type="submit" class="bg-red-600 text-white px-6 py-3 rounded font-semibold hover:bg-red-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 shadow-md">
+                    <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Guardar Lineamientos
                 </button>
             </div>
+
         </form>
-    </div>
-</div>
--->
-<!-- ✅ ESTILOS Y SCRIPT 
-<style>
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 
-.animate-fadeIn {
-    animation: fadeIn 0.4s ease-out forwards;
-}
-</style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const abrirModal = document.getElementById('abrirCorreoModal');
-    const cerrarModal = document.getElementById('cerrarCorreoModal');
-    const cancelarCorreo = document.getElementById('cancelarCorreo');
-    const modal = document.getElementById('correoModal');
+    document.addEventListener('DOMContentLoaded', function() {
 
-    // 🟢 Mostrar modal
-    abrirModal.addEventListener('click', () => {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        // Función para generar el documento
+        function generarDocumento(tipo) {
+            var nombre = document.getElementById('nombre_contacto_input').value;
+            var puesto = document.getElementById('puesto_contacto_input').value;
+
+            var params = new URLSearchParams();
+            params.append('nombre_contacto', nombre);
+            params.append('puesto_contacto', puesto);
+            
+            var baseUrl = '';
+
+            if (tipo === 'pdf') {
+                baseUrl = "{{ route('cotizacion.lineamientos.pdf', ['id' => $cotizacion->id]) }}"; 
+            } else if (tipo === 'excel') {
+                baseUrl = "{{ route('cotizacion.lineamientos.excel', ['id' => $cotizacion->id]) }}"; 
+            }
+
+            var fullUrl = baseUrl + '?' + params.toString();
+            window.open(fullUrl, '_blank');
+        }
+
+        // Asignar los eventos a los botones
+        const btnGenerarPdf = document.getElementById('btn-generar-pdf');
+        if (btnGenerarPdf) {
+            btnGenerarPdf.addEventListener('click', function() {
+                generarDocumento('pdf');
+            });
+        }
+
+        const btnGenerarExcel = document.getElementById('btn-generar-excel');
+        if (btnGenerarExcel) {
+            btnGenerarExcel.addEventListener('click', function() {
+                generarDocumento('excel');
+            });
+        }
+
+        // Manejo del formulario de lineamientos
+        const formLineamientos = document.getElementById('form-lineamientos');
+        if (formLineamientos) {
+            formLineamientos.addEventListener('submit', function(e) {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<svg class="inline-block w-5 h-5 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>Guardando...';
+            });
+        }
+
     });
-
-    // 🔴 Cerrar modal
-    const cerrar = () => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    };
-
-    cerrarModal.addEventListener('click', cerrar);
-    cancelarCorreo.addEventListener('click', cerrar);
-
-    // 🖱️ Cerrar si se hace click fuera del cuadro
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) cerrar();
-    });
-});
 </script>
--->
+
+    <!-- Footer address -->
+        <div class=" mt-8 pt-4 border-t border-gray-300 text-center text-sm text-gray-600">
+            <p>Av Del Marqués lote 7. Parque industrial Bernardo Quintana. El Marqués, Querétaro, C.P 76246</p>
+            <p class="mt-2">ACF06 | Fecha de efectividad: 28-Mayo-2024 | Revisión: 05</p>
+        </div>
+
+</div>    
+</div>
+
+<!-- Revisar si agregamos lo del correo -->
 
 
 @endsection
