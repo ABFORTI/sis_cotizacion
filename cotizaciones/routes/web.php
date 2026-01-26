@@ -31,11 +31,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/cotizacion/{id}/excel', [ExcelController::class, 'generarCotizacionExcel'])
         ->name('cotizacion.excel');    
 
+    Route::get('/cotizacion/{id}/excel-completo', [ExcelController::class, 'generarCotizacionLineamientosExcel'])
+        ->name('cotizacion.excel.completo');
+
+    Route::get('/cotizacion/{id}/pdf-completo', [ExcelController::class, 'generarCotizacionLineamientosPdf'])
+        ->name('cotizacion.pdf.completo');    
+
     Route::get('/cotizacion/{id}/lineamientos-excel', [ExcelController::class, 'generarLineamientosExcel'])
         ->name('cotizacion.lineamientos.excel');
 
     Route::get('/cotizacion/{id}/lineamientos', [CotizacionController::class, 'mostrarLineamientos'])
         ->name('cotizacion.lineamientos');
+
+    Route::put('/cotizacion/{id}/lineamientos', [CotizacionController::class, 'guardarLineamientos'])
+        ->name('cotizacion.lineamientos.save');
         Route::get('/costeo/{id}/export-resumen', [ExcelController::class, 'generarCosteoResumenExcel'])
     ->name('costeo.export.resumen');
 

@@ -112,9 +112,9 @@ $corrida_piloto_descripcion = oldValue('corrida_piloto_descripcion', $aux);//agr
         <!-- Información Adicional -->
         <div class="form-group">
             <legend id="informacion_adicional_legend" class="sub-label">Información Adicional</legend>
-            <label>Altura máxima de estiba (cm):</label>
-            <input type="number" id="altura_maxima_estiba" name="altura_maxima_estiba"
-                placeholder="0.00 cm" step="0.10" value="{{ $altura_maxima_estiba}}">
+            <label>Altura máxima de estiba (mm):</label>
+             <input type="text" id="altura_maxima_estiba" name="altura_maxima_estiba" 
+             placeholder="Ingresa una descripción de la altura máxima de estiba" value="{{ $altura_maxima_estiba}}">
             <label>Peso máximo por caja (g):</label>
             <input type="number" id="peso_maximo_caja" name="peso_maximo_caja"
                 value="{{ $peso_maximo_caja }}"

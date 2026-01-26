@@ -270,7 +270,7 @@ $esCorridaPiloto = false;
                     <label class="font-bold block mb-2">Insertos:</label>
                     <input type="number" step="1" name="insertos"
                         value="{{$insertos}}"
-                        placeholder="no de insertos"
+                        placeholder="Número de insertos"
                         class="w-full border-gray-300 border rounded-md p-2"
                         oninput="calcularPesoNeto(),calcularCantidadHojas(), document.querySelector('input[name=&quot;resumen_piezas_procesos&quot;]').value = this.value">
                 </div>
@@ -555,7 +555,7 @@ $esCorridaPiloto = false;
                             <td class="border border-gray-300 p-2">
                                 <div class="grid gap-1" id="grid-ancho">
                                     <input type="number" name="hoja_ancho" step="0.5" id="input-hoja-ancho"
-                                        value="{{ $hoja_ancho }}" placeholder="ingrese medida hoja ancho" oninput="calcularAreaFormadoHoja(), calcularParedMedia()"
+                                        value="{{ $hoja_ancho }}" placeholder="Ingrese medida hoja ancho" oninput="calcularAreaFormadoHoja(), calcularParedMedia()"
                                         class="border-gray-300 border rounded-md p-1">
                                     <input type="number" name="aux_hoja_ancho" id="aux-hoja-ancho" value="{{ old('aux_hoja_ancho', $costeoRequisicion->aux_hoja_ancho) }}" placeholder="ajuste"
                                         class="border-gray-300 border rounded-md p-1 hidden" oninput="calcularHojaAncho(), calcularAreaFormadoHoja(), calcularParedMedia()">
@@ -564,7 +564,7 @@ $esCorridaPiloto = false;
                             <td class="border border-gray-300 p-2">
                                 <div class="grid gap-1" id="grid-avance">
                                     <input type="number" name="hoja_avance" step="0.5" id="input-hoja-avance"
-                                        value="{{ $hoja_avance }}" placeholder="ingrese medida hoja avance" oninput="calcularAreaFormadoHoja(), calcularParedMedia()"
+                                        value="{{ $hoja_avance }}" placeholder="Ingrese medida hoja avance" oninput="calcularAreaFormadoHoja(), calcularParedMedia()"
                                         class="border-gray-300 border rounded-md p-1">
                                     <input type="number" name="aux_hoja_avance" id="aux-hoja-avance" value="{{ old('aux_hoja_avance', $costeoRequisicion->aux_hoja_avance) }}" placeholder="ajuste"
                                         class="border-gray-300 border rounded-md p-1 hidden" oninput="calcularHojaAvance(), calcularAreaFormadoHoja() , calcularParedMedia()">
@@ -804,7 +804,7 @@ $esCorridaPiloto = false;
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Peso estimado Pieza (KG):</label>
+                    <label class="font-bold block mb-2">Peso estimado x Pieza (kg):</label>
                     <input type="number" step="0.0001" name="peso_pieza"
                         value="{{ $peso_pieza}}"
                         class="w-full border-gray-300 border rounded-md p-2 bg-gray-50" readonly>
@@ -818,7 +818,7 @@ $esCorridaPiloto = false;
                 <div>
                     <label class="font-bold block mb-2">Coeficiente de merma (%):</label>
                     <input type="number" step="1" name="coeficiente_merma" oninput="calcularPesoTotal(), calcularHojasDelPedido(), calcularPrecioLamina()"
-                        value="{{ $coeficiente_merma }}" placeholder="ingrese el porcentaje"
+                        value="{{ $coeficiente_merma }}" placeholder="Ingrese el porcentaje %"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
                 <div>
@@ -917,8 +917,16 @@ $esCorridaPiloto = false;
             function calcularPesoNetoHoja() {
                 const pesoneto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
                 const cantidadhojas = parseFloat(document.querySelector('input[name="cantidad_hojas"]').value) || 0;
-                const resultado = pesoneto / cantidadhojas;
-                document.querySelector('input[name="peso_neto_hoja"]').value = resultado.toFixed(4);
+                let resultado = 0;
+                if (cantidadhojas !== 0) {
+                    resultado = pesoneto / cantidadhojas;
+                }
+                const input = document.querySelector('input[name="peso_neto_hoja"]');
+                if (!isNaN(resultado)) {
+                    input.value = resultado.toFixed(4);
+                } else {
+                    input.value = '0';
+                }
                 calcularPZRM();
             }
 
@@ -928,8 +936,16 @@ $esCorridaPiloto = false;
                 const areaFormadoHoja = parseFloat(document.querySelector('input[name="area_formado_hoja"]').value) || 0;
                 const calibre = parseFloat(document.querySelector('input[name="calibre_costeo"]').value) || 0;
                 const pesoEspecifico = parseFloat(document.querySelector('input[name="peso_especifico"]').value) || 1.02;
-                const resultado = (moq / insertos) * areaFormadoHoja * 10000 * (calibre / 393.7) * pesoEspecifico / 1000;
-                document.querySelector('input[name="peso_neto"]').value = resultado.toFixed(4);
+                let resultado = 0;
+                if (insertos !== 0) {
+                    resultado = (moq / insertos) * areaFormadoHoja * 10000 * (calibre / 393.7) * pesoEspecifico / 1000;
+                }
+                const input = document.querySelector('input[name="peso_neto"]');
+                if (!isNaN(resultado)) {
+                    input.value = resultado.toFixed(4);
+                } else {
+                    input.value = '0';
+                }
                 calcularPesoNetoHoja();
             }
 
@@ -989,8 +1005,16 @@ $esCorridaPiloto = false;
             function calcularPZRM() {
                 const pesoNetoHoja = parseFloat(document.querySelector('input[name="peso_neto_hoja"]').value) || 0;
                 const pesoMerma = parseFloat(document.querySelector('input[name="peso_merma"]').value) || 0;
-                const resultado = Math.round(pesoMerma / pesoNetoHoja);
-                document.querySelector('input[name="PZRM"]').value = resultado.toFixed(4);
+                let resultado = 0;
+                if (pesoNetoHoja !== 0) {
+                    resultado = Math.round(pesoMerma / pesoNetoHoja);
+                }
+                const pzrmInput = document.querySelector('input[name="PZRM"]');
+                if (!isNaN(resultado)) {
+                    pzrmInput.value = resultado.toFixed(4);
+                } else {
+                    pzrmInput.value = '0';
+                }
             }
 
             function togglePRMAuxInputs() {
@@ -1024,15 +1048,15 @@ $esCorridaPiloto = false;
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="font-bold block mb-2">Costo por Kilo ($):</label>
+                    <label class="font-bold block mb-2">Costo por Kilo ($MXN):</label>
                     <input type="number" step="0.01" name="costo_kilo"
-                        value="{{ $costo_kilo }}" placeholder="ingrese costo"
+                        value="{{ $costo_kilo }}" placeholder="Ingrese el costo"
                         class="w-full border-gray-300 border rounded-md p-2" oninput="calcularPrecioPorKg()">
                 </div>
 
                 <div>
                     <label class="font-bold block mb-2">Tipo de Cambio:</label>
-                    <input type="number" step="0.0001" name="TC" placeholder="ingrese tipo de cambio"
+                    <input type="number" step="0.0001" name="TC" placeholder="Ingrese tipo de cambio"
                         value="{{ $TC }}" oninput="calcularPrecioPorKg()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
@@ -1040,7 +1064,7 @@ $esCorridaPiloto = false;
                 <div>
                     <label class="font-bold block mb-2">Costo Flete MP:</label>
                     <input type="number" step="0.01" name="costo_flete"
-                        value="{{ $costo_flete }}" placeholder="ingrese costo del flete"
+                        value="{{ $costo_flete }}" placeholder="Ingrese costo del flete"
                         class="w-full border-gray-300 border rounded-md p-2" oninput="calcularPrecioPorKg()">
                 </div>
 
@@ -1064,7 +1088,7 @@ $esCorridaPiloto = false;
                 </div>
                 <div>
                     <label class="font-bold block mb-2">Costo de Flete ($):</label>
-                    <input type="number" step="0.0001" name="costo_flete_lamina" placeholder="ingrese costo de flete"
+                    <input type="number" step="0.0001" name="costo_flete_lamina" placeholder="Ingrese el costo de flete"
                         value="{{ $costo_flete_lamina }}" oninput="calcularPrecioLamina()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
@@ -1158,11 +1182,11 @@ $esCorridaPiloto = false;
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="no_personas_termoformado" step="1" value="{{ $no_personas_termoformado }}"
-                                    oninput="calcularTotalHojasPorTurnoTermoformado(),calcularCostoInocuidad()" placeholder="ingrese No. de personas" class="w-full border rounded-md p-1">
+                                    oninput="calcularTotalHojasPorTurnoTermoformado(),calcularCostoInocuidad()" placeholder="Ingrese el número de personas" class="w-full border rounded-md p-1">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="bajadas_por_minuto_termoformado" step="0.0001" value="{{ $bajadas_por_minuto_termoformado }}"
-                                    oninput="calcularTotalHojasPorTurnoTermoformado()" placeholder="ingrese bajadas por minuto" class="w-full border rounded-md p-1">
+                                    oninput="calcularTotalHojasPorTurnoTermoformado()" placeholder="Ingrese bajadas por minuto" class="w-full border rounded-md p-1">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="total_hojas_turno_termoformado" step="1" value="{{ $total_hojas_turno_termoformado }}"
@@ -1239,11 +1263,11 @@ $esCorridaPiloto = false;
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="no_personas_suaje" step="1" value="{{ $no_personas_suaje }}"
-                                    oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad()" placeholder="ingrese No. de personas" class="w-full border rounded-md p-1">
+                                    oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad()" placeholder="Ingrese el número de personas" class="w-full border rounded-md p-1">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="bajadas_por_minuto_suaje" step="0.0001" value="{{ $bajadas_por_minuto_suaje }}"
-                                    oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad()" placeholder="ingrese bajadas por minuto" class="w-full border rounded-md p-1">
+                                    oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad()" placeholder="Ingrese bajadas por minuto" class="w-full border rounded-md p-1">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="total_hojas_turno_suaje" step="1" value="{{ $total_hojas_turno_suaje }}"
@@ -1317,7 +1341,7 @@ $esCorridaPiloto = false;
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_montaje"
                                     value="{{ old('costo_montaje', $costeoRequisicion->costo_montaje) }}"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="ingrese costo de montaje"
+                                    class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de montaje ($MXN)"
                                     oninput="calcularCostoMontaje2()">
                             </td>
                             <td class="border border-gray-400 p-2">
@@ -1346,7 +1370,7 @@ $esCorridaPiloto = false;
                             <td class="border border-gray-400 p-2 text-left font-bold">Costo de E. eléctrica</td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_electricidad"
-                                    value="{{ old('costo_electricidad', $costeoRequisicion->costo_electricidad) }}" placeholder="ingrese costo de electricidad"
+                                    value="{{ old('costo_electricidad', $costeoRequisicion->costo_electricidad) }}" placeholder="Ingrese costo de electricidad ($MXN)"
                                     oninput="calcularCostoEnergiaE2()" class="w-full border-gray-300 border rounded-md p-1 text-center">
                             </td>
                             <td class="border border-gray-400 p-2">
@@ -1360,7 +1384,7 @@ $esCorridaPiloto = false;
                             <td class="border border-gray-400 p-2 text-left font-bold">Amortización maquinaria</td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="amortizacion_maquinaria"
-                                    value="{{ old('amortizacion_maquinaria', $costeoRequisicion->amortizacion_maquinaria) }}" placeholder="ingrese amortizacion maquinaria"
+                                    value="{{ old('amortizacion_maquinaria', $costeoRequisicion->amortizacion_maquinaria) }}" placeholder="Ingrese amortizacion maquinaria"
                                     class="w-full border-gray-300 border rounded-md p-1 text-center" oninput="calcularCostoAmortizacionMaquinaria2()">
                             </td>
                             <td class="border border-gray-400 p-2">
@@ -2407,8 +2431,8 @@ $esCorridaPiloto = false;
                                     MADERA CAMPANA
                                 </button>
                                 <div class="grid grid-cols-2 gap-1 hidden" id="inputs-madera-campana">
-                                    <input type="number" name="dividendo" id="input-dividendo" placeholder="ingrese No" class="w-full border rounded px-1 py-1 text-right" value="{{ old('dividendo', $costeoRequisicion->dividendo) }}" oninput="calcularCostoMaderaCampana()">
-                                    <input type="number" name="divisor" id="input-divisor" placeholder="ingrese divisor" class="w-full border rounded px-1 py-1 text-right" value="{{ old('divisor', $costeoRequisicion->divisor) }}" oninput="calcularCostoMaderaCampana()">
+                                    <input type="number" name="dividendo" id="input-dividendo" placeholder="Ingrese número" class="w-full border rounded px-1 py-1 text-right" value="{{ old('dividendo', $costeoRequisicion->dividendo) }}" oninput="calcularCostoMaderaCampana()">
+                                    <input type="number" name="divisor" id="input-divisor" placeholder="Ingrese divisor" class="w-full border rounded px-1 py-1 text-right" value="{{ old('divisor', $costeoRequisicion->divisor) }}" oninput="calcularCostoMaderaCampana()">
                                 </div>
                             </div>
                             <script>
