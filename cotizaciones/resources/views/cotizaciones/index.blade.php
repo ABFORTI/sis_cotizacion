@@ -3,6 +3,7 @@
 @section('title', 'Listado de Cotizaciones')
 
 @section('content')
+
 <div class="container mx-auto px-4">
     <div class="flex justify-center">
         <h1 class="text-xl font-semibold text-white mb-4">
@@ -10,7 +11,6 @@
         </h1>
     </div>
     <div class="bg-slate-800 rounded-xl shadow-xl p-6 text-slate-200">
-        
         <div class="mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <form action="{{ route('cotizaciones.index') }}"
@@ -49,13 +49,12 @@
                     </button>
                 </form>
 
-            @if(Auth::user()->role === 'ventas')
-                <a href="{{ route('cotizaciones.create') }}"
-                    class="btn-submit px-5 py-2 whitespace-nowrap">
-                    + Crear cotización
-                </a>
-            @endif
-
+                @if(Auth::user()->role === 'ventas')
+                    <a href="{{ route('cotizaciones.create') }}"
+                        class="btn-submit px-5 py-2 whitespace-nowrap">
+                        + Crear cotización
+                    </a>
+                @endif
             </div>
         </div>
 
@@ -81,6 +80,7 @@
                         <td class="px-4 py-3">{{ $cotizacion->nombre_del_proyecto }}</td>
                         <!-- Envío a Costeos -->
                         <td class="text-align center px-4 py-3">
+                            
                             @if(Auth::user()->role === 'ventas')
                                 @if($cotizacion->enviadoPorCosteos)
                                 <div class="mt-2  rounded p-2 flex flex-col items-center text-xs text-slate-500 gap-0.5">
@@ -97,143 +97,145 @@
                                     </span>
                                 </div>
                                 @endif
-                            @if(!$cotizacion->enviado_a_costeos)
-                            <form action="{{ route('cotizaciones.enviar', $cotizacion) }}" method="POST" id="enviar-form-{{ $cotizacion->id }}">
-                                @csrf
-                                @method('PATCH')
-                                <div class="flex justify-center">
-                                    <button type="button" onclick="showConfirmModal('¿Enviar cotización?', '¿Estás seguro de enviar la cotización {{ $cotizacion->no_proyecto }} a Costeos?', function() { document.getElementById('enviar-form-{{ $cotizacion->id }}').submit(); })" class="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-700 font-semibold hover:bg-yellow-200 transition">
-                                        ⬈ Enviar
-                                    </button>
-                                </div>
-                            </form>
-                            @elseif($cotizacion->enviadoPorCosteos)
-                                <div class="flex justify-center">
-                                    <a href="{{ route('cotizaciones.matrizRiesgos', $cotizacion->id) }}"
-                                    class="px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-700">
-                                        Ver Matriz de Riesgos
-                                    </a>
-                                </div>
-                            @else
-                            <!-- Enviada pero aún no devuelta -->
-                            <div class="flex justify-center">
-                                <span class="px-3 py-1 text-sm rounded-full bg-green-100 text-green-700 font-semibold">
-                                    ✓ Enviada
-                                </span>
-                            </div>
-                            @endif
-                            
+                                    @if(!$cotizacion->enviado_a_costeos)
+                                        <form action="{{ route('cotizaciones.enviar', $cotizacion) }}" method="POST" id="enviar-form-{{ $cotizacion->id }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <div class="flex justify-center">
+                                                <button type="button" onclick="showConfirmModal('¿Enviar cotización?', '¿Estás seguro de enviar la cotización {{ $cotizacion->no_proyecto }} a Costeos?', function() { document.getElementById('enviar-form-{{ $cotizacion->id }}').submit(); })" class="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-700 font-semibold hover:bg-yellow-200 transition">
+                                                    ⬈ Enviar
+                                                </button>
+                                            </div>
+                                        </form>
+                                    @elseif($cotizacion->enviadoPorCosteos)
+                                        <div class="flex justify-center">
+                                            <a href="{{ route('cotizaciones.matrizRiesgos', $cotizacion->id) }}"
+                                                class="px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-700">
+                                                Ver Matriz de Riesgos
+                                            </a>
+                                        </div>
+                                    @else
+                                        <div class="flex justify-center">
+                                            <span class="px-3 py-1 text-sm rounded-full bg-green-100 text-green-700 font-semibold">
+                                                ✓ Enviada
+                                            </span>
+                                        </div>
+                                    @endif
                             @elseif(Auth::user()->role === 'costeos')
-                            @if($cotizacion->enviado_a_ventas)
-                            <!-- Ciclo completado - Ya devuelta a Ventas -->
-                            <div class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-semibold inline-block">
-                                🎉 Costeo Terminado
-                            </div>
-                            <div class="text-xs text-gray-700 mt-2 leading-tight bg-blue-50 p-2 rounded border">
-                                <div class="text-blue-700 font-semibold mb-1">✅ Devuelta a Ventas</div>
-                                📅 {{ \Carbon\Carbon::parse($cotizacion->fecha_envio_costeos)->format('d/m/Y H:i') }}
-                            </div>
-                            @elseif($cotizacion->enviado_a_costeos)
-                            <!-- En proceso - Recibida pero no devuelta -->
-                            <div class="px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold inline-block">
-                                ✅ Recibida
-                            </div>
-
-                            @if($cotizacion->enviadoPorVentas)
-                            <div class="text-xs text-gray-700 mt-2 leading-tight">
-                                ✉ <strong>{{ $cotizacion->enviadoPorVentas->name }}</strong>
-                                (<span class="text-blue-700">{{ $cotizacion->enviadoPorVentas->email }}</span>)<br>
-                                📅 {{ \Carbon\Carbon::parse($cotizacion->fecha_envio_ventas)->format('d/m/Y H:i') }}
-                            </div>
-                            @else
-                            <div class="text-xs text-gray-500 mt-2">Información del remitente no disponible</div>
-                            @endif
-                            @else
-                                <span class="px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-600 font-semibold">
-                                ⏳ Pendiente
-                                </span>
-                            @endif
+                                @if($cotizacion->enviado_a_ventas)
+                                    <div class="mt-2 rounded p-2 flex flex-col items-center text-xs text-slate-500 gap-0.5">
+                                        <span class="px-4 py-2 rounded-full bg-blue-100 text-blue-700 font-medium text-sm">
+                                            ☑ Costeo Terminado
+                                        </span>
+                                        <div class="text-center">
+                                            <span class="font-medium text-blue-600">
+                                                ✓ Devuelta a Ventas
+                                            </span>
+                                            <p class="text-xs text-gray-600">
+                                               {{ \Carbon\Carbon::parse($cotizacion->fecha_envio_costeos)->format('d/m/Y H:i') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                @elseif($cotizacion->enviado_a_costeos)
+                                    <div class="flex justify-center">
+                                        <span class="px-3 py-1 text-sm rounded-full bg-green-100 text-green-700 font-semibold">
+                                            ✓ Recibida
+                                        </span>
+                                    </div>
+                                @if($cotizacion->enviadoPorVentas)
+                                    <div class="text-xs text-gray-700 mt-2 leading-tight">
+                                        <div class="mt-2 rounded p-2 flex flex-col items-center text-xs text-slate-500 gap-0.5">
+                                            <span class="font-medium text-blue-600">
+                                                Enviada por Ventas
+                                            </span>
+                                            <span>
+                                                {{ $cotizacion->enviadoPorVentas->name }}
+                                                <span class="text-blue-700">·{{ $cotizacion->enviadoPorVentas->email }}</span>
+                                            </span>
+                                            <span>
+                                                {{ \Carbon\Carbon::parse($cotizacion->fecha_envio_costeos)
+                                                                    ->format('d/m/Y H:i') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="text-xs text-gray-500 mt-2">Información del remitente no disponible</div>
+                                @endif
+                                @else
+                                    <span class="px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-600 font-semibold">
+                                        ⏳ Pendiente
+                                    </span>
+                                @endif
                             @endif
                         </td>
-                    <!-- Días en Costeos -->
-                    <td class="text-center">
-                        @php
-                            $diasTranscurridos = 0;
-                            if ($cotizacion->fecha_envio_ventas && $cotizacion->fecha_envio_costeos) {
-                                $fechaEnvio = \Carbon\Carbon::parse($cotizacion->fecha_envio_ventas);
-                                $fechaRetorno = \Carbon\Carbon::parse($cotizacion->fecha_envio_costeos);
-
-                                if ($fechaEnvio->isSameDay($fechaRetorno)) {
-                                    $diasTranscurridos = 0;
-                                } else {
-                                    $diasTranscurridos = $fechaEnvio
-                                    ->startOfDay()
-                                    ->diffInDays($fechaRetorno->startOfDay());
-                                 }
-                            }
-                        @endphp
-                        {{ $diasTranscurridos }}
+                        <td class="text-center">
+                            @php
+                                $diasTranscurridos = 0;
+                                    if ($cotizacion->fecha_envio_ventas && $cotizacion->fecha_envio_costeos) {
+                                        $fechaEnvio = \Carbon\Carbon::parse($cotizacion->fecha_envio_ventas);
+                                        $fechaRetorno = \Carbon\Carbon::parse($cotizacion->fecha_envio_costeos);
+                                            if ($fechaEnvio->isSameDay($fechaRetorno)) {
+                                                $diasTranscurridos = 0;
+                                            } else {
+                                                $diasTranscurridos = $fechaEnvio
+                                                ->startOfDay()
+                                                ->diffInDays($fechaRetorno->startOfDay());
+                                            }
+                                    }
+                            @endphp
+                            {{ $diasTranscurridos }}
                     </td>
 
-                    <!-- Acciones -->
                     <td class="action-buttons text-center">
                         <div class="flex flex-col gap-2 items-center">
-
                             @if(Auth::user()->role === 'ventas')
-                            @if($cotizacion->enviado_a_ventas)
-                            <a href="{{ route('cotizacion.resumen.page', $cotizacion->id) }}" class="btn-view w-full">Ver resumen de Costos</a>
-                            @elseif($cotizacion->enviado_a_costeos)
-                            <span class="text-gray-500 italic text-sm">En espera de Costeos</span>
-                            @endif
+                                @if($cotizacion->enviado_a_ventas)
+                                    <a href="{{ route('cotizacion.resumen.page', $cotizacion->id) }}" class="btn-view w-full">Ver resumen de Costos</a>
+                                @elseif($cotizacion->enviado_a_costeos)
+                                    <span class="text-gray-500 italic text-sm">En espera de Costeos</span>
+                                @endif
                             @elseif(Auth::user()->role === 'costeos')
-                            <a href="{{ route('cotizacion.form', $cotizacion) }}" class="btn-view w-full">Ver Resumen de Cotización</a>
-                            <a href="{{ route('costeo.create', $cotizacion->requisicionCotizacion->id) }}" class="btn-view w-full">Calcular Costeo</a>
-                            @if(isset($cotizacion->cotizacionAdicional) && ($cotizacion->cotizacionAdicional->corrida_piloto == 1 || $cotizacion->cotizacionAdicional->corrida_piloto === '1'))
-                                <a href="{{ route('costeo.create', ['id' => $cotizacion->requisicionCotizacion->id, 'btn_corrida_piloto' => 'corrida_piloto']) }}" class="btn-pilot w-full">Calcular Corrida Piloto</a>
-                            @endif
+                                <a href="{{ route('cotizacion.form', $cotizacion) }}" class="btn-view w-full">Ver Resumen de Cotización</a>
+                                <a href="{{ route('costeo.create', $cotizacion->requisicionCotizacion->id) }}" class="btn-view w-full">Calcular Costeo</a>
+                                @if(isset($cotizacion->cotizacionAdicional) && ($cotizacion->cotizacionAdicional->corrida_piloto == 1 || $cotizacion->cotizacionAdicional->corrida_piloto === '1'))
+                                    <a href="{{ route('costeo.create', ['id' => $cotizacion->requisicionCotizacion->id, 'btn_corrida_piloto' => 'corrida_piloto']) }}" class="btn-pilot w-full">Calcular Corrida Piloto</a>
+                                @endif
                             @endif
                             @if(!$cotizacion->enviado_a_ventas)
-
                                 @if(Auth::user()->role === 'ventas')
-                                <div class="flex items-center gap-2">
-                                {{-- Editar (solo si no fue enviado a Costeos) --}}
+                                    <div class="flex items-center gap-2">
                                     @if(!$cotizacion->enviado_a_costeos)
-                                    <a href="{{ route('cotizaciones.edit', $cotizacion) }}"
-                                    class="btn-edit inline-flex items-center justify-center
-                                      w-10 h-10 rounded-base
-                                      bg-brand text-white
-                                      hover:bg-brand-strong
-                                      focus:ring-4 focus:ring-brand-medium
-                                      shadow-xs">
-                                        ✏️
-                                    </a>
-
-                    {{-- Eliminar --}}
-                    <form id="delete-form-{{ $cotizacion->id }}"
-                            action="{{ route('cotizaciones.destroy', $cotizacion) }}"
-                            method="POST">
-                        @csrf
-                        @method('DELETE')
-
-                        <button type="button"
-                            onclick="showConfirmModal(
-                                '¿Eliminar cotización?',
-                                'Esta acción no se puede deshacer.',
-                                    function() {
-                                    document.getElementById('delete-form-{{ $cotizacion->id }}').submit();
-                                }
-                            )"
-                            class="inline-flex items-center justify-center
-                                w-10 h-10 rounded-base
-                                bg-red-500 text-white
-                                hover:bg-red-600
-                                focus:ring-4 focus:ring-red-300
-                                shadow-xs">
-                                🗑
-                        </button>
-                    </form>
-                    @endif
-                                    {{-- Mostrar eliminar en Ventas sólo si Costeos la ocultó --}}
+                                        <a href="{{ route('cotizaciones.edit', $cotizacion) }}"
+                                        class="btn-edit inline-flex items-center justify-center
+                                                w-10 h-10 rounded-base
+                                                bg-brand text-white
+                                                hover:bg-brand-strong
+                                                focus:ring-4 focus:ring-brand-medium
+                                                shadow-xs">
+                                                    ✏️
+                                        </a>
+                                        <form id="delete-form-{{ $cotizacion->id }}"
+                                                action="{{ route('cotizaciones.destroy', $cotizacion) }}"
+                                                method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                                <button type="button"
+                                                    onclick="showConfirmModal(
+                                                    '¿Eliminar cotización?',
+                                                    'Esta acción no se puede deshacer.',
+                                                        function() {
+                                                            document.getElementById('delete-form-{{ $cotizacion->id }}').submit();
+                                                        }
+                                                    )"
+                                                    class="inline-flex items-center justify-center
+                                                        w-10 h-10 rounded-base
+                                                        bg-red-500 text-white
+                                                        hover:bg-red-600
+                                                        focus:ring-4 focus:ring-red-300
+                                                        shadow-xs"> 🗑
+                                                </button>
+                                            </form>
+                                    @endif
                                     @if($cotizacion->oculta_para_costeos)
                                         <form id="delete-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.destroy', $cotizacion) }}" method="POST" class="w-full">
                                             @csrf
@@ -249,32 +251,41 @@
                                             </button>
                                         </form>
                                     @endif
-
                                 @elseif(Auth::user()->role === 'costeos')
-                                        <a href="{{ route('cotizaciones.edit', $cotizacion) }}" class="btn-edit w-full">
-                                            Ver Cotizacion/Editar
+                                    <div class="flex items-center gap-2">
+                                        <a href="{{ route('cotizaciones.edit', $cotizacion) }}" class="btn-edit inline-flex items-center justify-center
+                                            w-10 h-10 rounded-base
+                                            bg-brand text-white
+                                            hover:bg-brand-strong
+                                            focus:ring-4 focus:ring-brand-medium
+                                            shadow-xs"> ✏️
                                         </a>
                                     {{-- OCULTAR (NO BORRAR) --}}
-                                    <form id="ocultar-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.ocultarCosteos', $cotizacion->id) }}"
-                                        method="POST"
-                                        class="w-full">
-                                        @csrf
-                                        @method('PATCH')
-
-                                        <button type="button"
-                                            onclick="showConfirmModal(
-                                                '¿Eliminar cotización?',
-                                                'Esta acción no se puede deshacer.',
-                                                function() { document.getElementById('ocultar-form-{{ $cotizacion->id }}').submit(); }
-                                            )"
-                                            class="btn-submit w-full bg-gray-500 hover:bg-gray-600">
-                                            Eliminar
-                                        </button>
-                                    </form>
+                                        <form id="ocultar-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.ocultarCosteos', $cotizacion->id) }}"
+                                            method="POST"
+                                            class="w-full">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="button"
+                                                onclick="showConfirmModal(
+                                                    '¿Eliminar cotización?',
+                                                    'Esta acción no se puede deshacer.',
+                                                    function() { 
+                                                        document.getElementById('ocultar-form-{{ $cotizacion->id }}').submit();
+                                                        }
+                                                    )"
+                                                class="inline-flex items-center justify-center
+                                                    w-10 h-10 rounded-base
+                                                    bg-red-500 text-white
+                                                    hover:bg-red-600
+                                                    focus:ring-4 focus:ring-red-300
+                                                    shadow-xs"> 🗑
+                                            </button>
+                                        </form>
                                 @endif
-
+                                    </div>
                             @endif
-                            </div>
+                                    </div>
                         </td>
                     </tr>
                     @empty
@@ -294,12 +305,9 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Mostrar modal de éxito si hay mensaje de sesión
         @if(session('success'))
             showSuccessMessage("{{ session('success') }}");
         @endif
-
-        // Mostrar modal de error si hay mensaje de error
         @if(session('error'))
             showErrorMessage("{{ session('error') }}");
         @endif
