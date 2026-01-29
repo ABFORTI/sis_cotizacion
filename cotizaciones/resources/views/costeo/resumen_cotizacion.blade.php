@@ -116,35 +116,31 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
 
 @section('content')
 <div>
-    <div class="container mx-auto px-4 py-6 font-sans text-sm">
+    <div class="container mx-auto px-4 py-6 font-sans text-sm">            
         <div class="bg-white rounded-lg shadow-lg p-6">
-            {{-- Header con Logo, Título y Botones --}}
+            <a href="{{ route('cotizaciones.index') }}"
+                class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2 rounded text-xs transition duration-150 ease-in-out shadow-md">
+                <span class="text-base">←</span>
+            </a>
+            {{-- Header con Logo --}}
             <div class="flex justify-between items-start mb-6">
-                {{-- Logo (Izquierda) --}}
                 <div class="flex-shrink-0">
                     <img src="{{ asset('images/innovet-logo.png') }}" alt="Innovet" style="max-width: 220px; width: 100%; height: auto;">
                 </div>
-
-                {{-- Título (Centro) --}}
                 <div class="flex-1 text-center">
-                    <h1 class="text-3xl font-bold text-blue-800">RESUMEN</h1>
+                    <h1 class="text-xl font-semibold text-white mb-4800">RESUMEN</h1>
                 </div>
-
-                {{-- Botones (Derecha) --}}
                 <div class="flex-shrink-0 flex flex-col space-y-2">
-                    <button type="button" id="btn-generar-pdf"
+                    <div class="mt-2 flex justify-end gap-2 font-bold btn-container-mobile">
+                        <button type="button" id="btn-generar-pdf"
                         class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm transition duration-150 ease-in-out shadow-md">
                         Descargar PDF
                     </button>
                     <button type="button" id="btn-generar-excel"
                         class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm transition duration-150 ease-in-out shadow-md">
-                        Descargar EXCEL
+                        Descargar Excel
                     </button>
-
-                    <a href="{{ route('cotizaciones.index') }}"
-                        class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm transition duration-150 ease-in-out shadow-md text-center">
-                        Volver
-                    </a>
+                    </div>
                 </div>
             </div>
 
