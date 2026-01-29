@@ -15,10 +15,8 @@ use Illuminate\Support\Facades\Auth;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-class ExcelController extends Controller
-{
-    public function generarCotizacionExcel($id)
-    {
+class ExcelController extends Controller {
+    public function generarCotizacionExcel($id) {
         $cotizacion = Cotizacion::with([
             'especificacionProyecto',
             'costeoRequisicion',
@@ -28,11 +26,9 @@ class ExcelController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Configuración inicial
         $sheet->getDefaultColumnDimension()->setWidth(15);
         $sheet->getDefaultRowDimension()->setRowHeight(25);
 
-        // Estilos reutilizables
         $headerStyle = [
             'font' => [
                 'bold' => true,
@@ -604,8 +600,7 @@ class ExcelController extends Controller
         $dompdf->stream($fileName, ["Attachment" => false]); // "Attachment" => false para ver en navegador
         exit;
     }
-
-
+    
     public function generarLineamientosExcel(Request $request, $id)
     {
         $cotizacion = Cotizacion::with([
