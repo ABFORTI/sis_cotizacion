@@ -40,7 +40,7 @@
                             @elseif(Auth::user()->role === 'costeos')
                                 <option value="pendiente" {{ request('estado_filter') == 'pendiente' ? 'selected' : '' }}>⏳ Pendiente</option>
                                 <option value="recibida" {{ request('estado_filter') == 'recibida' ? 'selected' : '' }}>✅ Recibida</option>
-                                <option value="terminada" {{ request('estado_filter') == 'terminada' ? 'selected' : '' }}>🎉 Costeo Terminado</option>
+                                <option value="terminada" {{ request('estado_filter') == 'terminada' ? 'selected' : '' }}>☑ Costeo Terminado</option>
                         @endif
                     </select>
 
@@ -195,11 +195,123 @@
                                     <span class="text-gray-500 italic text-sm">En espera de Costeos</span>
                                 @endif
                             @elseif(Auth::user()->role === 'costeos')
-                                <a href="{{ route('cotizacion.form', $cotizacion) }}" class="btn-view w-full">Ver Resumen de Cotización</a>
-                                <a href="{{ route('costeo.create', $cotizacion->requisicionCotizacion->id) }}" class="btn-view w-full">Calcular Costeo</a>
-                                @if(isset($cotizacion->cotizacionAdicional) && ($cotizacion->cotizacionAdicional->corrida_piloto == 1 || $cotizacion->cotizacionAdicional->corrida_piloto === '1'))
-                                    <a href="{{ route('costeo.create', ['id' => $cotizacion->requisicionCotizacion->id, 'btn_corrida_piloto' => 'corrida_piloto']) }}" class="btn-pilot w-full">Calcular Corrida Piloto</a>
-                                @endif
+
+                            <div class="relative inline-block w-full dropdown-container">
+                                <button 
+                                    class="btn-view w-full flex items-center justify-between dropdown-toggle"
+                                    type="button"
+                                >
+                                <span>Opciones de Cotización</span>
+                                <svg 
+                                    class="w-4 h-4 ml-2 transition-transform duration-200 dropdown-icon" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                                </button>
+                                <div class="dropdown-menu absolute z-10 w-full mt-2 bg-white rounded-md shadow-lg border border-gray-200" style="display: none;">
+                                    <div class="py-1">
+                                        <a 
+                                        href="{{ route('cotizacion.form', $cotizacion) }}" 
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                        >
+                                            Ver Resumen de Cotización
+                                        </a>
+                                        <a 
+                                        href="{{ route('costeo.create', $cotizacion->requisicionCotizacion->id) }}" 
+                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                                        >
+                                            Calcular Costeo
+                                        </a>
+                                        @if(isset($cotizacion->cotizacionAdicional) && ($cotizacion->cotizacionAdicional->corrida_piloto == 1 || $cotizacion->cotizacionAdicional->corrida_piloto === '1'))
+                                            <a 
+                                                href="{{ route('costeo.create', ['id' => $cotizacion->requisicionCotizacion->id, 'btn_corrida_piloto' => 'corrida_piloto']) }}" 
+                                                class="block px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 transition-colors font-medium"
+                                            >
+                                                Calcular Corrida Piloto
+                                            </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                const dropdowns = document.querySelectorAll('.dropdown-container');
+                                dropdowns.forEach(dropdown => {
+                                    const toggle = dropdown.querySelector('.dropdown-toggle');
+                                    const menu = dropdown.querySelector('.dropdown-menu');
+                                    const icon = dropdown.querySelector('.dropdown-icon');
+        
+                                    toggle.addEventListener('click', function(e) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        document.querySelectorAll('.dropdown-menu').forEach(otherMenu => {
+                                            if (otherMenu !== menu && otherMenu.style.display === 'block') {
+                                                otherMenu.style.display = 'none';
+                                                otherMenu.previousElementSibling.querySelector('.dropdown-icon').style.transform = 'rotate(0deg)';
+                                            }
+                                        });
+                                        if (menu.style.display === 'none' || menu.style.display === '') {
+                                            menu.style.display = 'block';
+                                            icon.style.transform = 'rotate(180deg)';
+                                        } else {
+                                            menu.style.display = 'none';
+                                            icon.style.transform = 'rotate(0deg)';
+                                        }
+                                    });
+                                });
+                                document.addEventListener('click', function(e) {
+                                    if (!e.target.closest('.dropdown-container')) {
+                                        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                                            menu.style.display = 'none';
+                                        });
+                                        document.querySelectorAll('.dropdown-icon').forEach(icon => {
+                                        icon.style.transform = 'rotate(0deg)';
+                                        });
+                                    }
+                                });
+                            });
+                            </script>
+                            <style>
+                                .dropdown-toggle {
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                }
+
+.dropdown-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-left: 0.5rem;
+    transition: transform 0.2s ease;
+}
+
+.dropdown-menu {
+    position: absolute;
+    z-index: 10;
+    width: 100%;
+    margin-top: 0.5rem;
+    background-color: white;
+    border-radius: 0.375rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: #374151;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+}
+
+.dropdown-menu a:hover {
+    background-color: #f3f4f6;
+}
+                            </style>
                             @endif
                             @if(!$cotizacion->enviado_a_ventas)
                                 @if(Auth::user()->role === 'ventas')
