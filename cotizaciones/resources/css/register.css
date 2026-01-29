@@ -1,0 +1,108 @@
+:root {
+    --primary: #3b82f6;      
+    --primary-dark: #2563eb;
+    --error: #ef4444;
+    --gray-light: #f9fafb;
+    --gray-border: #d1d5db;
+    --text-dark: #374151;
+}
+
+body {
+    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.max-w-md {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.bg-white {
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+h2 {
+    text-align: center;
+    color: var(--text-dark);
+    letter-spacing: 0.5px;
+}
+
+label {
+    font-weight: 500;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    transition: all 0.2s ease;
+    border: 1px solid var(--gray-border);
+    background-color: var(--gray-light);
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+input.border-red-500 {
+    border-color: var(--error);
+    background-color: #fff5f5;
+}
+
+.text-red-500 {
+    font-size: 0.85rem;
+    animation: shake 0.3s ease-in-out;
+}
+
+input[type="radio"] {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+label.inline-flex {
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+label.inline-flex:hover {
+    background-color: #eef2ff;
+}
+
+button[type="submit"] {
+    width: 100%;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+}
+
+button[type="submit"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 15px rgba(59, 130, 246, 0.3);
+}
+
+button[type="submit"]:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    50% { transform: translateX(3px); }
+    75% { transform: translateX(-3px); }
+    100% { transform: translateX(0); }
+}

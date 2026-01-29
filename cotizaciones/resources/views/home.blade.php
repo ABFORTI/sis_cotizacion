@@ -28,12 +28,12 @@
             <button type="submit"
                 class="bg-[#991B1B] text-white px-6 py-2 rounded-xl text-base font-bold shadow-lg shadow-[#991B1B]/40 
                        hover:bg-[#7f1515] hover:shadow-2xl hover:shadow-[#7f1515]/60 transition duration-300 transform hover:scale-105">
-                🔍 Aplicar Filtro
+                Aplicar Filtro
             </button>
             <a href="{{ route('home') }}"
                 class="bg-gray-200 text-gray-800 px-6 py-2 rounded-xl text-base font-bold shadow-md hover:bg-gray-300 
                        transition duration-300 transform hover:scale-105">
-                🧹 Limpiar
+                Limpiar
             </a>
         </div>
     </form>
@@ -86,6 +86,10 @@
                 <h3 class="text-xl font-semibold text-gray-800 mb-4 text-center">Cotizaciones por Fecha de Registro</h3>
                 <div style="width: 100%; height: 350px;">
                     <canvas id="timelineChart"></canvas>
+                    <div class="text-sm text-gray-500 mt-2 text-center">
+                        <em>Nota: La gráfica utiliza la columna "Fecha" para reflejar el momento de registro de cada cotización.</em>
+
+                    </div>
                 </div>
             </div>
         </div>
