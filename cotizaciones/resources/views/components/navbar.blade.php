@@ -2,7 +2,7 @@
     <div class="navbar-container">
         <div class="navbar-inner">
             <a class="navbar-brand" href="/">
-                Cotizador
+                Sistema de Cotizaciones
             </a>
             
             <!-- Hamburger button - animated -->

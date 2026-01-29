@@ -86,13 +86,23 @@ public function ocultarParaCosteos(\App\Models\Cotizacion $cotizacion)
         });
     }
 
-    // Filtros por estado (opcional, si los usas)
+    // Filtros por estado
     if ($estado = $request->estado_filter) {
-        if (auth()->user()->role === 'costeos') {
-            if ($estado === 'recibida') {
-                $query->where('enviado_a_ventas', false);
+        if (auth()->user()->role === 'ventas') {
+            if ($estado === 'pendiente') {
+                $query->where('enviado_a_costeos', false);
+            } elseif ($estado === 'enviada') {
+                $query->where('enviado_a_costeos', true)
+                      ->where('enviado_a_ventas', false);
+            } elseif ($estado === 'devuelta') {
+                $query->where('enviado_a_ventas', true);
             }
-            if ($estado === 'terminada') {
+        } elseif (auth()->user()->role === 'costeos') {
+            if ($estado === 'pendiente') {
+                $query->where('enviado_a_costeos', false);
+            } elseif ($estado === 'recibida') {
+                $query->where('enviado_a_ventas', false);
+            } elseif ($estado === 'terminada') {
                 $query->where('enviado_a_ventas', true);
             }
         }

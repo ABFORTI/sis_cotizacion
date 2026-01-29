@@ -1020,7 +1020,7 @@ class ExcelController extends Controller
         $sheet->getColumnDimension('G')->setWidth(12);
         $sheet->getColumnDimension('H')->setWidth(18);
 
-        // Altura de fila por defecto
+        // Altura de fila por defecto (18)
         $sheet->getDefaultRowDimension()->setRowHeight(18);
 
         // 2. Definición de estilos (basado en la imagen)
@@ -1058,7 +1058,7 @@ class ExcelController extends Controller
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E9F1FA']],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]]
         ];
-        $styleRowOdd = [ // Gris muy claro
+        $styleRowOdd = [ // Gris muy claro, pero claro para las filas impares
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F2F2F2']],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => '000000']]]
         ];
