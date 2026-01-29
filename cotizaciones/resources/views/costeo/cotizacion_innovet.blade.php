@@ -1,21 +1,18 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Estilos personalizados para la plantilla de cotización -->
+<!-- Styles plantilla de cotización -->
 <style>
-    /* Cabecera principal (celdas oscuras) */
     .cotizacion-header {
         background-color: #2b2b2b;
         color: #ffffff;
     }
 
-    /* Títulos en rojo intenso como en la imagen */
     .cotizacion-title-red {
         color: #b50b0b;
         font-weight: 700;
     }
 
-    /* Tabla de especificaciones dentro de la celda (charola) */
     .spec-table {
         border-collapse: collapse;
         width: 100%;
@@ -57,13 +54,11 @@
         width: 15%;
     }
 
-    /* Texto de contacto en rojo más oscuro */
     .contacto-rojo {
         color: #b50b0b;
         font-weight: 600;
     }
 
-    /* Fondo de celdas secundarias */
     .cell-bg-light {
         background-color: #efefef;
     }
@@ -85,7 +80,6 @@
         color: black;
     }
 
-    /* Celdas de precio en verde brillante */
     .precio-verde {
         background-color: #92d050;
         color: #ffffff;
@@ -93,12 +87,10 @@
         box-sizing: border-box;
     }
 
-    /* Texto oscuro para labels */
     .label-dark {
         color: #bfbfbf;
     }
 
-    /* Ajustes de tamaño y espaciado para que coincida con el diseño */
     .cotizacion-table th,
     .cotizacion-table td {
         vertical-align: middle;
@@ -113,21 +105,17 @@
         padding: .25rem 0;
     }
 
-    /* ===== RESPONSIVE STYLES ===== */
-    
-    /* Indicador de scroll para tablas */
+    /* ===== RESPONSIVE STYLES ===== */    
     .table-wrapper {
         position: relative;
     }
 
     @media (max-width: 768px) {
-        /* Reducir padding del contenedor principal */
         .container {
             padding-left: 0.5rem;
             padding-right: 0.5rem;
         }
 
-        /* Indicador visual de scroll horizontal */
         .table-wrapper::after {
             content: '→ Desliza →';
             position: absolute;
@@ -148,7 +136,6 @@
             50% { opacity: 0.9; }
         }
 
-        /* Hacer el header apilable en móvil */
         .header-mobile {
             flex-direction: column;
             align-items: stretch !important;
@@ -164,13 +151,11 @@
             width: 100% !important;
         }
 
-        /* Ajustar logo en móvil */
         .header-mobile img {
             max-width: 180px !important;
             margin: 0 auto;
         }
 
-        /* Botones apilados en móvil */
         .btn-container-mobile {
             flex-direction: column !important;
             gap: 0.5rem !important;
@@ -182,7 +167,6 @@
             font-size: 0.75rem !important;
         }
 
-        /* Información de contacto apilada */
         .contact-mobile {
             grid-template-columns: 1fr !important;
             gap: 0.5rem !important;
@@ -192,7 +176,6 @@
             text-align: center !important;
         }
 
-        /* Tabla responsive con scroll horizontal */
         .table-wrapper {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -200,7 +183,6 @@
             padding: 0 0.5rem;
         }
 
-        /* Reducir tamaño de fuente en tablas */
         .cotizacion-table {
             font-size: 0.7rem;
         }
@@ -210,7 +192,6 @@
             padding: 0.5rem 0.25rem;
         }
 
-        /* Especificaciones en móvil */
         .spec-table {
             font-size: 0.65rem;
         }
@@ -221,36 +202,30 @@
             word-break: break-word;
         }
 
-        /* Ajustar anchos mínimos para móvil */
         .cotizacion-table .index-cell {
             width: 2rem;
         }
 
-        /* Precio verde más compacto */
         .precio-verde {
             font-size: 0.85rem;
             padding: 0.5rem 0.25rem;
         }
 
-        /* Título del proyecto más pequeño */
         .cotizacion-title-red {
             font-size: 0.9rem;
         }
 
-        /* Imágenes responsive */
         .file-thumb {
             max-width: 100% !important;
             max-height: 250px !important;
         }
 
-        /* Footer más pequeño */
         .text-xs {
             font-size: 0.65rem;
         }
     }
 
     @media (max-width: 480px) {
-        /* Para pantallas muy pequeñas */
         .cotizacion-table {
             font-size: 0.65rem;
         }
@@ -263,7 +238,6 @@
             font-size: 0.7rem !important;
         }
 
-        /* Cliente y puesto más pequeños */
         .client-name-mobile {
             font-size: 1.25rem !important;
         }
@@ -271,12 +245,23 @@
         .client-position-mobile {
             font-size: 0.9rem !important;
         }
+        
+        @media (max-width: 768px) {
+        .client-name-mobile {
+            font-size: 1.75rem !important;
+        }
+    }
+
+        @media (max-width: 480px) {
+            .client-name-mobile {
+                font-size: 1.5rem !important;
+            }
+        }
     }
 </style>
 
-<div class="container mx-auto px-4 py-6 font-sans text-sm">
+<div class="container mx-auto px-4 py-6 font-sans text-sm bg-gray-500">
     <div class="bg-white rounded-lg shadow-lg p-6 md:p-6 p-3">
-    <!-- Header -->
     <div class="flex items-start justify-between mb-4 header-mobile">
         <div>
             <img src="{{ asset('images/innovet-logo.png') }}" alt="Innovet" style="max-width: 220px; width: 100%; height: auto;">
@@ -305,14 +290,58 @@
     </div>
 
     <!-- Información del Cliente -->
-    <div class="text-center mb-2">
-        <div class="text-2xl font-semibold client-name-mobile">{{ $cotizacion->cliente }}</div>
-            <p><strong>Proyecto:</strong> {{ $cotizacion->nombre_del_proyecto }}</p>
-                <div class="mb-6 p-4 bg-gray-50 rounded-lg flex flex-col md:flex-row justify-center items-center gap-4">
-                    <p><strong>Puesto:</strong> {{ $cotizacion->puesto }}</p>
-                    <p><strong>Email:</strong> {{ $cotizacion->correo }}</p>
-                    <p><strong>Teléfono:</strong> {{ $cotizacion->telefono }}</p>
+    <div class="mb-8">
+        <div class="text-center mb-4">
+            <h2 class="text-3xl md:text-4xl font-bold text-neutral-900 client-name-mobile mb-2">
+                {{ $cotizacion->cliente }}
+            </h2>
+            <div class="inline-flex items-center gap-2 px-2 py-2">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span class="text-lg font-semibold text-neutral-700">Proyecto:</span>
+                <span class="text-lg font-bold text-neutral-900">{{ $cotizacion->nombre_del_proyecto }}</span>
+            </div>
+        </div>
+    </div>
+    <div class=" from-neutral-50 to-neutral-100 rounded-xl p-6 border border-neutral-50 shadow-sm">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <!-- Puesto -->
+            <div class="flex flex-col items-center md:items-start text-center md:text-left">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-sm font-semibold text-neutral-600 uppercase tracking-wide">Puesto</span>
                 </div>
+                <p class="text-lg font-bold text-neutral-900">{{ $cotizacion->puesto }}</p>
+            </div>
+            <!-- Email -->
+            <div class="flex flex-col items-center md:items-start text-center md:text-left">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="text-sm font-semibold text-neutral-600 uppercase tracking-wide">Email</span>
+                </div>
+                <a href="mailto:{{ $cotizacion->correo }}" class="text-lg font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+                    {{ $cotizacion->correo }}
+                </a>
+            </div>
+            <!-- Teléfono -->
+            <div class="flex flex-col items-center md:items-start text-center md:text-left">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                    </svg>
+                    <span class="text-sm font-semibold text-neutral-600 uppercase tracking-wide">Teléfono</span>
+                </div>
+                    <a href="tel:{{ $cotizacion->telefono }}" class="text-lg font-bold text-neutral-900 hover:text-blue-600 transition-colors">
+                    {{ $cotizacion->telefono }}
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Tabla principal -->
@@ -410,77 +439,168 @@
             </tbody>
         </table>
     </div>
-
-
     <!-- Imagen ilustrativa espacio -->
-    <br><br><br>
-    {{-- Archivos ya cargados (solo imágenes) --}}
-    {{-- SUBIR / REEMPLAZAR IMAGEN --}}
     <form action="{{ route('archivos.store') }}"
-      method="POST"
-      enctype="multipart/form-data"
-      class="mt-10 text-center">
-    @csrf
+        method="POST"
+        enctype="multipart/form-data"
+        class="mt-10 text-center">
+        @csrf
 
-    <input type="hidden" name="cotizacion_id" value="{{ $cotizacion->id }}">
+        <input type="hidden" name="cotizacion_id" value="{{ $cotizacion->id }}">
 
-    <div class="flex flex-col items-center gap-3">
-
-        <input type="file"
-               name="archivo"
-               accept="image/*"
-               class="block w-full max-w-xs text-sm border rounded p-2">
-
-        <button type="submit"
-                class="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            📤 Subir imagen
-        </button>
-
-    </div>
-</form>
-
+        <div class="flex flex-col items-center gap-3">
+            <input type="file"
+                   name="archivo"
+                   accept="image/*"
+                    class="block w-full max-w-xs text-sm border rounded p-2">
+            <button type="submit"
+                    class="px-5 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 box-border border border-transparent">
+                    Subir imagen
+            </button>
+        </div>
+    </form>
     @php
     $imagen = $cotizacion->archivosAdjuntos
         ->filter(fn($a) => preg_match('/\.(jpg|jpeg|png|gif)$/i', $a->path))
         ->last();
-@endphp
+    @endphp
 
-@if(isset($imagen))
-<div class="mt-6 text-center">
-    <div class="inline-block border rounded-lg p-4 shadow">
+    @if(isset($imagen))
+    <div class="mt-8 mb-8">
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden">
+            <div class="relative bg-gradient-to-br from-neutral-50 to-neutral-100 p-8 bg-gray-200">
+                <div class="flex items-center justify-center min-h-[300px] max-h-[500px]">
+                    <img
+                        src="{{ asset('storage/' . $imagen->path) }}"
+                        alt="Imagen del documento"
+                        class="max-w-full max-h-[500px] w-auto h-auto object-contain rounded-lg shadow-md"
+                        loading="lazy"
+                    >
+                </div>
+                <div class="absolute top-4 right-4">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/90 text-neutral-700 shadow-sm backdrop-blur-sm">
+                        <svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                        </svg>
+                        Imagen
+                    </span>
+                </div>
+            </div>
+            <div class="px-6 py-4 bg-white border-t border-neutral-100">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                <!-- Información del archivo -->
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-sm font-semibold text-neutral-900 truncate">
+                        {{ $imagen->nombre ?? 'Documento' }}
+                    </h3>
+                    <p class="text-xs text-neutral-500 mt-0.5">
+                        Subido el {{ $imagen->created_at ? $imagen->created_at->format('d/m/Y') : 'N/A' }}
+                    </p>
+                </div>
+                <!-- Acciones -->
+                <div class="flex items-center gap-2">
+                    <!-- Vista previa -->
+                    <a href="{{ asset('storage/' . $imagen->path) }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="inline-flex items-center gap-2 px-4 py-2
+                              text-sm font-medium text-neutral-700 bg-neutral-50
+                              border border-neutral-200 rounded-lg
+                              hover:bg-neutral-100 hover:border-neutral-300
+                              focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2
+                              transition-all duration-200"
+                       title="Abrir en nueva pestaña">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
+                        <span class="hidden sm:inline">Abrir</span>
+                    </a>
+                    <!-- Descargar -->
+                    <a href="{{ asset('storage/' . $imagen->path) }}"
+                       download="{{ $imagen->nombre ?? 'imagen' }}"
+                       class="inline-flex items-center gap-2 px-4 py-2
+                              text-sm font-medium text-white bg-blue-600
+                              border border-blue-600 rounded-lg
+                              hover:bg-blue-700 hover:border-blue-700
+                              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                              transition-all duration-200 shadow-sm"
+                       title="Descargar archivo">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span class="hidden sm:inline">Descargar</span>
+                    </a>
+                <!-- Menú de opciones -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open"
+                            @click.away="open = false"
+                            type="button"
+                            class="inline-flex items-center justify-center w-9 h-9
+                                   text-neutral-600 bg-neutral-50
+                                   border border-neutral-200 rounded-lg
+                                   hover:bg-neutral-100 hover:text-neutral-900
+                                   focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2
+                                   transition-all duration-200"
+                                    title="Más opciones">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                            </svg>
+                        </button>
+                        <!-- Dropdown menu -->
+                        <div x-show="open"
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
+                             style="display: none;">
+                            
+                            <div class="py-1">
+                                <!-- Opción Eliminar -->
+                                <form action="{{ route('archivos.destroy', $imagen->id) }}" 
+                                      method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    
+                                    <button type="button"
+                                            onclick="showConfirmModal(
+                                                '¿Eliminar imagen?',
+                                                'Esta acción es permanente y no se puede deshacer.',
+                                                () => this.closest('form').submit()
+                                            )"
+                                            class="flex items-center w-full px-4 py-2.5 text-sm text-red-700
+                                                   hover:bg-red-50 transition-colors duration-150">
+                                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                        Eliminar imagen
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
 
-        <img src="{{ asset('storage/' . $imagen->path) }}"
-            style="max-width:320px; max-height:320px; object-fit:contain;"
-            class="mb-3">
-
-        <div class="flex justify-center gap-3">
-
-            <a href="{{ asset('storage/' . $imagen->path) }}"
-               download
-               class="px-4 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700">
-                ⬇ Descargar
-            </a>
-
-            <form action="{{ route('archivos.destroy', $imagen->id) }}"
-                  method="POST">
-                @csrf
-                @method('DELETE')
-                <button type="button"
-                    onclick="showConfirmModal(
-                        '¿Eliminar imagen?',
-                        'Esta imagen será eliminada.',
-                        () => this.closest('form').submit()
-                    )"
-                    class="px-4 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700">
-                    🗑 Eliminar
-                </button>
-            </form>
-
+                </div>
+            </div>
         </div>
+
     </div>
+
+    <!-- Nota legal discreta -->
+    <p class="text-center text-xs text-neutral-400 mt-3">
+        Imagen con fines ilustrativos
+    </p>
 </div>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+@endpush
 @endif
-    <div class="mt-10 mb-4 text-center text-red-600 font-semibold">Imágen ilustrativa:</div>
 
     <!-- SECCION DE LINEAMIENTOS -->
         @if (session('success'))
@@ -510,79 +630,133 @@
         </div>
 
         <!-- Lineamientos -->
-        <form id="form-lineamientos" method="POST" action="{{ route('cotizacion.lineamientos.save', $cotizacion->id) }}" class="mb-6">
-        @csrf
-        @method('PUT') 
-            <h1 class="text-2xl font-bold text-gray-800">Lineamientos del Proyecto</h1>
-            <div class="space-y-4">
-                <div class="p-4 rounded border border-gray-300">
-                    <textarea name="lineamiento_1" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_1 ?? 'Precios en USD. No incluyen I.V.A. Se considera fabricación, facturación y entrega en una sola exhibición.' }}</textarea>
-                </div>
+        <form id="form-lineamientos" method="POST"
+    action="{{ route('cotizacion.lineamientos.save', $cotizacion->id) }}"
+    class="mb-6">
+    @csrf
+    @method('PUT')
 
-                <div class="p-4 rounded border border-gray-300">
-                    <textarea name="lineamiento_2" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_2 ?? 'Los precios pueden ajustarse en respuesta a cambios en aranceles, impuestos o restricciones fiscales y comerciales establecidos por la autoridad.' }}</textarea>
-                </div>
+    <h2 class="text-xl font-semibold text-red-600 mb-6">
+        Lineamientos del Proyecto
+    </h2>
 
-                <div class="p-4 rounded border border-gray-300">
-                    <textarea name="lineamiento_3" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_3 ?? 'La vigencia de la presente cotización es de 12 meses y/o incrementos en MP superior al 5%.' }}</textarea>
-                </div>
+    <div class="space-y-4">
 
-                <div class="p-4 rounded border border-gray-300">
-                    <textarea name="lineamiento_4" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_4 ?? 'Condiciones de pago son por anticipado.' }}</textarea>
-                </div>
+        <!-- CONDICIONES COMERCIALES -->
+        <details open class="border rounded-lg p-4">
+            <summary class="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+                💲 Condiciones comerciales
+            </summary>
 
-                <div class="p-4 rounded border border-gray-300">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Tiempo de desarrollo de herramentales y muestras para liberación:</label>
-                        <input type="text" name="tiempo_herramentales" placeholder="Ej: 4" value="{{ $cotizacion->tiempo_herramentales ?? '' }}" class="w-24 border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-red-600"> semanas.
-                </div>
+            <textarea name="lineamiento_1" rows="2"
+                placeholder="Ej: Precios en USD. No incluyen I.V.A. Fabricación, facturación y entrega en una sola exhibición."
+                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_1 }}</textarea>
 
-                <div class="p-4 rounded border border-gray-300">
-                    <textarea name="lineamiento_5" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_5 ?? 'Tiempo de entrega de producto terminado: ' . ($cotizacion->costeoRequisicion ? ceil((is_numeric($cotizacion->costeoRequisicion->tiempo_pt ?? 0) ? $cotizacion->costeoRequisicion->tiempo_pt : 0) / 5) : 'N/C') . ' semanas (todos los tiempos se confirman con disponibilidad de maquinaria).' }}</textarea>
-                </div>
+            <textarea name="lineamiento_2" rows="2"
+                placeholder="Ej: Los precios pueden ajustarse por cambios fiscales, arancelarios o comerciales."
+                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_2 }}</textarea>
 
-                <div class="p-4 rounded border border-gray-300">
-                    <textarea name="lineamiento_6" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_6 ?? 'El producto se entrega en: ' . ($cotizacion->lugar_entrega ?? '') }}</textarea>
-                </div>
+            <textarea name="lineamiento_3" rows="2"
+                placeholder="Ej: Vigencia de la cotización: 12 meses y/o incrementos en MP superiores al 5%."
+                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_3 }}</textarea>
+        </details>
 
-                <div class="p-4 rounded border border-gray-300">
-                    <textarea name="lineamiento_7" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_7 ?? 'Considerar una variación ±10% en la entrega de producto terminado, sobre lote de producción (MOQ cotizado).' }}</textarea>
-                </div>
+        <!-- CONDICIONES DE PAGO -->
+        <details class="border rounded-lg p-4">
+            <summary class="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+                💳 Condiciones de pago
+            </summary>
 
-                <div class="p-4 rounded border border-gray-300">
-                    <textarea name="lineamiento_8" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_8 ?? 'Especificación de empaque: se confirma después de la 1ª. producción.' }}</textarea>
-                </div>
+            <textarea name="lineamiento_4" rows="2"
+                placeholder="Ej: Condiciones de pago por anticipado."
+                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_4 }}</textarea>
+        </details>
 
-                <div class="p-4 rounded border border-gray-300">
-                    <textarea name="lineamiento_9" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="2">{{ $cotizacion->lineamiento_9 ?? 'Cualquier condición distinta al escenario cotizado implica una revisión de costos.' }}</textarea>
-                </div>
+        <!-- TIEMPOS -->
+        <details class="border rounded-lg p-4">
+            <summary class="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+                ⏱ Tiempos de desarrollo y entrega
+            </summary>
 
-                <div class="p-4 rounded border border-gray-300">
-                    <textarea name="lineamiento_10" class="w-full bg-transparent border-none p-0 m-0 focus:ring-2 focus:ring-red-600 rounded" rows="3">{{ $cotizacion->lineamiento_10 ?? 'La responsabilidad respecto de la mercancía producida por INNOVET, es única y exclusivamente por defectos de fabricación. La inspección de la pieza deformada o fuera de calor, causa deformaciones e invalida garantías. Es responsabilidad del CLIENTE aquellos desperfectos que sufra el producto por mal uso, transportación, almacenamiento o análogas derivadas de la actividad del CLIENTE.' }}</textarea>
-                </div>
+            <div class="mt-3 flex items-center gap-2 text-sm">
+                <label class="font-medium text-gray-700">
+                    Desarrollo de herramentales y muestras:
+                </label>
+
+                <input type="number" name="tiempo_herramentales"
+                    placeholder="Ej: 4"
+                    value="{{ $cotizacion->tiempo_herramentales }}"
+                    class="w-20 border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-red-600">
+
+                <span>semanas</span>
             </div>
 
-            <!-- Sección Atentamente dentro del formulario -->
-            <div class="mt-8 p-4 bg-gray-10">
-                <h3 class="text-lg font-semibold text-red-600 mb-4">Atentamente,</h3>
-                    <p class="mb-2 text-left">
-                        <p class="text-black">{{ $cotizacion->nombre_contacto ?? Auth::user()->name }}</p>
-                    </p>
-                    <p class="text-left text-gray-600">
-                        <input id="puesto_contacto_input" name="puesto_contacto" value="{{ $cotizacion->puesto_contacto ?? 'Puesto' }}" class="w-full bg-white border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-600 focus:outline-none" placeholder="Ingrese su puesto">
-                    </p>
-            </div>
+            <textarea name="lineamiento_5" rows="2"
+                placeholder="Ej: Tiempo de entrega de producto terminado: X semanas (sujeto a disponibilidad de maquinaria)."
+                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_5 }}</textarea>
+        </details>
 
-            <div class="mt-6 flex gap-4">
-                <button type="submit" class="bg-red-600 text-white px-6 py-3 rounded font-semibold hover:bg-red-700 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 shadow-md">
-                    <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    Guardar Lineamientos
-                </button>
-            </div>
+        <!-- ENTREGA Y EMPAQUE -->
+        <details class="border rounded-lg p-4">
+            <summary class="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+                📦 Entrega y empaque
+            </summary>
 
-        </form>
+            <textarea name="lineamiento_6" rows="2"
+                placeholder="Ej: El producto se entrega en: Planta del cliente / almacén / punto acordado."
+                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_6 }}</textarea>
 
+            <textarea name="lineamiento_7" rows="2"
+                placeholder="Ej: Considerar variación ±10% sobre el lote de producción."
+                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_7 }}</textarea>
+
+            <textarea name="lineamiento_8" rows="2"
+                placeholder="Ej: Especificación de empaque a confirmar posterior a la primera producción."
+                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_8 }}</textarea>
+        </details>
+
+        <!-- CONSIDERACIONES LEGALES -->
+        <details class="border rounded-lg p-4">
+            <summary class="text-sm font-semibold text-neutral-600 uppercase tracking-wide">
+                ⚠️ Consideraciones legales
+            </summary>
+
+            <textarea name="lineamiento_9" rows="2"
+                placeholder="Ej: Cualquier condición distinta implica revisión de costos."
+                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_9 }}</textarea>
+
+            <textarea name="lineamiento_10" rows="3"
+                placeholder="Ej: Responsabilidad limitada a defectos de fabricación..."
+                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_10 }}</textarea>
+        </details>
+
+    </div>
+
+    <!-- ATENTAMENTE -->
+    <div class="mt-8 p-4 bg-gray-50 rounded-lg border">
+        <h3 class="text-lg font-semibold text-red-600 mb-4">Atentamente</h3>
+
+        <input name="nombre_contacto"
+            placeholder="Nombre del contacto"
+            value="{{ $cotizacion->nombre_contacto ?? Auth::user()->name }}"
+            class="w-full mb-3 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-600">
+
+        <input name="puesto_contacto"
+            placeholder="Puesto"
+            value="{{ $cotizacion->puesto_contacto }}"
+            class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-600">
+    </div>
+
+        <!-- BOTÓN -->
+    <div class="mt-6 flex justify-center">
+    <button type="submit"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded">
+        Guardar Lineamientos
+    </button>
+</div>
+
+
+</form>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -634,6 +808,27 @@
         }
 
     });
+
+document.addEventListener('click', function (e) {
+    // Botones dropdown
+    const buttons = document.querySelectorAll('[data-dropdown-toggle]');
+
+    buttons.forEach(button => {
+        const targetId = button.getAttribute('data-dropdown-toggle');
+        const dropdown = document.getElementById(targetId);
+
+        // Click en el botón
+        if (button.contains(e.target)) {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        } 
+        // Click fuera → cerrar
+        else if (dropdown && !dropdown.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+});
+
 </script>
 
     <!-- Footer address -->
