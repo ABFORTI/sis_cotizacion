@@ -10,7 +10,7 @@
             @yield('title')
         </h1>
     </div>
-    <div class="bg-slate-800 rounded-xl shadow-xl p-6 text-slate-200">
+    <div class="bg-slate-200 rounded-xl shadow-xl p-6 text-slate-200">
         <div class="mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <form action="{{ route('cotizaciones.index') }}"
