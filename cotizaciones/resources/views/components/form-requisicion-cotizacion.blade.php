@@ -102,7 +102,7 @@ $dedales = oldValue('dedales', $aux);
                         <label for="descripcion_parte">Descripción número de parte:</label>
                         <input type="text" id="descripcion_parte" name="descripcion_parte"
                             value="{{ old('descripcion_parte', $cotizacion?->requisicionCotizacion->descripcion_parte ?? '') }}"
-                            placeholder="Ingrese el número de parte a grabar" data-required="true">
+                            placeholder="Ingrese el número de parte a grabar" data-required="false">
                     </div>
 
                     <label class="flex items-center">
