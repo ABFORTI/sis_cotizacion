@@ -153,18 +153,15 @@ $esCorridaPiloto = false;
 
 <div class="container mx-auto p-4">
     @if($esCorridaPiloto)
-    <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Corrida Piloto</h1>
+        <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Corrida Piloto</h1>
     @else
-    <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Costeo</h1>
+        <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Costeo</h1>
     @endif
     <form action="{{ route('costeo.store', $cotizacion->id) }}" method="POST" id="costeoForm">
-        @csrf
-        
+        @csrf  
         @if($esCorridaPiloto)
-        <input type="hidden" name="btn_corrida_piloto" value="corrida_piloto">
+            <input type="hidden" name="btn_corrida_piloto" value="corrida_piloto">
         @endif
-
-        <!-- SECCIÓN: INFORMACIÓN DE LA REQUISICIÓN no editable excepto moq y calibre-->
         <fieldset>
             <legend>Información de la Requisición</legend>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -212,7 +209,6 @@ $esCorridaPiloto = false;
                 </div>
                 @endif
             </div>
-
             <!-- ESPECIFICACIONES DE MATERIAL -->
             <fieldset class="sub-fieldset grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <legend class="sub-legend">Especificaciones de material</legend>
@@ -320,7 +316,7 @@ $esCorridaPiloto = false;
                         </td>
                         <td class="border border-gray-300 p-2">
                             <input type="number" name="acomodo_ancho_cantidad_2"
-                                value="{{ $acomodo_ancho_orillas_cantidad }}"
+                                value="2"
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAncho()">
                         </td>
                         <td class="border border-gray-300 p-2">
@@ -461,7 +457,7 @@ $esCorridaPiloto = false;
                         </td>
                         <td class="border border-gray-300 p-2">
                             <input type="number" name="acomodo_avance_cantidad_2"
-                                value="{{ $acomodo_avance_orillas_cantidad }}"
+                                value="2"
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAvance()">
                         </td>
                         <td class="border border-gray-300 p-2">
@@ -518,11 +514,13 @@ $esCorridaPiloto = false;
                             <td class="border border-gray-300 bg-gray-50 p-2 font-bold">Molde</td>
                             <td class="border border-gray-300 bg-gray-50 p-2">
                                 <input name="molde_ancho"
+                                    id="input-molde-ancho"
                                     value="{{ $molde_ancho }}"
                                     class="w-full p-2 text-center font-bold" readonly>
                             </td>
                             <td class="border border-gray-300 bg-gray-50 p-2">
                                 <input name="molde_avance"
+                                    id="input-molde-avance"
                                     value="{{ $molde_avance }}"
                                     class="w-full p-2 text-center font-bold" readonly>
                             </td>
@@ -543,93 +541,29 @@ $esCorridaPiloto = false;
                     </thead>
                     <tbody>
                         <tr>
+                             
+                            <td class="border border-gray-300 p-2 font-bold">Hoja</td>
                             <td class="border border-gray-300 p-2">
-                                <button type="button" onclick="toggleAuxInputs()" 
-                                    class="font-medium px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200" title="Mostrar/Ocultar ajustes auxiliares para calcular ancho y avance de hoja">
-                                    Hoja
-                                </button> 
-                            </td>
-                            <td class="border border-gray-300 p-2">
+                                <!-- HOJA ANCHO -->
                                 <div class="grid gap-1" id="grid-ancho">
-                                    <input type="number" name="hoja_ancho" step="0.5" id="input-hoja-ancho"
-                                        value="{{ $hoja_ancho }}" placeholder="Ingrese medida de hoja ancho" oninput="calcularAreaFormadoHoja(), calcularParedMedia()"
-                                        class="border-gray-300 border rounded-md p-1">
-                                    <input type="number" name="aux_hoja_ancho" id="aux-hoja-ancho" value="{{ old('aux_hoja_ancho', $costeoRequisicion->aux_hoja_ancho) }}" placeholder="ajuste"
-                                        class="border-gray-300 border rounded-md p-1 hidden" oninput="calcularHojaAncho(), calcularAreaFormadoHoja(), calcularParedMedia()">
+                                    <input type="number" id="input-hoja-ancho" name="hoja_ancho" readonly
+                                        value="{{ $hoja_ancho ?? '' }}"
+                                        class="w-full p-2 text-center font-bold bg-gray-200"
+                                    />
                                 </div>
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <div class="grid gap-1" id="grid-avance">
-                                    <input type="number" name="hoja_avance" step="0.5" id="input-hoja-avance"
-                                        value="{{ $hoja_avance }}" placeholder="Ingrese medida hoja avance" oninput="calcularAreaFormadoHoja(), calcularParedMedia()"
-                                        class="border-gray-300 border rounded-md p-1">
-                                    <input type="number" name="aux_hoja_avance" id="aux-hoja-avance" value="{{ old('aux_hoja_avance', $costeoRequisicion->aux_hoja_avance) }}" placeholder="ajuste"
-                                        class="border-gray-300 border rounded-md p-1 hidden" oninput="calcularHojaAvance(), calcularAreaFormadoHoja() , calcularParedMedia()">
+                                    <!-- HOJA AVANCE -->
+                                    <input type="number" name="hoja_avance" id="input-hoja-avance"
+                                        value="{{ $hoja_avance }}" readonly
+                                        class="w-full p-2 text-center font-bold bg-gray-200">
                                 </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <script>
-                function toggleAuxInputs() {
-                    // Obtener los elementos
-                    const auxAncho = document.getElementById('aux-hoja-ancho');
-                    const auxAvance = document.getElementById('aux-hoja-avance');
-                    const gridAncho = document.getElementById('grid-ancho');
-                    const gridAvance = document.getElementById('grid-avance');
-                    
-                    // Verificar si están ocultos
-                    const isHidden = auxAncho.classList.contains('hidden');
-                    
-                    if (isHidden) {
-                        // Mostrar inputs auxiliares
-                        auxAncho.classList.remove('hidden');
-                        auxAvance.classList.remove('hidden');
-                        // Cambiar a grid de 5 columnas
-                        gridAncho.classList.remove('grid-cols-1');
-                        gridAncho.classList.add('grid-cols-5');
-                        gridAvance.classList.remove('grid-cols-1');
-                        gridAvance.classList.add('grid-cols-5');
-                        // Ajustar el input principal a 4 columnas
-                        document.getElementById('input-hoja-ancho').classList.add('col-span-4');
-                        document.getElementById('input-hoja-avance').classList.add('col-span-4');
-                        // Ajustar el aux a 1 columna
-                        auxAncho.classList.add('col-span-1');
-                        auxAvance.classList.add('col-span-1');
-                    } else {
-                        // Ocultar inputs auxiliares
-                        auxAncho.classList.add('hidden');
-                        auxAvance.classList.add('hidden');
-                        // Cambiar a grid de 1 columna (ocupa todo el espacio)
-                        gridAncho.classList.remove('grid-cols-5');
-                        gridAncho.classList.add('grid-cols-1');
-                        gridAvance.classList.remove('grid-cols-5');
-                        gridAvance.classList.add('grid-cols-1');
-                        // Quitar las clases de columnas
-                        document.getElementById('input-hoja-ancho').classList.remove('col-span-4');
-                        document.getElementById('input-hoja-avance').classList.remove('col-span-4');
-                        auxAncho.classList.remove('col-span-1');
-                        auxAvance.classList.remove('col-span-1');
-                    }
-                }
-
-                function calcularHojaAncho() {
-                    const ancho = parseFloat(document.querySelector('input[name="total_ancho_molde"]').value) || 0;
-                    const aux = parseFloat(document.querySelector('input[name="aux_hoja_ancho"]').value) || 0;
-                    const resultado = ancho + aux;
-                    document.querySelector('input[name="hoja_ancho"]').value = resultado.toFixed(2);
-                }
-
-                function calcularHojaAvance() {
-                    const avance = parseFloat(document.querySelector('input[name="total_avance_molde"]').value) || 0;
-                    const aux = parseFloat(document.querySelector('input[name="aux_hoja_avance"]').value) || 0;
-                    const resultado = avance + aux;
-                    document.querySelector('input[name="hoja_avance"]').value = resultado.toFixed(2);
-                }
-            </script>
-
-            <!-- Select de Placa de Enfriamiento -->
             <div>
                 <h3 class="text-xl font-bold text-red-800 mb-2">Placa de Enfriamiento</h3>
                 <label class="font-bold block mb-2">Selecciona una medida:</label>
@@ -891,6 +825,106 @@ $esCorridaPiloto = false;
 
                 pesoInput.value = pesoEspecifico;
                 calcularPesoEstimadoPieza();
+            }
+
+            function calcularAnchoHoja() {
+                const moldeInput = document.getElementById('input-molde-ancho');
+                const moldeAncho = parseFloat(moldeInput.value) || 0;
+                const selectMaquina = document.querySelector('select[name="nombre_maquina_termoformado"]');
+                const maquina = selectMaquina ? selectMaquina.value : '';
+
+                let incremento = 0;
+
+                const suma40 = [
+                    'TA-1',
+                    'TA-2',
+                    'TA-3',
+                    'TA-4',
+                    'Max-18',
+                    'TA-1,TA-3',
+                    'TA-1,TA-3,Max-18'
+                ];
+
+                const suma50 = [
+                    'TCH-1',
+                    'TCH-2',
+                    'TCH-3',
+                    'TCH-4',
+                    'Monster',
+                    'ILLIG 1',
+                    'ILLIG 2'
+                ];
+
+                const suma100 = [
+                    'GF-1',
+                    'GF-2'
+                ];
+
+                if (suma40.includes(maquina)) {
+                    incremento = 40;
+                } else if (suma50.includes(maquina)) {
+                    incremento = 50;
+                } else if (suma100.includes(maquina)) {
+                    incremento = 100;
+                }
+
+                const resultado = moldeAncho + incremento;
+
+                document.getElementById('input-hoja-ancho').value = resultado;
+
+                calcularAreaFormadoHoja();
+                calcularParedMedia();
+            }
+                
+            function calcularAvanceHoja() {
+
+                const moldeInput = document.getElementById('input-molde-avance');
+                const moldeAvance = parseFloat(moldeInput.value) || 0;
+
+                const selectMaquina = document.querySelector('select[name="nombre_maquina_termoformado"]');
+                const maquina = selectMaquina ? selectMaquina.value : '';
+
+                let incremento = 0;
+
+                const suma20 = [
+                    'TA-1',
+                    'TA-2',
+                    'TA-3',
+                    'TA-4',
+                    'Max-18',
+                    'TA-1,TA-3',
+                    'TA-1,TA-3,Max-18'
+                ];
+
+                const suma50 = [
+                    'TCH-1',
+                    'TCH-2',
+                    'TCH-3',
+                    'TCH-4',
+                    'Monster',
+                    'ILLIG 1',
+                    'ILLIG 2'
+                ];
+
+                const suma100 = [
+                    'GF-1',
+                    'GF-2'
+                ];
+
+                if (suma20.includes(maquina)) {
+                    incremento = 20;
+                } else if (suma50.includes(maquina)) {
+                    incremento = 50;
+                } else if (suma100.includes(maquina)) {
+                    incremento = 100;
+                }
+
+                const resultado = moldeAvance + incremento;
+
+                document.getElementById('input-hoja-avance').value = resultado;
+
+                calcularAreaFormadoHoja();
+                calcularParedMedia();
             }
 
             function calcularAreaFormadoHoja() {
@@ -1176,7 +1210,7 @@ $esCorridaPiloto = false;
                     <tbody>
                         <tr>
                             <td class="border border-gray-300 p-2">
-                                <select name="nombre_maquina_termoformado" class="w-full border rounded-md p-1">
+                                <select name="nombre_maquina_termoformado" class="w-full border rounded-md p-1" onchange="calcularAnchoHoja(), calcularAvanceHoja()">
                                     <option value="Máquina de Termoformado">Seleccione Máquina</option>
                                     <option value="TA-1" {{ $nombre_maquina_termoformado == 'TA-1' ? 'selected' : '' }}>TA-1</option>
                                     <option value="TA-2" {{ $nombre_maquina_termoformado == 'TA-2' ? 'selected' : '' }}>TA-2</option>
