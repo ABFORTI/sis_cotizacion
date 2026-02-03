@@ -153,18 +153,15 @@ $esCorridaPiloto = false;
 
 <div class="container mx-auto p-4">
     @if($esCorridaPiloto)
-    <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Corrida Piloto</h1>
+        <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Corrida Piloto</h1>
     @else
-    <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Costeo</h1>
+        <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Costeo</h1>
     @endif
     <form action="{{ route('costeo.store', $cotizacion->id) }}" method="POST" id="costeoForm">
-        @csrf
-        
+        @csrf  
         @if($esCorridaPiloto)
-        <input type="hidden" name="btn_corrida_piloto" value="corrida_piloto">
+            <input type="hidden" name="btn_corrida_piloto" value="corrida_piloto">
         @endif
-
-        <!-- SECCIÓN: INFORMACIÓN DE LA REQUISICIÓN no editable excepto moq y calibre-->
         <fieldset>
             <legend>Información de la Requisición</legend>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -212,7 +209,6 @@ $esCorridaPiloto = false;
                 </div>
                 @endif
             </div>
-
             <!-- ESPECIFICACIONES DE MATERIAL -->
             <fieldset class="sub-fieldset grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <legend class="sub-legend">Especificaciones de material</legend>
@@ -320,7 +316,7 @@ $esCorridaPiloto = false;
                         </td>
                         <td class="border border-gray-300 p-2">
                             <input type="number" name="acomodo_ancho_cantidad_2"
-                                value="{{ $acomodo_ancho_orillas_cantidad }}"
+                                value="2"
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAncho()">
                         </td>
                         <td class="border border-gray-300 p-2">
@@ -461,7 +457,7 @@ $esCorridaPiloto = false;
                         </td>
                         <td class="border border-gray-300 p-2">
                             <input type="number" name="acomodo_avance_cantidad_2"
-                                value="{{ $acomodo_avance_orillas_cantidad }}"
+                                value="2"
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAvance()">
                         </td>
                         <td class="border border-gray-300 p-2">
@@ -518,11 +514,13 @@ $esCorridaPiloto = false;
                             <td class="border border-gray-300 bg-gray-50 p-2 font-bold">Molde</td>
                             <td class="border border-gray-300 bg-gray-50 p-2">
                                 <input name="molde_ancho"
+                                    id="input-molde-ancho"
                                     value="{{ $molde_ancho }}"
                                     class="w-full p-2 text-center font-bold" readonly>
                             </td>
                             <td class="border border-gray-300 bg-gray-50 p-2">
                                 <input name="molde_avance"
+                                    id="input-molde-avance"
                                     value="{{ $molde_avance }}"
                                     class="w-full p-2 text-center font-bold" readonly>
                             </td>
@@ -543,93 +541,28 @@ $esCorridaPiloto = false;
                     </thead>
                     <tbody>
                         <tr>
+                            <td class="border border-gray-300 p-2 font-bold">Hoja</td>
                             <td class="border border-gray-300 p-2">
-                                <button type="button" onclick="toggleAuxInputs()" 
-                                    class="font-medium px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200" title="Mostrar/Ocultar ajustes auxiliares para calcular ancho y avance de hoja">
-                                    Hoja
-                                </button> 
-                            </td>
-                            <td class="border border-gray-300 p-2">
+                                <!-- HOJA ANCHO -->
                                 <div class="grid gap-1" id="grid-ancho">
-                                    <input type="number" name="hoja_ancho" step="0.5" id="input-hoja-ancho"
-                                        value="{{ $hoja_ancho }}" placeholder="Ingrese medida de hoja ancho" oninput="calcularAreaFormadoHoja(), calcularParedMedia()"
-                                        class="border-gray-300 border rounded-md p-1">
-                                    <input type="number" name="aux_hoja_ancho" id="aux-hoja-ancho" value="{{ old('aux_hoja_ancho', $costeoRequisicion->aux_hoja_ancho) }}" placeholder="ajuste"
-                                        class="border-gray-300 border rounded-md p-1 hidden" oninput="calcularHojaAncho(), calcularAreaFormadoHoja(), calcularParedMedia()">
+                                    <input type="number" id="input-hoja-ancho" name="hoja_ancho" readonly
+                                        value="{{ $hoja_ancho ?? '' }}"
+                                        class="w-full p-2 text-center font-bold bg-gray-200"
+                                    />
                                 </div>
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <div class="grid gap-1" id="grid-avance">
-                                    <input type="number" name="hoja_avance" step="0.5" id="input-hoja-avance"
-                                        value="{{ $hoja_avance }}" placeholder="Ingrese medida hoja avance" oninput="calcularAreaFormadoHoja(), calcularParedMedia()"
-                                        class="border-gray-300 border rounded-md p-1">
-                                    <input type="number" name="aux_hoja_avance" id="aux-hoja-avance" value="{{ old('aux_hoja_avance', $costeoRequisicion->aux_hoja_avance) }}" placeholder="ajuste"
-                                        class="border-gray-300 border rounded-md p-1 hidden" oninput="calcularHojaAvance(), calcularAreaFormadoHoja() , calcularParedMedia()">
+                                    <!-- HOJA AVANCE -->
+                                    <input type="number" name="hoja_avance" id="input-hoja-avance"
+                                        value="{{ $hoja_avance }}" readonly
+                                        class="w-full p-2 text-center font-bold bg-gray-200">
                                 </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <script>
-                function toggleAuxInputs() {
-                    // Obtener los elementos
-                    const auxAncho = document.getElementById('aux-hoja-ancho');
-                    const auxAvance = document.getElementById('aux-hoja-avance');
-                    const gridAncho = document.getElementById('grid-ancho');
-                    const gridAvance = document.getElementById('grid-avance');
-                    
-                    // Verificar si están ocultos
-                    const isHidden = auxAncho.classList.contains('hidden');
-                    
-                    if (isHidden) {
-                        // Mostrar inputs auxiliares
-                        auxAncho.classList.remove('hidden');
-                        auxAvance.classList.remove('hidden');
-                        // Cambiar a grid de 5 columnas
-                        gridAncho.classList.remove('grid-cols-1');
-                        gridAncho.classList.add('grid-cols-5');
-                        gridAvance.classList.remove('grid-cols-1');
-                        gridAvance.classList.add('grid-cols-5');
-                        // Ajustar el input principal a 4 columnas
-                        document.getElementById('input-hoja-ancho').classList.add('col-span-4');
-                        document.getElementById('input-hoja-avance').classList.add('col-span-4');
-                        // Ajustar el aux a 1 columna
-                        auxAncho.classList.add('col-span-1');
-                        auxAvance.classList.add('col-span-1');
-                    } else {
-                        // Ocultar inputs auxiliares
-                        auxAncho.classList.add('hidden');
-                        auxAvance.classList.add('hidden');
-                        // Cambiar a grid de 1 columna (ocupa todo el espacio)
-                        gridAncho.classList.remove('grid-cols-5');
-                        gridAncho.classList.add('grid-cols-1');
-                        gridAvance.classList.remove('grid-cols-5');
-                        gridAvance.classList.add('grid-cols-1');
-                        // Quitar las clases de columnas
-                        document.getElementById('input-hoja-ancho').classList.remove('col-span-4');
-                        document.getElementById('input-hoja-avance').classList.remove('col-span-4');
-                        auxAncho.classList.remove('col-span-1');
-                        auxAvance.classList.remove('col-span-1');
-                    }
-                }
-
-                function calcularHojaAncho() {
-                    const ancho = parseFloat(document.querySelector('input[name="total_ancho_molde"]').value) || 0;
-                    const aux = parseFloat(document.querySelector('input[name="aux_hoja_ancho"]').value) || 0;
-                    const resultado = ancho + aux;
-                    document.querySelector('input[name="hoja_ancho"]').value = resultado.toFixed(2);
-                }
-
-                function calcularHojaAvance() {
-                    const avance = parseFloat(document.querySelector('input[name="total_avance_molde"]').value) || 0;
-                    const aux = parseFloat(document.querySelector('input[name="aux_hoja_avance"]').value) || 0;
-                    const resultado = avance + aux;
-                    document.querySelector('input[name="hoja_avance"]').value = resultado.toFixed(2);
-                }
-            </script>
-
-            <!-- Select de Placa de Enfriamiento -->
             <div>
                 <h3 class="text-xl font-bold text-red-800 mb-2">Placa de Enfriamiento</h3>
                 <label class="font-bold block mb-2">Selecciona una medida:</label>
@@ -788,12 +721,14 @@ $esCorridaPiloto = false;
                         value="{{ $peso_especifico }}" oninput="calcularPesoEstimadoPieza()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
+
                 <div>
                     <label class="font-bold block mb-2">Área de Formado Hoja (mm):</label>
                     <input type="number" step="0.0001" name="area_formado_hoja"
                         value="{{ $area_formado_hoja }}"
                         class="w-full border-gray-300 border rounded-md p-2 bg-gray-50">
                 </div>
+                
                 <div>
                     <label class="font-bold block mb-2">Cantidad de Hojas:</label>
                     <input type="number" step="0.01" name="cantidad_hojas"
@@ -837,27 +772,23 @@ $esCorridaPiloto = false;
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
                 <div>
-                    <button type="button" onclick="calcularPesoTotalFormula2()" 
+                    <div class = "grid gap-2 items-center" >
+                        <button  type="button" onclick="calcularPesoTotalFormula2()" 
                         class="font-bold block px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200" title="Calcular peso total usando fórmula 2 (Peso Neto + Peso Merma)">
                         Peso total (kg)
                     </button>
+                    </div>
                     <input type="number" step="0.0001" name="peso_total"
                         value="{{ $peso_total }}" oninput="calcularPesoBrutoHoja(), calcularPesoMerma(), calcularPrecioPorKg()"
-                        class="w-full border-gray-300 border rounded-md p-2">
+                        class="w-full border-gray-300 border rounded-md p-2"
+                        placeholder="Click en botón para calcular">
                 </div>
                 <div>
-                    <button type="button" onclick="togglePRMAuxInputs()" 
-                        class="font-bold block px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200" title="Mostrar/Ocultar ajustes auxiliares para calcular PRM">
-                        PRM
-                    </button>
+                    <label class="font-bold block mb-2">PRM</label>
                     <div class="grid gap-2 items-center" id="grid-prm">
                         <input type="number" step="0.0001" name="PRM" id="input-prm"
-                            value="{{ $PRM }}" placeholder="Calcular"
+                            value="{{ $PRM }}" placeholder="Calcular PRM"
                             class="border-gray-300 border rounded-md p-2">
-                        <input type="number" name="divisor_prm" id="aux-divisor-prm" value="{{ $costeoRequisicion->divisor_prm }}" placeholder="/divisor"
-                            class="border-gray-300 border rounded-md p-2 hidden" oninput="calcularPRM(), calcularPesoTotal()">
-                        <input type="number" name="sumador_prm" id="aux-sumador-prm" value="{{ $costeoRequisicion->sumador_prm }}" placeholder="+sumador"
-                            class="border-gray-300 border rounded-md p-2 hidden" oninput="calcularPRM(), calcularPesoTotal()">
                     </div>
                 </div>
                 <div>
@@ -891,6 +822,106 @@ $esCorridaPiloto = false;
 
                 pesoInput.value = pesoEspecifico;
                 calcularPesoEstimadoPieza();
+            }
+
+            function calcularAnchoHoja() {
+                const moldeInput = document.getElementById('input-molde-ancho');
+                const moldeAncho = parseFloat(moldeInput.value) || 0;
+                const selectMaquina = document.querySelector('select[name="nombre_maquina_termoformado"]');
+                const maquina = selectMaquina ? selectMaquina.value : '';
+
+                let incremento = 0;
+
+                const suma40 = [
+                    'TA-1',
+                    'TA-2',
+                    'TA-3',
+                    'TA-4',
+                    'Max-18',
+                    'TA-1,TA-3',
+                    'TA-1,TA-3,Max-18'
+                ];
+
+                const suma50 = [
+                    'TCH-1',
+                    'TCH-2',
+                    'TCH-3',
+                    'TCH-4',
+                    'Monster',
+                    'ILLIG 1',
+                    'ILLIG 2'
+                ];
+
+                const suma100 = [
+                    'GF-1',
+                    'GF-2'
+                ];
+
+                if (suma40.includes(maquina)) {
+                    incremento = 40;
+                } else if (suma50.includes(maquina)) {
+                    incremento = 50;
+                } else if (suma100.includes(maquina)) {
+                    incremento = 100;
+                }
+
+                const resultado = moldeAncho + incremento;
+
+                document.getElementById('input-hoja-ancho').value = resultado;
+
+                calcularAreaFormadoHoja();
+                calcularParedMedia();
+            }
+                
+            function calcularAvanceHoja() {
+
+                const moldeInput = document.getElementById('input-molde-avance');
+                const moldeAvance = parseFloat(moldeInput.value) || 0;
+
+                const selectMaquina = document.querySelector('select[name="nombre_maquina_termoformado"]');
+                const maquina = selectMaquina ? selectMaquina.value : '';
+
+                let incremento = 0;
+
+                const suma20 = [
+                    'TA-1',
+                    'TA-2',
+                    'TA-3',
+                    'TA-4',
+                    'Max-18',
+                    'TA-1,TA-3',
+                    'TA-1,TA-3,Max-18'
+                ];
+
+                const suma50 = [
+                    'TCH-1',
+                    'TCH-2',
+                    'TCH-3',
+                    'TCH-4',
+                    'Monster',
+                    'ILLIG 1',
+                    'ILLIG 2'
+                ];
+
+                const suma100 = [
+                    'GF-1',
+                    'GF-2'
+                ];
+
+                if (suma20.includes(maquina)) {
+                    incremento = 20;
+                } else if (suma50.includes(maquina)) {
+                    incremento = 50;
+                } else if (suma100.includes(maquina)) {
+                    incremento = 100;
+                }
+
+                const resultado = moldeAvance + incremento;
+
+                document.getElementById('input-hoja-avance').value = resultado;
+
+                calcularAreaFormadoHoja();
+                calcularParedMedia();
             }
 
             function calcularAreaFormadoHoja() {
@@ -939,18 +970,19 @@ $esCorridaPiloto = false;
                 }
                 const input = document.querySelector('input[name="peso_neto"]');
                 if (!isNaN(resultado)) {
-                    input.value = resultado.toFixed(4);
+                    input.value = resultado.toFixed(2);
                 } else {
                     input.value = '0';
                 }
                 calcularPesoNetoHoja();
+                calcularPRM();
             }
 
             function calcularPesoMerma() {
                 const pesoneto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
                 const pesototal = parseFloat(document.querySelector('input[name="peso_total"]').value) || 0;
                 const resultado = pesototal - pesoneto;
-                document.querySelector('input[name="peso_merma"]').value = resultado.toFixed(4);
+                document.querySelector('input[name="peso_merma"]').value = resultado.toFixed(2);
                 calcularPZRM();
             }
 
@@ -965,16 +997,19 @@ $esCorridaPiloto = false;
                 const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
                 const hojas = parseFloat(document.querySelector('input[name="cantidad_hojas"]').value) || 0;
                 const resultado = (hojas * (coeficienteMerma / 100)) + hojas;
-                document.querySelector('input[name="hojas_del_pedido"]').value = resultado.toFixed(4);
+                const resultadoRedondeado = Math.round(resultado);
+
+                document.querySelector('input[name="hojas_del_pedido"]').value = resultadoRedondeado;
             }
 
             function calcularPRM() {
                 const pesoNetoHoja = parseFloat(document.querySelector('input[name="peso_neto_hoja"]').value) || 0;
                 const pesoNeto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
-                const sumador = parseFloat(document.querySelector('input[name="sumador_prm"]').value) || 0;
-                const divisor = parseFloat(document.querySelector('input[name="divisor_prm"]').value) || 1;
-                const resultado = ((30 * pesoNetoHoja) * (pesoNeto / divisor)) + sumador;
-                document.querySelector('input[name="PRM"]').value = resultado.toFixed(4);
+                const resultado = ((30 * pesoNetoHoja) * (pesoNeto / 130)) + 70;
+
+                document.querySelector('input[name="PRM"]').value = resultado.toFixed(2);
+
+                calcularPesoTotal();
             }
 
             function calcularPesoTotal() {
@@ -987,36 +1022,28 @@ $esCorridaPiloto = false;
             }
 
             function calcularPesoTotalFormula2() {
-                // Obtener el valor del MOQ (Minimum Order Quantity) o establecerlo en 0 si no está definido
+                // Calcular el peso total utilizando la fórmula:
+                // (MOQ / Insertos) * AreadeFormadoHoja * 10000 * (Calibre / 393.7) * PesoEspecifico / 1000 * (1 + (CoeficienteMerma)
+
                 const moq = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
-
-                // Obtener el número de insertos o establecerlo en 0 si no está definido
                 const insertos = parseFloat(document.querySelector('input[name="insertos"]').value) || 0;
-
-                // Obtener el área de formado de la hoja o establecerlo en 0 si no está definido
                 const areaFormadoHoja = parseFloat(document.querySelector('input[name="area_formado_hoja"]').value) || 0;
-
-                // Obtener el calibre del material o establecerlo en 0 si no está definido
                 const calibre = parseFloat(document.querySelector('input[name="calibre_costeo"]').value) || 0;
 
                 // Obtener el peso específico del material o usar un valor predeterminado de 1.02
                 const pesoEspecifico = parseFloat(document.querySelector('input[name="peso_especifico"]').value) || 1.02;
-
-                // Obtener el coeficiente de merma o establecerlo en 0 si no está definido
                 const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
 
-                // Calcular el peso total utilizando la fórmula:
-                // (207 / 1) * .25998 * 10000 * (30 / 393.7) * 1.35 / 1000 * (1 + (50 / 100))
                 const resultado = (moq / insertos) * areaFormadoHoja * 10000 * (calibre / 393.7) * pesoEspecifico / 1000 * (1 + (coeficienteMerma / 100));
 
-                // Asignar el resultado calculado al campo de entrada correspondiente, redondeado a 4 decimales
                 document.querySelector('input[name="peso_total"]').value = resultado.toFixed(4);
+
                 calcularPesoBrutoHoja();
                 calcularPesoMerma();
+                calcularPrecioPorKg();
                 @if($esCorridaPiloto)
-                // Si es corrida piloto, calcular amortizacion maquinaria 2
-                calcularCostoAmortizacionMaquinaria2();
-                calcularCostosUnit();
+                    calcularCostoAmortizacionMaquinaria2();
+                    calcularCostosUnit();
                 @endif
             }
 
@@ -1032,30 +1059,6 @@ $esCorridaPiloto = false;
                     pzrmInput.value = resultado.toFixed(4);
                 } else {
                     pzrmInput.value = '0';
-                }
-            }
-
-            function togglePRMAuxInputs() {
-                // Obtener los elementos
-                const auxDivisor = document.getElementById('aux-divisor-prm');
-                const auxSumador = document.getElementById('aux-sumador-prm');
-                const gridPrm = document.getElementById('grid-prm');
-                
-                // Verificar si están ocultos
-                const isHidden = auxDivisor.classList.contains('hidden');
-                
-                if (isHidden) {
-                    // Mostrar inputs auxiliares
-                    auxDivisor.classList.remove('hidden');
-                    auxSumador.classList.remove('hidden');
-                    // Cambiar a grid de 3 columnas
-                    gridPrm.classList.add('grid-cols-3');
-                } else {
-                    // Ocultar inputs auxiliares
-                    auxDivisor.classList.add('hidden');
-                    auxSumador.classList.add('hidden');
-                    // Cambiar a grid de 1 columna (ocupa todo el espacio)
-                    gridPrm.classList.remove('grid-cols-3');
                 }
             }
         </script>
@@ -1176,7 +1179,7 @@ $esCorridaPiloto = false;
                     <tbody>
                         <tr>
                             <td class="border border-gray-300 p-2">
-                                <select name="nombre_maquina_termoformado" class="w-full border rounded-md p-1">
+                                <select name="nombre_maquina_termoformado" class="w-full border rounded-md p-1" onchange="calcularAnchoHoja(), calcularAvanceHoja(), actualizarCostosMaquina(), actualizarAmortizacion()">
                                     <option value="Máquina de Termoformado">Seleccione Máquina</option>
                                     <option value="TA-1" {{ $nombre_maquina_termoformado == 'TA-1' ? 'selected' : '' }}>TA-1</option>
                                     <option value="TA-2" {{ $nombre_maquina_termoformado == 'TA-2' ? 'selected' : '' }}>TA-2</option>
@@ -1196,7 +1199,6 @@ $esCorridaPiloto = false;
                                     <option value="TA-1,TA-3,Max-18" {{ $nombre_maquina_termoformado == 'TA-1,TA-3,Max-18' ? 'selected' : '' }}>TA-1,TA-3,Max-18</option>
                                     <option value="TA-2,TA-4,TCH-1" {{ $nombre_maquina_termoformado == 'TA-2,TA-4,TCH-1' ? 'selected' : '' }}>TA-2,TA-4,TCH-1</option>
                                 </select>
-
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="no_personas_termoformado" step="1" value="{{ $no_personas_termoformado }}"
@@ -1355,13 +1357,15 @@ $esCorridaPiloto = false;
                         </tr>
                     </thead>
                     <tbody>
+                        
+
                         <tr>
                             <td class="border border-gray-400 p-2 text-left font-bold">Costo de Montaje</td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_montaje"
                                     value="{{ old('costo_montaje', $costeoRequisicion->costo_montaje) }}"
                                     class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de montaje"
-                                    oninput="calcularCostoMontaje2()">
+                                    >
                             </td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_montaje2"
@@ -1375,8 +1379,7 @@ $esCorridaPiloto = false;
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_amortizacion_herramentales"
                                     value="{{ old('costo_amortizacion_herramentales', $costeoRequisicion->costo_amortizacion_herramentales) }}"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de amortización"
-                                    oninput="calcularCostoAmortizacionHerramentales2()">
+                                    class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de amortización">
                             </td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_amortizacion_herramentales2"
@@ -1384,7 +1387,6 @@ $esCorridaPiloto = false;
                                     class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="calcular costo de amortización">
                             </td>
                         </tr>
-
                         <tr>
                             <td class="border border-gray-400 p-2 text-left font-bold">Costo de E. eléctrica</td>
                             <td class="border border-gray-400 p-2">
@@ -1398,13 +1400,12 @@ $esCorridaPiloto = false;
                                     class="w-full border-gray-300 border rounded-md p-1 text-center">
                             </td>
                         </tr>
-
                         <tr>
                             <td class="border border-gray-400 p-2 text-left font-bold">Amortización maquinaria</td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="amortizacion_maquinaria"
-                                    value="{{ old('amortizacion_maquinaria', $costeoRequisicion->amortizacion_maquinaria) }}" placeholder="Ingrese amortizacion maquinaria"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center" oninput="calcularCostoAmortizacionMaquinaria2()">
+                                    value="{{ old('amortizacion_maquinaria', $costeoRequisicion->amortizacion_maquinaria) }}" placeholder="Amortizacion maquinaria"
+                                    class="w-full border-gray-300 border rounded-md p-1 text-center">
                             </td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="amortizacion_maquinaria2"
@@ -1500,6 +1501,7 @@ $esCorridaPiloto = false;
                 const pesoBrutoHoja = parseFloat(document.querySelector('input[name="peso_bruto_hoja"]').value) || 0;
                 const precioKg = parseFloat(document.querySelector('input[name="precio_kg"]').value) || 0;
                 const precioLamina = parseFloat(document.querySelector('input[name="precio_lamina"]').value) || 0;
+                
                 const resultado = precioKg >= 0.01 ? (precioKg * pesoBrutoHoja) : precioLamina;
                 document.querySelector('input[name="costo_mp"]').value = resultado.toFixed(2);
                 calcularCostoTotal();
@@ -1512,7 +1514,62 @@ $esCorridaPiloto = false;
                 document.querySelector('input[name="costo_total_procesos"]').value = resultado.toFixed(2);
                 document.querySelector('input[name="resumen_costo_procesos"]').value = resultado.toFixed(2);
             }
-        </script>
+
+            function actualizarCostosMaquina() {
+                const maquina = document.querySelector('select[name="nombre_maquina_termoformado"]').value;
+                let costo = '';
+
+                const costosPorMaquina = {
+                    500: ['TA-1','TA-2','TA-3','TA-4','Max-18','Monster','TA-1,TA-3','TA-2,TA-4,TCH-1','TA-1,TA-3,Max-18'],
+                    350: ['TCH-1','TCH-2','TCH-3','TCH-4'],
+                    800: ['ILLIG 1','ILLIG 2'],
+                    1000: ['GF-1'],
+                    1500: ['GF-2']
+                };
+
+                for (const [valor, maquinas] of Object.entries(costosPorMaquina)) {
+                    if (maquinas.includes(maquina)) {
+                        costo = Number(valor);
+                        break;
+                    }
+                }
+
+                if (costo !== '') {
+                    document.querySelector('input[name="costo_montaje"]').value = costo;
+                    document.querySelector('input[name="costo_amortizacion_herramentales"]').value = costo;
+                }
+
+                calcularCostoMontaje2();
+                calcularCostoAmortizacionHerramentales2();
+            }
+
+            function actualizarAmortizacion() {
+                const maquina = document.querySelector('select[name="nombre_maquina_termoformado"]').value;
+
+                let amortizacionBase = null;
+
+                const amortizacionPorMaquina = {
+                    500000: ['TA-1','TA-2','TA-3','TA-4','Max-18','Monster','TA-1,TA-3','TA-2,TA-4,TCH-1','TA-1,TA-3,Max-18'],
+                    250000: ['TCH-1','TCH-2','TCH-3','TCH-4'],
+                    1000000: ['ILLIG 1','ILLIG 2','GF-1'],
+                    1500000: ['GF-2']
+                };
+
+                for (const [valor, maquinas] of Object.entries(amortizacionPorMaquina)) {
+                    if (maquinas.includes(maquina)) {
+                        amortizacionBase = Number(valor);
+                        break;
+                    }
+                }
+
+                if (amortizacionBase === null) return;
+                
+                const resultado = (amortizacionBase + 30000) / 5 / 12 / 48;
+
+                document.querySelector('input[name="amortizacion_maquinaria"]').value = resultado.toFixed(2);
+                calcularCostoAmortizacionMaquinaria2();
+            }
+            </script>
 
         <!-- SECCIÓN: EMPAQUE -->
         <fieldset>
