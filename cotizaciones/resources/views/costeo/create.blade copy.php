@@ -792,7 +792,7 @@ $esCorridaPiloto = false;
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Área de Formado Hoja (mm):</label>
+                    <label class="font-bold block mb-2">Área de Formado de Hoja (mm):</label>
                     <input type="number" step="0.0001" name="area_formado_hoja"
                         value="{{ $area_formado_hoja }}"
                         class="w-full border-gray-300 border rounded-md p-2 bg-gray-50">
