@@ -2191,12 +2191,12 @@ $esCorridaPiloto = false;
                 <tbody>
                     <tr class="border-none h-14">
                         <td><input type="number" name="molde_avance_copia" class="w-full border rounded px-1 py-1 text-right" value="{{old('molde_avance_copia', $costeoRequisicion->molde_avance_copia)}}" readonly></td>
-                        <td><input type="number" step="0.01" name="ajuste_avance" class="w-full border rounded px-1 py-1 text-right" value="{{old('ajuste_avance', $costeoRequisicion->ajuste_avance)}}" oninput="calcularMedidasBloques()"></td>
+                        <td><input type="number" step="0.05" name="ajuste_avance" class="w-full border rounded px-1 py-1 text-right" value="{{old('ajuste_avance', $costeoRequisicion->ajuste_avance)}}" oninput="calcularMedidasBloques()"></td>
                         <td><input type="number" step="0.01" name="medida_bloque_avance" class="w-full border rounded px-1 py-1 text-right" value="{{old('medida_bloque_avance', $costeoRequisicion->medida_bloque_avance)}}"></td>
                        </tr>
                     <tr class="border-b h-14">
                         <td> <input type="number" name="molde_ancho_copia" class="w-full border rounded px-1 py-1 text-right" value="{{old('molde_ancho_copia', $costeoRequisicion->molde_ancho_copia)}}" readonly> </td>
-                        <td> <input type="number" step="0.01" name="ajuste_ancho" value="{{old('ajuste_ancho', $costeoRequisicion->ajuste_ancho)}}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularMedidasBloques()"></td>
+                        <td> <input type="number" step="0.5" name="ajuste_ancho" value="{{old('ajuste_ancho', $costeoRequisicion->ajuste_ancho)}}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularMedidasBloques()"></td>
                         <td><input type="number" step="0.01" name="medida_bloque_ancho" value="{{old('medida_bloque_ancho', $costeoRequisicion->medida_bloque_ancho)}}" class="w-full border rounded px-1 py-1 text-right"></td>
                         <td>
                             <input type="number" name="kilos"
@@ -2206,7 +2206,7 @@ $esCorridaPiloto = false;
                     </tr>
                     <tr class="border-b h-14">
                         <td><input type="number" value="{{$pieza_alto}}" class="w-full border rounded px-1 py-1 text-right" readonly></td>
-                        <td><input type="number" step="0.01" name="ajuste_alto" value="{{old('ajuste_alto', $costeoRequisicion->ajuste_alto)}}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularMedidasBloques()"></td>
+                        <td><input type="number" step="0.5" name="ajuste_alto" value="{{old('ajuste_alto', $costeoRequisicion->ajuste_alto)}}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularMedidasBloques()"></td>
                         <td><input type="number" step="0.01" name="medida_bloque_alto" value="{{old('medida_bloque_alto', $costeoRequisicion->medida_bloque_alto)}}" class="w-full border rounded px-1 py-1 text-right"></td>
                     </tr>
                     <tr class="bg-gray-50 font-semibold">
