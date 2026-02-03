@@ -722,12 +722,14 @@ $esCorridaPiloto = false;
                         value="{{ $peso_especifico }}" oninput="calcularPesoEstimadoPieza()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
+
                 <div>
                     <label class="font-bold block mb-2">Área de Formado Hoja (mm):</label>
                     <input type="number" step="0.0001" name="area_formado_hoja"
                         value="{{ $area_formado_hoja }}"
                         class="w-full border-gray-300 border rounded-md p-2 bg-gray-50">
                 </div>
+                
                 <div>
                     <label class="font-bold block mb-2">Cantidad de Hojas:</label>
                     <input type="number" step="0.01" name="cantidad_hojas"
@@ -770,28 +772,29 @@ $esCorridaPiloto = false;
                         value="{{ $peso_neto }}" oninput="calcularPesoNetoHoja(), calcularPesoMerma()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
+
+
+
                 <div>
-                    <button type="button" onclick="calcularPesoTotalFormula2()" 
+                    <div class = "grid gap-2 items-center" >
+                        <button  type="button" onclick="calcularPesoTotalFormula2()" 
                         class="font-bold block px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200" title="Calcular peso total usando fórmula 2 (Peso Neto + Peso Merma)">
                         Peso total (kg)
                     </button>
+                    </div>
                     <input type="number" step="0.0001" name="peso_total"
                         value="{{ $peso_total }}" oninput="calcularPesoBrutoHoja(), calcularPesoMerma(), calcularPrecioPorKg()"
-                        class="w-full border-gray-300 border rounded-md p-2">
+                        class="w-full border-gray-300 border rounded-md p-2"
+                        placeholder="Click en botón para calcular">
                 </div>
+
                 <div>
-                    <button type="button" onclick="togglePRMAuxInputs()" 
-                        class="font-bold block px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200" title="Mostrar/Ocultar ajustes auxiliares para calcular PRM">
-                        PRM
-                    </button>
+                    <label class="font-bold block mb-2">PRM</label>
                     <div class="grid gap-2 items-center" id="grid-prm">
                         <input type="number" step="0.0001" name="PRM" id="input-prm"
-                            value="{{ $PRM }}" placeholder="Calcular"
+                            value="{{ $PRM }}" placeholder="Calcular PRM"
                             class="border-gray-300 border rounded-md p-2">
-                        <input type="number" name="divisor_prm" id="aux-divisor-prm" value="{{ $costeoRequisicion->divisor_prm }}" placeholder="/divisor"
-                            class="border-gray-300 border rounded-md p-2 hidden" oninput="calcularPRM(), calcularPesoTotal()">
-                        <input type="number" name="sumador_prm" id="aux-sumador-prm" value="{{ $costeoRequisicion->sumador_prm }}" placeholder="+sumador"
-                            class="border-gray-300 border rounded-md p-2 hidden" oninput="calcularPRM(), calcularPesoTotal()">
+
                     </div>
                 </div>
                 <div>
@@ -973,18 +976,19 @@ $esCorridaPiloto = false;
                 }
                 const input = document.querySelector('input[name="peso_neto"]');
                 if (!isNaN(resultado)) {
-                    input.value = resultado.toFixed(4);
+                    input.value = resultado.toFixed(2);
                 } else {
                     input.value = '0';
                 }
                 calcularPesoNetoHoja();
+                calcularPRM();
             }
 
             function calcularPesoMerma() {
                 const pesoneto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
                 const pesototal = parseFloat(document.querySelector('input[name="peso_total"]').value) || 0;
                 const resultado = pesototal - pesoneto;
-                document.querySelector('input[name="peso_merma"]').value = resultado.toFixed(4);
+                document.querySelector('input[name="peso_merma"]').value = resultado.toFixed(2);
                 calcularPZRM();
             }
 
@@ -1005,10 +1009,11 @@ $esCorridaPiloto = false;
             function calcularPRM() {
                 const pesoNetoHoja = parseFloat(document.querySelector('input[name="peso_neto_hoja"]').value) || 0;
                 const pesoNeto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
-                const sumador = parseFloat(document.querySelector('input[name="sumador_prm"]').value) || 0;
-                const divisor = parseFloat(document.querySelector('input[name="divisor_prm"]').value) || 1;
-                const resultado = ((30 * pesoNetoHoja) * (pesoNeto / divisor)) + sumador;
-                document.querySelector('input[name="PRM"]').value = resultado.toFixed(4);
+                const resultado = ((30 * pesoNetoHoja) * (pesoNeto / 130)) + 70;
+
+                document.querySelector('input[name="PRM"]').value = resultado.toFixed(2);
+
+                calcularPesoTotal();
             }
 
             function calcularPesoTotal() {
@@ -1021,36 +1026,28 @@ $esCorridaPiloto = false;
             }
 
             function calcularPesoTotalFormula2() {
-                // Obtener el valor del MOQ (Minimum Order Quantity) o establecerlo en 0 si no está definido
+                // Calcular el peso total utilizando la fórmula:
+                // (MOQ / Insertos) * AreadeFormadoHoja * 10000 * (Calibre / 393.7) * PesoEspecifico / 1000 * (1 + (CoeficienteMerma)
+
                 const moq = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
-
-                // Obtener el número de insertos o establecerlo en 0 si no está definido
                 const insertos = parseFloat(document.querySelector('input[name="insertos"]').value) || 0;
-
-                // Obtener el área de formado de la hoja o establecerlo en 0 si no está definido
                 const areaFormadoHoja = parseFloat(document.querySelector('input[name="area_formado_hoja"]').value) || 0;
-
-                // Obtener el calibre del material o establecerlo en 0 si no está definido
                 const calibre = parseFloat(document.querySelector('input[name="calibre_costeo"]').value) || 0;
 
                 // Obtener el peso específico del material o usar un valor predeterminado de 1.02
                 const pesoEspecifico = parseFloat(document.querySelector('input[name="peso_especifico"]').value) || 1.02;
-
-                // Obtener el coeficiente de merma o establecerlo en 0 si no está definido
                 const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
 
-                // Calcular el peso total utilizando la fórmula:
-                // (207 / 1) * .25998 * 10000 * (30 / 393.7) * 1.35 / 1000 * (1 + (50 / 100))
                 const resultado = (moq / insertos) * areaFormadoHoja * 10000 * (calibre / 393.7) * pesoEspecifico / 1000 * (1 + (coeficienteMerma / 100));
 
-                // Asignar el resultado calculado al campo de entrada correspondiente, redondeado a 4 decimales
                 document.querySelector('input[name="peso_total"]').value = resultado.toFixed(4);
+
                 calcularPesoBrutoHoja();
                 calcularPesoMerma();
+                calcularPrecioPorKg();
                 @if($esCorridaPiloto)
-                // Si es corrida piloto, calcular amortizacion maquinaria 2
-                calcularCostoAmortizacionMaquinaria2();
-                calcularCostosUnit();
+                    calcularCostoAmortizacionMaquinaria2();
+                    calcularCostosUnit();
                 @endif
             }
 
@@ -1066,30 +1063,6 @@ $esCorridaPiloto = false;
                     pzrmInput.value = resultado.toFixed(4);
                 } else {
                     pzrmInput.value = '0';
-                }
-            }
-
-            function togglePRMAuxInputs() {
-                // Obtener los elementos
-                const auxDivisor = document.getElementById('aux-divisor-prm');
-                const auxSumador = document.getElementById('aux-sumador-prm');
-                const gridPrm = document.getElementById('grid-prm');
-                
-                // Verificar si están ocultos
-                const isHidden = auxDivisor.classList.contains('hidden');
-                
-                if (isHidden) {
-                    // Mostrar inputs auxiliares
-                    auxDivisor.classList.remove('hidden');
-                    auxSumador.classList.remove('hidden');
-                    // Cambiar a grid de 3 columnas
-                    gridPrm.classList.add('grid-cols-3');
-                } else {
-                    // Ocultar inputs auxiliares
-                    auxDivisor.classList.add('hidden');
-                    auxSumador.classList.add('hidden');
-                    // Cambiar a grid de 1 columna (ocupa todo el espacio)
-                    gridPrm.classList.remove('grid-cols-3');
                 }
             }
         </script>
