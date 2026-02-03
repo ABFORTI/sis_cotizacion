@@ -541,7 +541,6 @@ $esCorridaPiloto = false;
                     </thead>
                     <tbody>
                         <tr>
-                             
                             <td class="border border-gray-300 p-2 font-bold">Hoja</td>
                             <td class="border border-gray-300 p-2">
                                 <!-- HOJA ANCHO -->
@@ -772,9 +771,6 @@ $esCorridaPiloto = false;
                         value="{{ $peso_neto }}" oninput="calcularPesoNetoHoja(), calcularPesoMerma()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
-
-
-
                 <div>
                     <div class = "grid gap-2 items-center" >
                         <button  type="button" onclick="calcularPesoTotalFormula2()" 
@@ -787,14 +783,12 @@ $esCorridaPiloto = false;
                         class="w-full border-gray-300 border rounded-md p-2"
                         placeholder="Click en botón para calcular">
                 </div>
-
                 <div>
                     <label class="font-bold block mb-2">PRM</label>
                     <div class="grid gap-2 items-center" id="grid-prm">
                         <input type="number" step="0.0001" name="PRM" id="input-prm"
                             value="{{ $PRM }}" placeholder="Calcular PRM"
                             class="border-gray-300 border rounded-md p-2">
-
                     </div>
                 </div>
                 <div>
@@ -1003,7 +997,9 @@ $esCorridaPiloto = false;
                 const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
                 const hojas = parseFloat(document.querySelector('input[name="cantidad_hojas"]').value) || 0;
                 const resultado = (hojas * (coeficienteMerma / 100)) + hojas;
-                document.querySelector('input[name="hojas_del_pedido"]').value = resultado.toFixed(4);
+                const resultadoRedondeado = Math.round(resultado);
+
+                document.querySelector('input[name="hojas_del_pedido"]').value = resultadoRedondeado;
             }
 
             function calcularPRM() {
@@ -1183,7 +1179,7 @@ $esCorridaPiloto = false;
                     <tbody>
                         <tr>
                             <td class="border border-gray-300 p-2">
-                                <select name="nombre_maquina_termoformado" class="w-full border rounded-md p-1" onchange="calcularAnchoHoja(), calcularAvanceHoja()">
+                                <select name="nombre_maquina_termoformado" class="w-full border rounded-md p-1" onchange="calcularAnchoHoja(), calcularAvanceHoja(), actualizarCostosMaquina(), actualizarAmortizacion()">
                                     <option value="Máquina de Termoformado">Seleccione Máquina</option>
                                     <option value="TA-1" {{ $nombre_maquina_termoformado == 'TA-1' ? 'selected' : '' }}>TA-1</option>
                                     <option value="TA-2" {{ $nombre_maquina_termoformado == 'TA-2' ? 'selected' : '' }}>TA-2</option>
@@ -1203,7 +1199,6 @@ $esCorridaPiloto = false;
                                     <option value="TA-1,TA-3,Max-18" {{ $nombre_maquina_termoformado == 'TA-1,TA-3,Max-18' ? 'selected' : '' }}>TA-1,TA-3,Max-18</option>
                                     <option value="TA-2,TA-4,TCH-1" {{ $nombre_maquina_termoformado == 'TA-2,TA-4,TCH-1' ? 'selected' : '' }}>TA-2,TA-4,TCH-1</option>
                                 </select>
-
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="no_personas_termoformado" step="1" value="{{ $no_personas_termoformado }}"
@@ -1362,13 +1357,15 @@ $esCorridaPiloto = false;
                         </tr>
                     </thead>
                     <tbody>
+                        
+
                         <tr>
                             <td class="border border-gray-400 p-2 text-left font-bold">Costo de Montaje</td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_montaje"
                                     value="{{ old('costo_montaje', $costeoRequisicion->costo_montaje) }}"
                                     class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de montaje"
-                                    oninput="calcularCostoMontaje2()">
+                                    >
                             </td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_montaje2"
@@ -1382,8 +1379,7 @@ $esCorridaPiloto = false;
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_amortizacion_herramentales"
                                     value="{{ old('costo_amortizacion_herramentales', $costeoRequisicion->costo_amortizacion_herramentales) }}"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de amortización"
-                                    oninput="calcularCostoAmortizacionHerramentales2()">
+                                    class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de amortización">
                             </td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_amortizacion_herramentales2"
@@ -1391,7 +1387,6 @@ $esCorridaPiloto = false;
                                     class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="calcular costo de amortización">
                             </td>
                         </tr>
-
                         <tr>
                             <td class="border border-gray-400 p-2 text-left font-bold">Costo de E. eléctrica</td>
                             <td class="border border-gray-400 p-2">
@@ -1405,13 +1400,12 @@ $esCorridaPiloto = false;
                                     class="w-full border-gray-300 border rounded-md p-1 text-center">
                             </td>
                         </tr>
-
                         <tr>
                             <td class="border border-gray-400 p-2 text-left font-bold">Amortización maquinaria</td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="amortizacion_maquinaria"
-                                    value="{{ old('amortizacion_maquinaria', $costeoRequisicion->amortizacion_maquinaria) }}" placeholder="Ingrese amortizacion maquinaria"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center" oninput="calcularCostoAmortizacionMaquinaria2()">
+                                    value="{{ old('amortizacion_maquinaria', $costeoRequisicion->amortizacion_maquinaria) }}" placeholder="Amortizacion maquinaria"
+                                    class="w-full border-gray-300 border rounded-md p-1 text-center">
                             </td>
                             <td class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="amortizacion_maquinaria2"
@@ -1507,6 +1501,7 @@ $esCorridaPiloto = false;
                 const pesoBrutoHoja = parseFloat(document.querySelector('input[name="peso_bruto_hoja"]').value) || 0;
                 const precioKg = parseFloat(document.querySelector('input[name="precio_kg"]').value) || 0;
                 const precioLamina = parseFloat(document.querySelector('input[name="precio_lamina"]').value) || 0;
+                
                 const resultado = precioKg >= 0.01 ? (precioKg * pesoBrutoHoja) : precioLamina;
                 document.querySelector('input[name="costo_mp"]').value = resultado.toFixed(2);
                 calcularCostoTotal();
@@ -1519,7 +1514,62 @@ $esCorridaPiloto = false;
                 document.querySelector('input[name="costo_total_procesos"]').value = resultado.toFixed(2);
                 document.querySelector('input[name="resumen_costo_procesos"]').value = resultado.toFixed(2);
             }
-        </script>
+
+            function actualizarCostosMaquina() {
+                const maquina = document.querySelector('select[name="nombre_maquina_termoformado"]').value;
+                let costo = '';
+
+                const costosPorMaquina = {
+                    500: ['TA-1','TA-2','TA-3','TA-4','Max-18','Monster','TA-1,TA-3','TA-2,TA-4,TCH-1','TA-1,TA-3,Max-18'],
+                    350: ['TCH-1','TCH-2','TCH-3','TCH-4'],
+                    800: ['ILLIG 1','ILLIG 2'],
+                    1000: ['GF-1'],
+                    1500: ['GF-2']
+                };
+
+                for (const [valor, maquinas] of Object.entries(costosPorMaquina)) {
+                    if (maquinas.includes(maquina)) {
+                        costo = Number(valor);
+                        break;
+                    }
+                }
+
+                if (costo !== '') {
+                    document.querySelector('input[name="costo_montaje"]').value = costo;
+                    document.querySelector('input[name="costo_amortizacion_herramentales"]').value = costo;
+                }
+
+                calcularCostoMontaje2();
+                calcularCostoAmortizacionHerramentales2();
+            }
+
+            function actualizarAmortizacion() {
+                const maquina = document.querySelector('select[name="nombre_maquina_termoformado"]').value;
+
+                let amortizacionBase = null;
+
+                const amortizacionPorMaquina = {
+                    500000: ['TA-1','TA-2','TA-3','TA-4','Max-18','Monster','TA-1,TA-3','TA-2,TA-4,TCH-1','TA-1,TA-3,Max-18'],
+                    250000: ['TCH-1','TCH-2','TCH-3','TCH-4'],
+                    1000000: ['ILLIG 1','ILLIG 2','GF-1'],
+                    1500000: ['GF-2']
+                };
+
+                for (const [valor, maquinas] of Object.entries(amortizacionPorMaquina)) {
+                    if (maquinas.includes(maquina)) {
+                        amortizacionBase = Number(valor);
+                        break;
+                    }
+                }
+
+                if (amortizacionBase === null) return;
+                
+                const resultado = (amortizacionBase + 30000) / 5 / 12 / 48;
+
+                document.querySelector('input[name="amortizacion_maquinaria"]').value = resultado.toFixed(2);
+                calcularCostoAmortizacionMaquinaria2();
+            }
+            </script>
 
         <!-- SECCIÓN: EMPAQUE -->
         <fieldset>
