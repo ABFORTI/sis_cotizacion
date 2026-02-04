@@ -984,7 +984,7 @@ $esCorridaPiloto = false;
                 const pesoneto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
                 const prm = parseFloat(document.querySelector('input[name="PRM"]').value) || 0;
                 const resultado = pesoneto + prm;
-                document.querySelector('input[name="peso_total"]').value = resultado.toFixed(4);
+                document.querySelector('input[name="peso_total"]').value = resultado.toFixed(3);
                 calcularPesoBrutoHoja();
                 calcularPesoMerma();
             }
@@ -996,8 +996,16 @@ $esCorridaPiloto = false;
                 const calibre = parseFloat(document.querySelector('input[name="calibre_costeo"]').value) || 0;
                 const pesoEspecifico = parseFloat(document.querySelector('input[name="peso_especifico"]').value) || 1.02;
                 const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
-                const resultado = (moq / insertos) * areaFormadoHoja * 10000 * (calibre / 393.7) * pesoEspecifico / 1000 * (1 + (coeficienteMerma / 100));
-                document.querySelector('input[name="peso_total"]').value = resultado.toFixed(4);
+
+                const hojas = moq / insertos;
+                const volumen = hojas * areaFormadoHoja * 10000 * (calibre / 393.7);
+                const pesoNeto = volumen * pesoEspecifico / 1000;
+                const pesoConMerma = pesoNeto * (1 + (coeficienteMerma / 100));
+
+                const resultado = Math.round(pesoConMerma * 10) / 10;
+
+                document.querySelector('input[name="peso_total"]').value = resultado.toFixed(1);
+
                 calcularPesoBrutoHoja();
                 calcularPesoMerma();
             }
@@ -1027,13 +1035,10 @@ $esCorridaPiloto = false;
                 const isHidden = auxDivisor.classList.contains('hidden');
                 
                 if (isHidden) {
-                    // Mostrar inputs auxiliares
                     auxDivisor.classList.remove('hidden');
                     auxSumador.classList.remove('hidden');
-                    // Cambiar a grid de 3 columnas
                     gridPrm.classList.add('grid-cols-3');
                 } else {
-                    // Ocultar inputs auxiliares
                     auxDivisor.classList.add('hidden');
                     auxSumador.classList.add('hidden');
                     // Cambiar a grid de 1 columna (ocupa todo el espacio)
@@ -2192,10 +2197,11 @@ $esCorridaPiloto = false;
                     const ajusteAlto = parseFloat(document.querySelector('input[name="medida_bloque_alto"]').value) || 0;
                     const ajusteAvance = parseFloat(document.querySelector('input[name="medida_bloque_avance"]').value) || 0;
                     const ajusteAncho = parseFloat(document.querySelector('input[name="medida_bloque_ancho"]').value) || 0;
+                    
                     const resultado = Math.ceil(((ajusteAncho / 1000) * (ajusteAvance / 1000) * ajusteAlto * 1.16));
                     document.querySelector('input[name="constante_empujador"]').value = resultado.toFixed(2);
                 }
-            </script>
+            </script>   
 
             <table class="table-auto w-full border border-gray-500 text-sm text-center">
                 <thead class="bg-gray-100">
