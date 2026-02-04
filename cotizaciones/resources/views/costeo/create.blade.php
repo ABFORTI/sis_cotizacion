@@ -942,7 +942,7 @@ $esCorridaPiloto = false;
                 document.querySelector('input[name="peso_pieza"]').value = peso.toFixed(4);
             }
 
-            function calcularPesoNetoHoja() {
+            function calcularPesoNetoHoja() {                
                 const pesoneto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
                 const cantidadhojas = parseFloat(document.querySelector('input[name="cantidad_hojas"]').value) || 0;
                 let resultado = 0;
@@ -959,18 +959,26 @@ $esCorridaPiloto = false;
             }
 
             function calcularPesoNeto() {
+
                 const moq = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
                 const insertos = parseFloat(document.querySelector('input[name="insertos"]').value) || 0;
                 const areaFormadoHoja = parseFloat(document.querySelector('input[name="area_formado_hoja"]').value) || 0;
                 const calibre = parseFloat(document.querySelector('input[name="calibre_costeo"]').value) || 0;
                 const pesoEspecifico = parseFloat(document.querySelector('input[name="peso_especifico"]').value) || 1.02;
+
                 let resultado = 0;
+
                 if (insertos !== 0) {
-                    resultado = (moq / insertos) * areaFormadoHoja * 10000 * (calibre / 393.7) * pesoEspecifico / 1000;
+                    const hojas = moq / insertos;
+                    const volumen = hojas * areaFormadoHoja * 10000 * (calibre / 393.7);
+                    const pesoNeto = volumen * pesoEspecifico / 1000;
+                    resultado = Math.round(pesoNeto * 10) / 10;
                 }
+
                 const input = document.querySelector('input[name="peso_neto"]');
+
                 if (!isNaN(resultado)) {
-                    input.value = resultado.toFixed(2);
+                    input.value = resultado.toFixed(1); // solo formato
                 } else {
                     input.value = '0';
                 }
@@ -1022,21 +1030,22 @@ $esCorridaPiloto = false;
             }
 
             function calcularPesoTotalFormula2() {
-                // Calcular el peso total utilizando la fórmula:
                 // (MOQ / Insertos) * AreadeFormadoHoja * 10000 * (Calibre / 393.7) * PesoEspecifico / 1000 * (1 + (CoeficienteMerma)
-
                 const moq = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
                 const insertos = parseFloat(document.querySelector('input[name="insertos"]').value) || 0;
                 const areaFormadoHoja = parseFloat(document.querySelector('input[name="area_formado_hoja"]').value) || 0;
                 const calibre = parseFloat(document.querySelector('input[name="calibre_costeo"]').value) || 0;
-
-                // Obtener el peso específico del material o usar un valor predeterminado de 1.02
                 const pesoEspecifico = parseFloat(document.querySelector('input[name="peso_especifico"]').value) || 1.02;
                 const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
 
-                const resultado = (moq / insertos) * areaFormadoHoja * 10000 * (calibre / 393.7) * pesoEspecifico / 1000 * (1 + (coeficienteMerma / 100));
+                const hojas = moq / insertos;
+                const volumen = hojas * areaFormadoHoja * 10000 * (calibre / 393.7);
+                const pesoNeto = volumen * pesoEspecifico / 1000;
+                const pesoConMerma = pesoNeto * (1 + (coeficienteMerma / 100));
 
-                document.querySelector('input[name="peso_total"]').value = resultado.toFixed(4);
+                const resultado = Math.round(pesoConMerma * 10) / 10;
+
+                document.querySelector('input[name="peso_total"]').value = resultado.toFixed(1);
 
                 calcularPesoBrutoHoja();
                 calcularPesoMerma();
@@ -1056,7 +1065,7 @@ $esCorridaPiloto = false;
                 }
                 const pzrmInput = document.querySelector('input[name="PZRM"]');
                 if (!isNaN(resultado)) {
-                    pzrmInput.value = resultado.toFixed(4);
+                    pzrmInput.value = resultado.toFixed(2);
                 } else {
                     pzrmInput.value = '0';
                 }
@@ -1492,8 +1501,16 @@ $esCorridaPiloto = false;
                 const costoAmortizacionHerramentales2 = parseFloat(document.querySelector('input[name="costo_amortizacion_herramentales2"]').value) || 0;
                 const costoElectricidad2 = parseFloat(document.querySelector('input[name="costo_electricidad2"]').value) || 0;
                 const amortizacionMaquinaria2 = parseFloat(document.querySelector('input[name="amortizacion_maquinaria2"]').value) || 0;
-                const resultado = costoTermoformado + costoSuaje + costoMontaje2 + costoAmortizacionHerramentales2 + costoElectricidad2 + amortizacionMaquinaria2;
-                document.querySelector('input[name="costo_fabricacion"]').value = resultado.toFixed(2);
+                const resultado =
+                Math.round(
+                    (costoTermoformado
+                    + costoSuaje
+                    + costoMontaje2
+                    + costoAmortizacionHerramentales2
+                    + costoElectricidad2
+                    + amortizacionMaquinaria2) * 10
+                ) / 10;
+                document.querySelector('input[name="costo_fabricacion"]').value = resultado.toFixed(1);
                 calcularCostoMP();
             }
 
@@ -1503,7 +1520,7 @@ $esCorridaPiloto = false;
                 const precioLamina = parseFloat(document.querySelector('input[name="precio_lamina"]').value) || 0;
                 
                 const resultado = precioKg >= 0.01 ? (precioKg * pesoBrutoHoja) : precioLamina;
-                document.querySelector('input[name="costo_mp"]').value = resultado.toFixed(2);
+                document.querySelector('input[name="costo_mp"]').value = resultado.toFixed(1);
                 calcularCostoTotal();
             }
 
@@ -2278,7 +2295,14 @@ $esCorridaPiloto = false;
                     const ajusteAlto = parseFloat(document.querySelector('input[name="medida_bloque_alto"]').value) || 0;
                     const ajusteAvance = parseFloat(document.querySelector('input[name="medida_bloque_avance"]').value) || 0;
                     const ajusteAncho = parseFloat(document.querySelector('input[name="medida_bloque_ancho"]').value) || 0;
-                    const resultado = Math.ceil(((ajusteAncho / 1000) * (ajusteAvance / 1000) * ajusteAlto * 2.82));
+                    
+                    const anchoMetros = ajusteAncho / 1000;
+                    const avanceMetros = ajusteAvance / 1000;
+                    const factorDensidad = 2.82;
+
+                    const volumen = anchoMetros * avanceMetros * ajusteAlto;
+                    const resultado = Math.ceil(volumen * factorDensidad);
+
                     document.querySelector('input[name="kilos"]').value = resultado.toFixed(2);
                     calcularConstanteEmpujador();
                     calcularCostoMaterialMolde();
