@@ -528,6 +528,30 @@ $esCorridaPiloto = false;
                     </tbody>
                 </table>
             </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-red-800 mb-2">Maquinaria a ocupar: </h3>
+                <label class="font-bold block mb-2">Esta selección ayudará a calcular valores futuros</label>
+                <select id="maquina_principal" name="maquina_principal" class="w-full border rounded-md p-1" onchange="sincronizarMaquina(); calcularAnchoHoja(); calcularAvanceHoja(); actualizarCostosMaquina(); actualizarAmortizacion();">
+                                    <option value="Máquina de Termoformado">Seleccione Máquina</option>
+                                    <option value="TA-1" {{ $nombre_maquina_termoformado == 'TA-1' ? 'selected' : '' }}>TA-1</option>
+                                    <option value="TA-2" {{ $nombre_maquina_termoformado == 'TA-2' ? 'selected' : '' }}>TA-2</option>
+                                    <option value="TA-3" {{ $nombre_maquina_termoformado == 'TA-3' ? 'selected' : '' }}>TA-3</option>
+                                    <option value="TA-4" {{ $nombre_maquina_termoformado == 'TA-4' ? 'selected' : '' }}>TA-4</option>
+                                    <option value="Max-18" {{ $nombre_maquina_termoformado == 'Max-18' ? 'selected' : '' }}>Max-18</option>
+                                    <option value="ILLIG 1" {{ $nombre_maquina_termoformado == 'ILLIG 1' ? 'selected' : '' }}>ILLIG 1</option>
+                                    <option value="ILLIG 2" {{ $nombre_maquina_termoformado == 'ILLIG 2' ? 'selected' : '' }}>ILLIG 2</option>
+                                    <option value="TCH-1" {{ $nombre_maquina_termoformado == 'TCH-1' ? 'selected' : '' }}>TCH-1</option>
+                                    <option value="TCH-2" {{ $nombre_maquina_termoformado == 'TCH-2' ? 'selected' : '' }}>TCH-2</option>
+                                    <option value="TCH-3" {{ $nombre_maquina_termoformado == 'TCH-3' ? 'selected' : '' }}>TCH-3</option>
+                                    <option value="TCH-4" {{ $nombre_maquina_termoformado == 'TCH-4' ? 'selected' : '' }}>TCH-4</option>
+                                    <option value="Monster" {{ $nombre_maquina_termoformado == 'Monster' ? 'selected' : '' }}>Monster</option>
+                                    <option value="GF-1" {{ $nombre_maquina_termoformado == 'GF-1' ? 'selected' : '' }}>GF-1</option>
+                                    <option value="GF-2" {{ $nombre_maquina_termoformado == 'GF-2' ? 'selected' : '' }}>GF-2</option>
+                                    <option value="TA-1,TA-3" {{ $nombre_maquina_termoformado == 'TA-1,TA-3' ? 'selected' : '' }}>TA-1,TA-3</option>
+                                    <option value="TA-1,TA-3,Max-18" {{ $nombre_maquina_termoformado == 'TA-1,TA-3,Max-18' ? 'selected' : '' }}>TA-1,TA-3,Max-18</option>
+                                    <option value="TA-2,TA-4,TCH-1" {{ $nombre_maquina_termoformado == 'TA-2,TA-4,TCH-1' ? 'selected' : '' }}>TA-2,TA-4,TCH-1</option>
+                                </select>
+            </div>
             <!-- Tabla de Hoja -->
             <div class="mb-6">
                 <h3 class="text-xl font-bold text-red-800 mb-2">Hoja</h3>
@@ -545,7 +569,7 @@ $esCorridaPiloto = false;
                             <td class="border border-gray-300 p-2">
                                 <!-- HOJA ANCHO -->
                                 <div class="grid gap-1" id="grid-ancho">
-                                    <input type="number" id="input-hoja-ancho" name="hoja_ancho" readonly
+                                    <input type="number" id="input-hoja-ancho" name="hoja_ancho"
                                         value="{{ $hoja_ancho ?? '' }}"
                                         class="w-full p-2 text-center font-bold bg-gray-200"
                                     />
@@ -827,7 +851,7 @@ $esCorridaPiloto = false;
             function calcularAnchoHoja() {
                 const moldeInput = document.getElementById('input-molde-ancho');
                 const moldeAncho = parseFloat(moldeInput.value) || 0;
-                const selectMaquina = document.querySelector('select[name="nombre_maquina_termoformado"]');
+                const selectMaquina = document.querySelector('select[name="maquina_principal"]');
                 const maquina = selectMaquina ? selectMaquina.value : '';
 
                 let incremento = 0;
@@ -878,7 +902,7 @@ $esCorridaPiloto = false;
                 const moldeInput = document.getElementById('input-molde-avance');
                 const moldeAvance = parseFloat(moldeInput.value) || 0;
 
-                const selectMaquina = document.querySelector('select[name="nombre_maquina_termoformado"]');
+                const selectMaquina = document.querySelector('select[name="maquina_principal"]');
                 const maquina = selectMaquina ? selectMaquina.value : '';
 
                 let incremento = 0;
@@ -1188,7 +1212,7 @@ $esCorridaPiloto = false;
                     <tbody>
                         <tr>
                             <td class="border border-gray-300 p-2">
-                                <select name="nombre_maquina_termoformado" class="w-full border rounded-md p-1" onchange="calcularAnchoHoja(), calcularAvanceHoja(), actualizarCostosMaquina(), actualizarAmortizacion()">
+                                <select name="nombre_maquina_termoformado" id="maquina_secundaria" class="w-full border rounded-md p-1" onchange="calcularAnchoHoja(); calcularAvanceHoja(); actualizarCostosMaquina(); actualizarAmortizacion()">
                                     <option value="Máquina de Termoformado">Seleccione Máquina</option>
                                     <option value="TA-1" {{ $nombre_maquina_termoformado == 'TA-1' ? 'selected' : '' }}>TA-1</option>
                                     <option value="TA-2" {{ $nombre_maquina_termoformado == 'TA-2' ? 'selected' : '' }}>TA-2</option>
@@ -1211,7 +1235,7 @@ $esCorridaPiloto = false;
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="no_personas_termoformado" step="1" value="{{ $no_personas_termoformado }}"
-                                    oninput="calcularTotalHojasPorTurnoTermoformado(),calcularCostoInocuidad()" placeholder="Ingrese número de personas" class="w-full border rounded-md p-1">
+                                    oninput="calcularTotalHojasPorTurnoTermoformado(),calcularCostoInocuidad(), recalcularTodo()" placeholder="Ingrese número de personas" class="w-full border rounded-md p-1">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="bajadas_por_minuto_termoformado" step="0.0001" value="{{ $bajadas_por_minuto_termoformado }}"
@@ -1292,11 +1316,11 @@ $esCorridaPiloto = false;
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="no_personas_suaje" step="1" value="{{ $no_personas_suaje }}"
-                                    oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad()" placeholder="Ingrese número de personas" class="w-full border rounded-md p-1">
+                                    oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad(), recalcularTodo()" placeholder="Ingrese número de personas" class="w-full border rounded-md p-1">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="bajadas_por_minuto_suaje" step="0.0001" value="{{ $bajadas_por_minuto_suaje }}"
-                                    oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad()" placeholder="Ingrese bajadas por minuto" class="w-full border rounded-md p-1">
+                                    oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad(), calcularCostoFabricacion()" placeholder="Ingrese bajadas por minuto" class="w-full border rounded-md p-1">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="total_hojas_turno_suaje" step="1" value="{{ $total_hojas_turno_suaje }}"
@@ -1458,7 +1482,6 @@ $esCorridaPiloto = false;
                 const hojas = parseFloat(document.querySelector('input[name="hojas_del_pedido"]').value) || 0;
                 const resultado = costoMontaje / hojas;
                 document.querySelector('input[name="costo_montaje2"]').value = resultado.toFixed(2);
-                calcularCostoFabricacion();
             }
 
             function calcularCostoAmortizacionHerramentales2() {
@@ -1466,7 +1489,6 @@ $esCorridaPiloto = false;
                 const hojas = parseFloat(document.querySelector('input[name="hojas_del_pedido"]').value) || 0;
                 const resultado = costo / hojas;
                 document.querySelector('input[name="costo_amortizacion_herramentales2"]').value = resultado.toFixed(2);
-                calcularCostoFabricacion();
             }
 
             function calcularCostoEnergiaE2() {
@@ -1482,7 +1504,6 @@ $esCorridaPiloto = false;
                 const parte4 = parte3 / insertos;
                 const resultado = (parte1 + parte2) / parte4;
                 document.querySelector('input[name="costo_electricidad2"]').value = resultado.toFixed(2);
-                calcularCostoFabricacion();
             }
 
             function calcularCostoAmortizacionMaquinaria2() {
@@ -1491,7 +1512,6 @@ $esCorridaPiloto = false;
                 const hojasuaje = parseFloat(document.querySelector('input[name="total_hojas_turno_suaje"]').value) || 0;
                 const resultado = costo / ((hojastermoformado + hojasuaje) / 2);
                 document.querySelector('input[name="amortizacion_maquinaria2"]').value = resultado.toFixed(2);
-                calcularCostoFabricacion();
             }
 
             function calcularCostoFabricacion() {
@@ -1533,7 +1553,7 @@ $esCorridaPiloto = false;
             }
 
             function actualizarCostosMaquina() {
-                const maquina = document.querySelector('select[name="nombre_maquina_termoformado"]').value;
+                const maquina = document.querySelector('select[name="maquina_principal"]').value;
                 let costo = '';
 
                 const costosPorMaquina = {
@@ -1559,6 +1579,21 @@ $esCorridaPiloto = false;
                 calcularCostoMontaje2();
                 calcularCostoAmortizacionHerramentales2();
             }
+
+            function sincronizarMaquina() {
+    const principal = document.getElementById("maquina_principal");
+    const secundaria = document.getElementById("maquina_secundaria");
+
+    // Copiar el valor seleccionado
+    secundaria.value = principal.value;
+
+    // Disparar manualmente el onchange del segundo select
+    secundaria.dispatchEvent(new Event('change'));
+
+  document.addEventListener("DOMContentLoaded", function() {
+    sincronizarMaquina();
+});
+ }
 
             function actualizarAmortizacion() {
                 const maquina = document.querySelector('select[name="nombre_maquina_termoformado"]').value;
@@ -1685,7 +1720,7 @@ $esCorridaPiloto = false;
                         <th class="border border-gray-300 p-2">Piezas por Caja</th>
                         <td class="border border-gray-300 p-2">
                             <input type="number" name="piezas_por_caja" step="1" class="w-full border-gray-300 border rounded-md p-1"
-                                value="{{ old('piezas_por_caja', $costeoRequisicion->piezas_por_caja) }}">
+                                value="{{ old('piezas_por_caja', $costeoRequisicion->piezas_por_caja) }}" oninput="calcularTotalCajas()">
                         </td>
                         <th class="border border-gray-300 p-2">
                             <button type="button" onclick="togglePiezasPorBolsa()" 
@@ -3421,6 +3456,45 @@ $esCorridaPiloto = false;
         });
         @endif
     });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const avance = document.querySelector('input[name="hoja_avance"]');
+    const ancho  = document.querySelector('input[name="hoja_ancho"]');
+
+    avance.addEventListener('input', calcularAreaFormadoHoja);
+    ancho.addEventListener('input', calcularAreaFormadoHoja);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const inputs = [
+        'costo_montaje',
+        'hojas_del_pedido',
+        'costo_amortizacion_herramentales',
+        'amortizacion_maquinaria',
+        'total_hojas_turno_termoformado',
+        'total_hojas_turno_suaje',
+        'costo_fabricacion'
+        
+    ];
+
+    inputs.forEach(name => {
+        const input = document.querySelector(`input[name="${name}"]`);
+        if (input) {
+            input.addEventListener('input', recalcularTodo);
+            input.addEventListener('change', recalcularTodo);
+        }
+    });
+
+    // cálculo inicial
+    recalcularTodo();
+});
+
+function recalcularTodo() {
+    calcularCostoMontaje2();
+    calcularCostoAmortizacionHerramentales2();
+    calcularCostoAmortizacionMaquinaria2();
+    calcularCostoFabricacion();
+}
 </script>
 
 @endsection
