@@ -1903,7 +1903,7 @@ $esCorridaPiloto = false;
                     <tr>
                         <th class="border border-gray-300 p-2">Concepto</th>
                         <th class="border border-gray-300 p-2">Factores de Cálculo</th>
-                        <th class="border border-gray-300 p-2">Valor</th>
+                        <th class="border border-gray-300 p-2">Valor ($MXN)</th>
                     </tr>
                 </thead>
                 <tbody>
