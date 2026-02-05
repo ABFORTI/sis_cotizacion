@@ -236,7 +236,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <script>
+                                                        <script>
                                 document.addEventListener('DOMContentLoaded', function() {
                                 const dropdowns = document.querySelectorAll('.dropdown-container');
                                 dropdowns.forEach(dropdown => {
@@ -280,37 +280,37 @@
                                 align-items: center;
                                 justify-content: space-between;
                                 }
+                            
+                            .dropdown-icon {
+                                width: 1rem;
+                                height: 1rem;
+                                margin-left: 0.5rem;
+                                transition: transform 0.2s ease;
+                            }
 
-.dropdown-icon {
-    width: 1rem;
-    height: 1rem;
-    margin-left: 0.5rem;
-    transition: transform 0.2s ease;
-}
+                            .dropdown-menu {
+                                position: absolute;
+                                z-index: 9999;
+                                width: 100%;
+                                margin-top: 0.5rem;
+                                background-color: white;
+                                border-radius: 0.375rem;
+                                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                                border: 1px solid #e5e7eb;
+                            }
 
-.dropdown-menu {
-    position: absolute;
-    z-index: 10;
-    width: 100%;
-    margin-top: 0.5rem;
-    background-color: white;
-    border-radius: 0.375rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e5e7eb;
-}
+                            .dropdown-menu a {
+                                display: block;
+                                padding: 0.5rem 1rem;
+                                font-size: 0.875rem;
+                                color: #374151;
+                                text-decoration: none;
+                                transition: background-color 0.15s ease;
+                            }
 
-.dropdown-menu a {
-    display: block;
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    color: #374151;
-    text-decoration: none;
-    transition: background-color 0.15s ease;
-}
-
-.dropdown-menu a:hover {
-    background-color: #f3f4f6;
-}
+                            .dropdown-menu a:hover {
+                                background-color: #f3f4f6;
+                            }
                             </style>
                             @endif
                             @if(!$cotizacion->enviado_a_ventas)
@@ -425,6 +425,44 @@
         @endif
     });
 </script>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                const dropdowns = document.querySelectorAll('.dropdown-container');
+                                dropdowns.forEach(dropdown => {
+                                    const toggle = dropdown.querySelector('.dropdown-toggle');
+                                    const menu = dropdown.querySelector('.dropdown-menu');
+                                    const icon = dropdown.querySelector('.dropdown-icon');
+        
+                                    toggle.addEventListener('click', function(e) {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        document.querySelectorAll('.dropdown-menu').forEach(otherMenu => {
+                                            if (otherMenu !== menu && otherMenu.style.display === 'block') {
+                                                otherMenu.style.display = 'none';
+                                                otherMenu.previousElementSibling.querySelector('.dropdown-icon').style.transform = 'rotate(0deg)';
+                                            }
+                                        });
+                                        if (menu.style.display === 'none' || menu.style.display === '') {
+                                            menu.style.display = 'block';
+                                            icon.style.transform = 'rotate(180deg)';
+                                        } else {
+                                            menu.style.display = 'none';
+                                            icon.style.transform = 'rotate(0deg)';
+                                        }
+                                    });
+                                });
+                                document.addEventListener('click', function(e) {
+                                    if (!e.target.closest('.dropdown-container')) {
+                                        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                                            menu.style.display = 'none';
+                                        });
+                                        document.querySelectorAll('.dropdown-icon').forEach(icon => {
+                                        icon.style.transform = 'rotate(0deg)';
+                                        });
+                                    }
+                                });
+                            });
+                            </script>
 @endpush
 
 @endsection
