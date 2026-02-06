@@ -245,4 +245,33 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 </script>
+<script>
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+
+        const target = e.target;
+
+        // No romper textareas
+        if (target.tagName === 'TEXTAREA') return;
+
+        // Solo inputs y selects
+        if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+            e.preventDefault();
+
+            const form = target.form;
+            if (!form) return;
+
+            const focusable = Array.from(
+                form.querySelectorAll('input, select, textarea')
+            ).filter(el => !el.disabled && el.type !== 'hidden');
+
+            const index = focusable.indexOf(target);
+            if (index > -1 && index + 1 < focusable.length) {
+                focusable[index + 1].focus();
+            }
+        }
+    }
+});
+</script>
+
 @endpush

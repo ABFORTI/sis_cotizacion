@@ -1391,7 +1391,6 @@ $esCorridaPiloto = false;
                     </thead>
                     <tbody>
                         
-
                         <tr>
                             <td class="border border-gray-400 p-2 text-left font-bold">Costo de Montaje</td>
                             <td class="border border-gray-400 p-2">
@@ -1581,19 +1580,17 @@ $esCorridaPiloto = false;
             }
 
             function sincronizarMaquina() {
-    const principal = document.getElementById("maquina_principal");
-    const secundaria = document.getElementById("maquina_secundaria");
+                const principal = document.getElementById("maquina_principal");
+                const secundaria = document.getElementById("maquina_secundaria");
 
-    // Copiar el valor seleccionado
-    secundaria.value = principal.value;
+                secundaria.value = principal.value;
 
-    // Disparar manualmente el onchange del segundo select
-    secundaria.dispatchEvent(new Event('change'));
+                secundaria.dispatchEvent(new Event('change'));
 
-  document.addEventListener("DOMContentLoaded", function() {
-    sincronizarMaquina();
-});
- }
+                document.addEventListener("DOMContentLoaded", function() {
+                    sincronizarMaquina();
+                });
+            }
 
             function actualizarAmortizacion() {
                 const maquina = document.querySelector('select[name="nombre_maquina_termoformado"]').value;
@@ -2121,37 +2118,105 @@ $esCorridaPiloto = false;
                     <tr>
                         <td class="border border-gray-300 p-2 font-medium">Maquila</td>
                         <td class="border border-gray-300 p-2">
-                            <div class="grid grid-cols-1 gap-2">
-                                <select class="w-full border border-gray-300 rounded-md p-1" name="maquila" onchange="toggleMaquilaInput()">
-                                    <option value="no" {{ old('maquila', $costeoRequisicion->maquila ?? 'no') == 'no' ? 'selected' : '' }}>No</option>
-                                    <option value="si" {{ old('maquila', $costeoRequisicion->maquila ?? 'no') == 'si' ? 'selected' : '' }}>Sí</option>
-                                </select>
-                            </div>
+                            <select name="maquila" id="maquila"
+                                    class="w-full border border-gray-300 rounded-md p-1">
+                                <option value="no">No</option>
+                                <option value="si">Sí</option>
+                            </select>
                         </td>
                         <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="costo_maquila_total" id="costo-maquila-total" class="w-full border border-gray-300 rounded-md p-1 text-center" placeholder="$0.00"
-                                value="{{old('costo_maquila_total', $costeoRequisicion->costo_maquila_total)}}"
-                                oninput="document.querySelector('input[name=&quot;resumen_costo_maquila&quot;]').value = this.value; calcularResumenCostos();">
+                            <input type="number" step="0.01" name="costo_maquila_total"
+                                    class="w-full border border-gray-300 rounded-md p-1 text-center bg-gray-100" readonly>
+                        </td>
+                    </tr>
+                    <tr id="bloque-maquila" class="hidden">
+                        <td colspan="3" class="border border-gray-300 p-3">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div>
+                                    <label class="text-sm font-semibold">Personas</label>
+                                    <input type="number" name="maquila_personas" class="w-full border p-1">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold">Costo MO x Persona</label>
+                                    <input type="number" value="450" readonly class="w-full border p-1 bg-gray-100">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold">Total MO</label>
+                                    <input type="number" name="maquila_total_mo" readonly class="w-full border p-1 bg-gray-100">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold">E. Eléctrica</label>
+                                    <input type="number" value="1.4" readonly class="w-full border p-1 bg-gray-100">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold">Amortización</label>
+                                    <input type="number" value="1.7" readonly class="w-full border p-1 bg-gray-100">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold">Total Maquinaria</label>
+                                    <input type="number" name="maquila_total_maquinaria" readonly class="w-full border p-1 bg-gray-100">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold">Camas de sello</label>
+                                    <input type="number" name="maquila_camas" class="w-full border p-1">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold">Cavidades x cama</label>
+                                    <input type="number" name="maquila_cavidades" class="w-full border p-1">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold">Bajadas / minuto</label>
+                                    <input type="number" name="maquila_bajadas" class="w-full border p-1">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold">Sellados / hora</label>
+                                    <input type="number" name="maquila_sellados_hora" readonly class="w-full border p-1 bg-gray-100">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold">Sellados / turno</label>
+                                    <input type="number" name="maquila_sellados_turno" readonly class="w-full border p-1 bg-gray-100">
+                                </div>
+                                <div>
+                                    <label class="text-sm font-semibold"># Turnos</label>
+                                    <input type="number" name="maquila_turnos" readonly class="w-full border p-1 bg-gray-100">
+                                </div>
+                            </div>
                         </td>
                     </tr>
                     <script>
-                        function toggleMaquilaInput() {
-                            const selectMaquila = document.querySelector('select[name="maquila"]');
-                            const costoMaquilaInput = document.getElementById('costo-maquila-total');
-                            
-                            if (selectMaquila.value === 'no') {
-                                costoMaquilaInput.disabled = true;
-                                costoMaquilaInput.value = '';
-                                document.querySelector('input[name="resumen_costo_maquila"]').value = '';
-                            } else {
-                                costoMaquilaInput.disabled = false;
+                        function calcularMaquilaTotal() {
+                            const COSTO_MO = 450;
+                            const ELECTRICA = 1.4;
+                            const AMORTIZACION = 1.7;
+
+                            const personas = parseFloat(document.querySelector('[name="maquila_personas"]')?.value) || 0;
+                            const totalMO = personas * COSTO_MO;
+                            document.querySelector('[name="maquila_total_mo"]').value = totalMO.toFixed(2);
+
+                            const totalMaquinaria = ELECTRICA + AMORTIZACION;
+                            document.querySelector('[name="maquila_total_maquinaria"]').value = totalMaquinaria.toFixed(2);
+
+                            const camas = parseFloat(document.querySelector('[name="maquila_camas"]')?.value) || 0;
+                            const cavidades = parseFloat(document.querySelector('[name="maquila_cavidades"]')?.value) || 0;
+                            const bajadas = parseFloat(document.querySelector('[name="maquila_bajadas"]')?.value) || 0;
+
+                            const selladosHora = camas * cavidades * bajadas * 60;
+                            document.querySelector('[name="maquila_sellados_hora"]').value = selladosHora;
+
+                            const selladosTurno = selladosHora * 10;
+                            document.querySelector('[name="maquila_sellados_turno"]').value = selladosTurno;
+
+                            const MOQ = parseFloat(document.querySelector('[name="lote_compra"]')?.value) || 0;
+                            const turnos = selladosTurno > 0 ? MOQ / selladosTurno : 0;
+                            document.querySelector('[name="maquila_turnos"]').value = turnos.toFixed(4);
+
+                            const totalMaquila = (totalMO + totalMaquinaria) * turnos;
+                            document.querySelector('[name="costo_maquila_total"]').value = totalMaquila.toFixed(2);
+
+                            if (typeof calcularResumenCostos === 'function') {
+                                calcularResumenCostos();
                             }
                         }
-
-                        // Ejecutar al cargar la página para establecer el estado inicial
-                        document.addEventListener('DOMContentLoaded', function() {
-                            toggleMaquilaInput();
-                        });
                     </script>
                 </tbody>
             </table>
@@ -3495,6 +3560,70 @@ function recalcularTodo() {
     calcularCostoAmortizacionMaquinaria2();
     calcularCostoFabricacion();
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const selectMaquila = document.getElementById('maquila');
+    const bloqueMaquila = document.getElementById('bloque-maquila');
+
+    function toggleMaquila() {
+        const activa = selectMaquila.value === 'si';
+        bloqueMaquila.classList.toggle('hidden', !activa);
+
+        if (!activa) {
+            document.querySelector('[name="costo_maquila_total"]').value = '';
+        } else {
+            calcularMaquilaTotal();
+        }
+    }
+
+    selectMaquila.addEventListener('change', toggleMaquila);
+
+    [
+        'maquila_personas',
+        'maquila_camas',
+        'maquila_cavidades',
+        'maquila_bajadas',
+        'lote_compra'
+    ].forEach(name => {
+        const input = document.querySelector(`[name="${name}"]`);
+        if (input) {
+            input.addEventListener('input', calcularMaquilaTotal);
+        }
+    });
+
+    toggleMaquila(); // estado inicial
+});
 </script>
+
+<script>
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+
+        const target = e.target;
+
+        // No romper textareas
+        if (target.tagName === 'TEXTAREA') return;
+
+        // Solo inputs y selects
+        if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+            e.preventDefault();
+
+            const form = target.form;
+            if (!form) return;
+
+            const focusable = Array.from(
+                form.querySelectorAll('input, select, textarea')
+            ).filter(el => !el.disabled && el.type !== 'hidden');
+
+            const index = focusable.indexOf(target);
+            if (index > -1 && index + 1 < focusable.length) {
+                focusable[index + 1].focus();
+            }
+        }
+    }
+});
+</script>
+
 
 @endsection
