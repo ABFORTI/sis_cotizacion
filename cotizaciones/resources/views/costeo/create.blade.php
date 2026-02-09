@@ -2093,15 +2093,9 @@ $esCorridaPiloto = false;
                                             auxPiezas.classList.remove('hidden');
                                             // Cambiar a grid de 3 columnas
                                             gridEstaticida.classList.add('grid-cols-3');
-                                            // Habilitar costo total
                                             costoEstaticidaInput.disabled = false;
                                         }
                                     }
-
-                                    // Ejecutar al cargar la página para establecer el estado inicial
-                                    //document.addEventListener('DOMContentLoaded', function() {
-                                    //    toggleEstaticidaInputs();
-                                    //});
                                 </script>
                                 <input type="number" step="1" name="no_personas_estaticida" id="aux-personas-estaticida" value="{{ old('no_personas_estaticida', $costeoRequisicion->no_personas_estaticida) }}" placeholder="Ingrese No. de personas"
                                     class="w-full border border-gray-300 rounded-md p-1 hidden" oninput="calcularEstaticida()">
@@ -2273,18 +2267,41 @@ $esCorridaPiloto = false;
                 calcularResumenCostos();
             }
 
-            function calcularEstaticida() {
-                const costoDiarioPersona = 450;
-                const estaticidaPorPieza = .53;
-                const personas = parseInt(document.querySelector('input[name="no_personas_estaticida"]').value) || 0;
-                const piezasPorHora = parseInt(document.querySelector('input[name="piezas_por_hora_estaticida"]').value) || 1;
-                const piezasPorTurno = piezasPorHora * 11; // 11 horas por turno
-                const mo = (personas * costoDiarioPersona) / piezasPorTurno;
-                const resultado = mo + estaticidaPorPieza;
-                document.querySelector('input[name="costo_estaticida_total"]').value = resultado.toFixed(4);
-                document.querySelector('input[name="resumen_costo_estaticidad"]').value = resultado.toFixed(4);
-                calcularResumenCostos();
+        function calcularEstaticida() {
+            const costo_litro_dolar = 7.00;
+            const tipo_cambio = 19.00;
+            const piezas_por_litro = 250;
+            const costo_diario_persona = 450;
+            const horas_turno = 11;
+
+            const piezas_turno =
+                parseFloat(document.querySelector('input[name="total_piezas_turno_suaje"]')?.value) || 0;
+
+            const personas =
+                parseInt(document.querySelector('input[name="no_personas_estaticida"]')?.value) || 0;
+
+            if (piezas_turno <= 0 || personas <= 0) {
+                document.getElementById('costo-estaticida-total').value = '';
+                return;
             }
+
+            const costo_litro_pesos = costo_litro_dolar * tipo_cambio;
+
+            const piezas_por_hora = piezas_turno / horas_turno;
+            document.getElementById('aux-piezas-estaticida').value = piezas_por_hora.toFixed(2);
+
+            const estaticida_por_pieza = costo_litro_pesos / piezas_por_litro;
+
+            const total_MO = personas * costo_diario_persona;
+            const MO_por_pieza = total_MO / piezas_turno;
+
+            const estaticida_total = estaticida_por_pieza + MO_por_pieza;
+
+            document.getElementById('costo-estaticida-total').value = estaticida_total.toFixed(2);
+            document.querySelector('input[name="resumen_costo_estaticidad"]').value = estaticida_total.toFixed(2);
+
+            calcularResumenCostos();
+        }
         </script>
 
         <!-- COSTEO DE HERRAMENTALES -->

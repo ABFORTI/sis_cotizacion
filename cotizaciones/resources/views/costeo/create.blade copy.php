@@ -1939,7 +1939,7 @@ $esCorridaPiloto = false;
                         </td>
                     </tr>
                     <tr>
-                        <td class="border border-gray-300 p-2 font-medium">Aplicación de estaticida</td>
+                        <td class="border border-gray-300 p-2 font-medium">Aplicación de estaticida22</td>
                         <td class="border border-gray-300 p-2">
                             <div class="grid gap-2" id="grid-estaticida">
                                 <select class="w-full rounded-md p-1 border-blue-600 bg-blue-500 font-medium text-white [&>option]:bg-white [&>option]:text-gray-900" name="aplicacion_estaticida" onchange="toggleEstaticidaInputs()">
