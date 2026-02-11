@@ -104,5 +104,21 @@ protected $casts = [
     {
         return $this->hasMany(MatrizRiesgo::class, 'cotizacion_id');
     }
+    
+    public function getDiasEnCostosAttribute(): int
+{
+    // Aún no se ha enviado a Costeos → no hay conteo
+    if (!$this->enviado_a_costeos || !$this->fecha_envio_ventas) {
+        return 0;
+    }
+
+    $inicio = \Carbon\Carbon::parse($this->fecha_envio_ventas)->startOfDay();
+
+    $fin = $this->fecha_envio_costeos
+        ? \Carbon\Carbon::parse($this->fecha_envio_costeos)->startOfDay()
+        : \Carbon\Carbon::now()->startOfDay();
+
+    return max(0, $inicio->diffInDays($fin));
+}
 
 }
