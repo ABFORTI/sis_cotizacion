@@ -698,6 +698,7 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
     }
 
 
+
     /**
      * Guardar los lineamientos de la cotización.
      */
@@ -747,4 +748,5 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
         $cotizacion->delete();
         return redirect()->route('cotizaciones.index')->with('success', 'Cotización eliminada con éxito.');
     }
+    
 }

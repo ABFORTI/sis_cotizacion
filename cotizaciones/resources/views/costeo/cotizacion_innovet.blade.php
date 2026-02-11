@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
+
 <!-- Styles plantilla de cotización -->
 <style>
     .cotizacion-header {
@@ -471,7 +476,7 @@
             <div class="relative bg-gradient-to-br from-neutral-50 to-neutral-100 p-8 bg-gray-200">
                 <div class="flex items-center justify-center min-h-[300px] max-h-[500px]">
                     <img
-                        src="{{ asset('storage/' . $imagen->path) }}"
+                        src="{{ Storage::url($imagen->path) }}"
                         alt="Imagen del documento"
                         class="max-w-full max-h-[500px] w-auto h-auto object-contain rounded-lg shadow-md"
                         loading="lazy"
@@ -500,7 +505,7 @@
                 <!-- Acciones -->
                 <div class="flex items-center gap-2">
                     <!-- Vista previa -->
-                    <a href="{{ asset('storage/' . $imagen->path) }}"
+                    <a href="{{ Storage::url($imagen->path) }}"
                        target="_blank"
                        rel="noopener noreferrer"
                        class="inline-flex items-center gap-2 px-4 py-2
@@ -517,7 +522,7 @@
                         <span class="hidden sm:inline">Abrir</span>
                     </a>
                     <!-- Descargar -->
-                    <a href="{{ asset('storage/' . $imagen->path) }}"
+                    <a href="{{ Storage::url($imagen->path) }}"
                        download="{{ $imagen->nombre ?? 'imagen' }}"
                        class="inline-flex items-center gap-2 px-4 py-2
                               text-sm font-medium text-white bg-blue-600
@@ -649,16 +654,13 @@
             </summary>
 
             <textarea name="lineamiento_1" rows="2"
-                placeholder="Ej: Precios en USD. No incluyen I.V.A. Fabricación, facturación y entrega en una sola exhibición."
-                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_1 }}</textarea>
+                class="textarea w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_1 ?? config('lineamientos.lineamiento_1') }}</textarea>
 
             <textarea name="lineamiento_2" rows="2"
-                placeholder="Ej: Los precios pueden ajustarse por cambios fiscales, arancelarios o comerciales."
-                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_2 }}</textarea>
+                class="textarea w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_2 ?? config('lineamientos.lineamiento_2') }}</textarea>
 
             <textarea name="lineamiento_3" rows="2"
-                placeholder="Ej: Vigencia de la cotización: 12 meses y/o incrementos en MP superiores al 5%."
-                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_3 }}</textarea>
+                class="textarea w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_3 ?? config('lineamientos.lineamiento_3') }}</textarea>
         </details>
 
         <!-- CONDICIONES DE PAGO -->
@@ -668,8 +670,8 @@
             </summary>
 
             <textarea name="lineamiento_4" rows="2"
-                placeholder="Ej: Condiciones de pago por anticipado."
-                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_4 }}</textarea>
+                class="textarea w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_4 ?? config('lineamientos.lineamiento_4') }}</textarea>
+    
         </details>
 
         <!-- TIEMPOS -->
@@ -687,13 +689,12 @@
                     placeholder="Ej: 4"
                     value="{{ $cotizacion->tiempo_herramentales }}"
                     class="w-20 border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-red-600">
-
                 <span>semanas</span>
             </div>
 
             <textarea name="lineamiento_5" rows="2"
-                placeholder="Ej: Tiempo de entrega de producto terminado: X semanas (sujeto a disponibilidad de maquinaria)."
-                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_5 }}</textarea>
+            class="textarea w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_5 ?? config('lineamientos.lineamiento_5') }}</textarea>
+   
         </details>
 
         <!-- ENTREGA Y EMPAQUE -->
@@ -703,16 +704,14 @@
             </summary>
 
             <textarea name="lineamiento_6" rows="2"
-                placeholder="Ej: El producto se entrega en: Planta del cliente / almacén / punto acordado."
-                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_6 }}</textarea>
+            class="textarea w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_6 ?? config('lineamientos.lineamiento_6') }}</textarea>
 
             <textarea name="lineamiento_7" rows="2"
-                placeholder="Ej: Considerar variación ±10% sobre el lote de producción."
-                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_7 }}</textarea>
+                class="textarea w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_7 ?? config('lineamientos.lineamiento_7') }}</textarea>
 
             <textarea name="lineamiento_8" rows="2"
-                placeholder="Ej: Especificación de empaque a confirmar posterior a la primera producción."
-                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_8 }}</textarea>
+                class="textarea w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_8 ?? config('lineamientos.lineamiento_8') }}</textarea>
+
         </details>
 
         <!-- CONSIDERACIONES LEGALES -->
@@ -722,12 +721,11 @@
             </summary>
 
             <textarea name="lineamiento_9" rows="2"
-                placeholder="Ej: Cualquier condición distinta implica revisión de costos."
-                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_9 }}</textarea>
+               class="textarea w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_9 ?? config('lineamientos.lineamiento_9') }}</textarea>
 
             <textarea name="lineamiento_10" rows="3"
-                placeholder="Ej: Responsabilidad limitada a defectos de fabricación..."
-                class="w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_10 }}</textarea>
+                class="textarea w-full mt-3 border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-600">{{ $cotizacion->lineamiento_7 ?? config('lineamientos.lineamiento_7') }}</textarea>
+
         </details>
 
     </div>

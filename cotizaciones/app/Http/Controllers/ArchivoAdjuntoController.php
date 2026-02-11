@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ArchivoAdjuntoController extends Controller
 {
-    /**
-     * Guardar o reemplazar imagen
-     */
+
     public function store(Request $request)
     {
         $request->validate([
@@ -22,7 +20,6 @@ class ArchivoAdjuntoController extends Controller
         $cotizacion = Cotizacion::with('archivosAdjuntos')
             ->findOrFail($request->cotizacion_id);
 
-        // 🔥 Eliminar imagen anterior
         foreach ($cotizacion->archivosAdjuntos as $archivo) {
             if (Storage::disk('public')->exists($archivo->path)) {
                 Storage::disk('public')->delete($archivo->path);
@@ -30,7 +27,6 @@ class ArchivoAdjuntoController extends Controller
             $archivo->delete();
         }
 
-        // 📤 Guardar nueva imagen
         $path = $request->file('archivo')->store('cotizaciones', 'public');
 
         ArchivoAdjunto::create([
@@ -41,9 +37,6 @@ class ArchivoAdjuntoController extends Controller
         return back()->with('success', 'Imagen subida correctamente.');
     }
 
-    /**
-     * Eliminar imagen
-     */
     public function destroy(ArchivoAdjunto $archivo)
     {
         if (Storage::disk('public')->exists($archivo->path)) {
