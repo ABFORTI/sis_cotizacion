@@ -202,8 +202,7 @@ class CosteoRequisicionController extends Controller
                     'resumen_costo_procesos' => $request->resumen_costo_procesos,
                     'resumen_piezas_procesos' => $request->resumen_piezas_procesos,
                     'resumen_costo_unit_procesos' => $request->resumen_costo_unit_procesos,
-                    //'resumen_margen_procesos' => $request->resumen_margen_procesos,
-                    //'resumen_precio_venta_procesos' => $request->resumen_precio_venta_procesos,
+
                     // Empaque
                     'resumen_costo_empaque' => $request->resumen_costo_empaque,
                     'resumen_piezas_empaque' => $request->resumen_piezas_empaque,
@@ -288,25 +287,6 @@ class CosteoRequisicionController extends Controller
                     $datos
                 );
             }
-            
-            // PROCESOS DINAMICOS - NO USADOS POR EL MOMENTO
-            /*
-            // Procesos de Costeo
-            if ($request->has('procesos_costeo')) {
-                ProcesosCosteo::where('costeo_requisiciones_id', $costeoRequisicion->id)->delete();
-
-                foreach ($request->procesos_costeo as $procesoData) {
-                    if (!empty($procesoData['concepto']) || !empty($procesoData['costo'])) {
-                        ProcesosCosteo::create([
-                            'costeo_requisiciones_id' => $costeoRequisicion->id,
-                            'concepto' => $procesoData['concepto'] ?? 'Proceso Desconocido',
-                            'descripcion' => $procesoData['descripcion'],
-                            'costo' => $procesoData['costo'],
-                        ]);
-                    }
-                }
-            }
-            */
 
             DB::commit();
 
@@ -359,116 +339,5 @@ class CosteoRequisicionController extends Controller
         // Similar al store pero para actualizar
         return $this->store($request, $id);
     }
-/* PROCESOS DINAMICOS - NO USADOS POR EL MOMENTO
-    public function eliminarProceso($requisicionId, $procesoId)
-    {
-        try {
-            // Buscar el proceso específico
-            $proceso = ProcesosCosteo::where('costeo_requisiciones_id', $requisicionId)
-                ->where('id', $procesoId)
-                ->firstOrFail();
 
-            // Eliminar el proceso
-            $proceso->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Proceso eliminado correctamente'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al eliminar el proceso: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function agregarProceso(Request $request, $cotizacionId)
-    {
-        try {
-            // Buscar o crear el costeo requisicion
-            $costeoRequisicion = CosteoRequisicion::where('cotizaciones', $cotizacionId)->first();
-            
-            if (!$costeoRequisicion) {
-                // Si no existe el costeo, crearlo temporalmente
-                $costeoRequisicion = CosteoRequisicion::create([
-                    'cotizaciones' => $cotizacionId,
-                    'usuario_id' => Auth::id()
-                ]);
-            }
-
-            // Crear el nuevo proceso
-            $proceso = ProcesosCosteo::create([
-                'costeo_requisiciones_id' => $costeoRequisicion->id,
-                'concepto' => $request->concepto ?? '',
-                'descripcion' => $request->descripcion ?? '',
-                'costo' => $request->costo ?? 0
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Proceso agregado correctamente',
-                'proceso' => $proceso
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al agregar el proceso: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function obtenerProcesos($cotizacionId)
-    {
-        try {
-            $costeoRequisicion = CosteoRequisicion::where('cotizaciones', $cotizacionId)->first();
-            
-            if (!$costeoRequisicion) {
-                return response()->json([
-                    'success' => true,
-                    'procesos' => []
-                ]);
-            }
-
-            $procesos = ProcesosCosteo::where('costeo_requisiciones_id', $costeoRequisicion->id)
-                ->orderBy('id')
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'procesos' => $procesos
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al obtener los procesos: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function actualizarProceso(Request $request, $requisicionId, $procesoId)
-    {
-        try {
-            $proceso = ProcesosCosteo::where('costeo_requisiciones_id', $requisicionId)
-                ->where('id', $procesoId)
-                ->firstOrFail();
-
-            $proceso->update([
-                'concepto' => $request->concepto ?? $proceso->concepto,
-                'descripcion' => $request->descripcion ?? $proceso->descripcion,
-                'costo' => $request->costo ?? $proceso->costo
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Proceso actualizado correctamente',
-                'proceso' => $proceso
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al actualizar el proceso: ' . $e->getMessage()
-            ], 500);
-        }
-    }*/
 }
