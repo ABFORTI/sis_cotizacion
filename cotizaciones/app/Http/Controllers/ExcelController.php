@@ -296,8 +296,8 @@ class ExcelController extends Controller
                 'D' => 14,
                 'E' => 14,
                 'F' => 14,
-                'G' => 12,
-                'H' => 18,
+                'G' => 11,
+                'H' => 19,
             ]);
 
             // ===== ENCABEZADO CON LOGO =====
@@ -461,7 +461,7 @@ class ExcelController extends Controller
             
             // Celdas vacías
             for ($col = 'D'; $col <= 'G'; $col++) {
-                $sheet->setCellValue($col . $row, '');
+                $sheet->setCellValue($col . $row, '');  
             }
             
             $precioHerramentales = $service->getPrecioHerramentales();
@@ -476,10 +476,10 @@ class ExcelController extends Controller
 
             // ===== IMAGEN ILUSTRATIVA =====
             $row += 2;
-            $service->agregarImagenIlustrativa('A' . $row, 150);
+            $service->agregarImagenIlustrativa('B' . $row, 180);
 
             // ===== FOOTER =====
-            $row += 3;
+            $row += 6;
             $sheet->setCellValue('A' . $row, CotizacionConfig::COMPANY_ADDRESS);
             $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom(['fontSize' => 9]));
 
@@ -527,7 +527,7 @@ class ExcelController extends Controller
             $sheet = $service->getSheet();
 
             // Configurar columnas - SIN MERGES
-            $service->setColumnWidths(['A' => 50, 'B' => 80]);
+            $service->setColumnWidths(['A' => 34, 'B' => 80]);
 
             // ===== ENCABEZADO =====
             $service->agregarLogo('A1');
@@ -535,8 +535,8 @@ class ExcelController extends Controller
             // Aumentar altura de filas para que se vea el logo
             $sheet->getRowDimension(1)->setRowHeight(40);
             $sheet->getRowDimension(2)->setRowHeight(40);
-            $sheet->getRowDimension(3)->setRowHeight(40);
-            $sheet->getRowDimension(4)->setRowHeight(20);
+            $sheet->getRowDimension(3)->setRowHeight(5);
+            $sheet->getRowDimension(4)->setRowHeight(34);
             
             // Folio y Fecha
             $sheet->setCellValue('F1', 'Folio:');
@@ -548,7 +548,7 @@ class ExcelController extends Controller
             $sheet->setCellValue('G2', $cotizacion->fecha);
 
             // ===== TÍTULO =====
-            $row = 5;
+            $row = 4;
             $sheet->setCellValue('A' . $row, 'LINEAMIENTOS DEL PROYECTO');
             $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom([
                 'bold' => true,
@@ -603,7 +603,7 @@ class ExcelController extends Controller
                 'fontSize' => 12,
             ]));
 
-            $row += 2;
+            $row ++;
             $sheet->setCellValue('A' . $row, htmlspecialchars($contacto['nombre']));
             $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom(['bold' => true, 'fontSize' => 11]));
 
@@ -611,13 +611,13 @@ class ExcelController extends Controller
             $sheet->setCellValue('A' . $row, htmlspecialchars($contacto['puesto']));
 
             // ===== FOOTER =====
-            $row += 3;
-            $sheet->setCellValue('A' . $row, CotizacionConfig::COMPANY_ADDRESS);
-            $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom(['fontSize' => 9]));
+            $row += 2;
+            $sheet->setCellValue('B' . $row, CotizacionConfig::COMPANY_ADDRESS);
+            $sheet->getStyle('B' . $row)->applyFromArray(ExcelStyleFactory::custom(['fontSize' => 9]));
 
             $row++;
-            $sheet->setCellValue('A' . $row, CotizacionConfig::COMPANY_FOOTER);
-            $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom(['fontSize' => 9]));
+            $sheet->setCellValue('B' . $row, CotizacionConfig::COMPANY_FOOTER);
+            $sheet->getStyle('B' . $row)->applyFromArray(ExcelStyleFactory::custom(['fontSize' => 9]));
 
         } catch (\Exception $e) {
             error_log('Error en llenarLineamientosExcel: ' . $e->getMessage());
