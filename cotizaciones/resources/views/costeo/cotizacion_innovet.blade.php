@@ -310,7 +310,8 @@
         </div>
     </div>
     <div class=" from-neutral-50 to-neutral-100 rounded-xl p-6 border border-neutral-50 shadow-sm">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 justify-items-center">
+
             <!-- Puesto -->
             <div class="flex flex-col items-center md:items-start text-center md:text-left">
                 <div class="flex items-center gap-2 mb-2">

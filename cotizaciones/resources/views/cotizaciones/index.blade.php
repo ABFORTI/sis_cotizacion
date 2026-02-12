@@ -295,7 +295,7 @@
                                             </form>
                                         @endif
                                     @elseif(Auth::user()->role === 'costeos')
-                                        <div class="flex items-center gap-2">
+                                        <div class="grid h-56 grid-cols-2 content-center gap-4">
                                             <a href="{{ route('cotizaciones.edit', $cotizacion) }}" class="btn-edit inline-flex items-center justify-center
                                                 w-10 h-10 rounded-base
                                                 bg-brand text-white
