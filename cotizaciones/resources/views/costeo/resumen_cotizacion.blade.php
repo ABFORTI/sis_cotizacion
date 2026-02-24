@@ -132,22 +132,18 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                 </div>
                 <div class="flex-shrink-0 flex flex-col space-y-2">
                     <div class="mt-2 flex justify-end gap-2 font-bold btn-container-mobile">
-                        <button type="button" id="btn-generar-pdf"
-                        class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm transition duration-150 ease-in-out shadow-md">
-                        Descargar PDF
-                    </button>
-                    <button type="button" id="btn-generar-excel"
-                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded inline-flex items-center text-sm transition duration-150 ease-in-out shadow-md">
-                        Descargar Excel
-                    </button>
+                    <a href="{{ route('cotizacion.pdf.completo', $cotizacion->id) }}"  target="_blank" class="inline-block bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors text-center">
+                        <i class="fas fa-file-pdf"></i> Descargar PDF
+                    </a>
+                    <a href="{{ route('cotizacion.excel.completo', $cotizacion->id) }}" class="inline-block bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 transition-colors text-center">
+                        <i class="fas fa-file-excel"></i> Descargar Excel
+                    </a>
                     </div>
                 </div>
             </div>
 
-            {{-- Tabla Principal --}}
             <div class="p-6 mx-auto font-sans text-xs">
                 <table class="w-full border-collapse border border-black text-xs">
-                    {{-- Header Row --}}
                     <tr>
                         <td class="p-1 border border-black bg-blue-200 font-bold">Cliente:</td>
                         <td class="p-1 border border-black bg-white">{{ $cotizacion->cliente}}</td>
@@ -159,13 +155,11 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                         <td class="p-1 border border-black bg-white">{{ $cotizacion->fecha}}</td>
                     </tr>
 
-                    {{-- Second Header Row --}}
                     <tr>
                         <td colspan="4" class="p-2 border border-black bg-gray-300 text-center font-bold">Descripción del proyecto</td>
                         <td colspan="4" class="p-2 border border-black bg-gray-300 text-center font-bold">Datos críticos:</td>
                     </tr>
 
-                    {{-- Content Rows --}}
                     <tr>
                         <td class="p-1 border border-black bg-gray-100 font-bold">Tipo de producto:</td>
                         <td colspan="3" class="p-1 border border-black bg-white">{{ $cotizacion->tipo_de_empaque}}</td>
