@@ -222,8 +222,8 @@ $esCorridaPiloto = false;
                         class="w-full border-gray-300 border rounded-md p-2" disabled>
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Calibre (mm):</label>
-                    <input type="number" step="0.01" name="calibre_costeo" value="{{ $calibre_costeo ?: $calibre }}"
+                    <label class="font-bold block mb-2">Calibre ("):</label>
+                    <input type="number" step="0.0001" name="calibre_costeo" value="{{ $calibre_costeo ?: $calibre }}"
                         class="w-full border-gray-300 border rounded-md p-2" onchange="calcularPesoNeto(), calcularPesoEstimadoPieza(), calcularPesoTotal()">
                 </div>
                 <div>
@@ -2706,7 +2706,7 @@ $esCorridaPiloto = false;
                     </tr>
                 </tfoot>
             </table>
-        </div>
+        </div>6
 
         @if($esCorridaPiloto)
         <div class="mt-4 p-4 bg-blue-100 border border-blue-300 rounded-lg">

@@ -373,7 +373,7 @@
                         </td>
                     </tr>
                     <tr class="bg-blue-100 font-bold">
-                        <td colspan="4" class="text-right border border-gray-300 p-2">Precio de venta</td>
+                        <td colspan="4" class="text-right border border-gray-300 p-2">Total de Ventas</td>
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.001" name="resumen_total_precio_venta_aux" title="Ingrese multiplicador de precio de venta"
                                 value="{{ old('resumen_total_precio_venta_aux', $ventasResumen->resumen_total_precio_venta_aux ?? $costeoRequisicion->resumen_total_precio_venta_aux ?? '.5') }}"
@@ -404,9 +404,11 @@
                 </div>
             </div>
  -->
-            <div class="mt-4 text-right">
-                <label class="block text-sm font-medium">Precio de venta final (MXN)</label>
-                <input type="number" name="precio_venta_final" step="0.01" readonly class="form-input mt-1 w-48 inline-block bg-blue-100 text-right font-bold" value="{{ old('precio_venta_final', $ventasResumen->precio_venta_final ?? $costeoRequisicion->resumen_total_precio_venta ?? '') }}">
+            <div class="mt-4 flex items-center justify-end gap-3 border-t border-gray-300 pt-4">
+                <span class="text-base font-bold text-blue-900">Total Final de la Cotización (MXN):</span>
+                <input type="number" name="precio_venta_final" step="0.01" readonly
+                    class="form-input w-48 bg-blue-200 text-right font-bold text-lg border-2 border-blue-400 rounded-md p-2"
+                    value="{{ old('precio_venta_final', $ventasResumen->precio_venta_final ?? $costeoRequisicion->resumen_total_precio_venta ?? '') }}">
             </div>
            
             <div class="mt-4 flex gap-2 justify-end">
@@ -416,6 +418,76 @@
             </fieldset>
         </form>
 
+
+        {{-- ===== RESUMEN DE HERRAMENTAL ===== --}}
+        @if($costeoRequisicion && ($costeoRequisicion->TOTAL_FINAL || $costeoRequisicion->total_molde))
+        <div class="mt-6">
+            <fieldset class="border border-gray-300 rounded p-4">
+                <legend class="text-lg font-bold text-blue-800 px-2">Resumen de Herramental</legend>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm border-collapse border border-gray-300">
+                        <thead class="bg-[#848484] text-white">
+                            <tr>
+                                <th class="border border-gray-300 p-2 text-left">Concepto</th>
+                                <th class="border border-gray-300 p-2 text-right">Costo (MXN)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $herramentales = [
+                                    'Molde'                    => $costeoRequisicion->total_molde,
+                                    'Empujador'                => $costeoRequisicion->total_empujador,
+                                    'Suaje base'               => $costeoRequisicion->costo_suaje_base,
+                                    'Muestras'                 => $costeoRequisicion->costo_muestras,
+                                    'Placa de fijación'        => $costeoRequisicion->costo_placa_fijacion,
+                                    'Madera / Campaña'         => $costeoRequisicion->costo_madera_campana,
+                                    'Prototipo'                => $costeoRequisicion->costo_prototipo,
+                                    'Tornillería'              => $costeoRequisicion->costo_tornilleria,
+                                    'Pedimento herramental'    => $costeoRequisicion->costo_pedimento_herramental,
+                                ];
+                            @endphp
+                            @foreach($herramentales as $concepto => $valor)
+                                @if($valor)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border border-gray-300 p-2 font-medium">{{ $concepto }}</td>
+                                    <td class="border border-gray-300 p-2 text-right">$ {{ number_format($valor, 2) }}</td>
+                                </tr>
+                                @endif
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-blue-100 font-bold">
+                                <td class="border border-gray-300 p-2">Total Herramental</td>
+                                <td class="border border-gray-300 p-2 text-right">$ {{ number_format($costeoRequisicion->TOTAL_FINAL ?? 0, 2) }}</td>
+                            </tr>
+                            <tr class="bg-green-100 font-bold">
+                                <td class="border border-gray-300 p-2">Total Herramental (Ventas)</td>
+                                <td class="border border-gray-300 p-2 text-right">$ {{ number_format($costeoRequisicion->TOTAL_VENTAS ?? 0, 2) }}</td>
+                            </tr>
+                            @if($costeoRequisicion->tiempo_herramientas)
+                            <tr>
+                                <td class="border border-gray-300 p-2 text-gray-600 font-medium">Tiempo de entrega herramentales</td>
+                                <td class="border border-gray-300 p-2 text-center text-gray-700">{{ $costeoRequisicion->tiempo_herramientas }}</td>
+                            </tr>
+                            @endif
+                        </tfoot>
+                    </table>
+                </div>
+            </fieldset>
+        </div>
+        @endif
+
+        {{-- ===== COMENTARIOS DEL ÁREA DE COSTEOS ===== --}}
+        @if($costeoRequisicion && $costeoRequisicion->comentarios)
+        <div class="mt-4">
+            <fieldset class="border border-gray-300 rounded p-4">
+                <legend class="text-lg font-bold text-blue-800 px-2">Comentarios del Área de Costeos</legend>
+                <div class="bg-yellow-50 border border-yellow-200 rounded p-3 text-gray-800 whitespace-pre-line leading-relaxed">
+                    {{ $costeoRequisicion->comentarios }}
+                </div>
+            </fieldset>
+        </div>
+        @endif
 
     </div>
 </div>
