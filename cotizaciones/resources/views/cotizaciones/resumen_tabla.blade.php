@@ -423,7 +423,7 @@
         @if($costeoRequisicion && ($costeoRequisicion->TOTAL_FINAL || $costeoRequisicion->total_molde))
         <div class="mt-6">
             <fieldset class="border border-gray-300 rounded p-4">
-                <legend class="text-lg font-bold text-blue-800 px-2">Resumen de Herramental</legend>
+                <legend class="text-lg font-bold text-white-800 px-2">Resumen de Herramental</legend>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border-collapse border border-gray-300">
                         <thead class="bg-[#848484] text-white">
@@ -481,7 +481,7 @@
         @if($costeoRequisicion && $costeoRequisicion->comentarios)
         <div class="mt-4">
             <fieldset class="border border-gray-300 rounded p-4">
-                <legend class="text-lg font-bold text-blue-800 px-2">Comentarios del Área de Costeos</legend>
+                <legend class="text-lg font-bold text-white-800 px-2">Comentarios del Área de Costeos</legend>
                 <div class="bg-yellow-50 border border-yellow-200 rounded p-3 text-gray-800 whitespace-pre-line leading-relaxed">
                     {{ $costeoRequisicion->comentarios }}
                 </div>

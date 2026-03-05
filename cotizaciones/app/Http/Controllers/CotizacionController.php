@@ -741,6 +741,62 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
     }
 
     /**
+     * Clonar una requisición de cotización existente.
+     * Crea un nuevo registro copiando todos los datos, reseteando el flujo de trabajo.
+     */
+    public function clone(Cotizacion $cotizacion)
+    {
+        $usuario = Auth::user();
+
+        if (!in_array($usuario->role, ['ventas', 'admin'])) {
+            abort(403, 'No tienes permiso para realizar esta acción.');
+        }
+
+        $cotizacion->load([
+            'especificacionProyecto',
+            'especificacionEmpaque',
+            'cotizacionAdicional',
+            'requisicionCotizacion',
+            'termoformado',
+            'usoCliente',
+            'cajaCliente',
+        ]);
+
+        // Clonar cotización principal, reseteando campos de flujo y auditoría
+        $nueva = $cotizacion->replicate();
+        $nueva->fecha               = now()->format('Y-m-d');
+        $nueva->user_id             = $usuario->id;
+        $nueva->enviado_a_costeos   = false;
+        $nueva->enviado_por_ventas  = null;
+        $nueva->fecha_envio_ventas  = null;
+        $nueva->enviado_a_ventas    = false;
+        $nueva->enviado_por_costeos = null;
+        $nueva->fecha_envio_costeos = null;
+        $nueva->oculta_para_costeos = false;
+        $nueva->estado              = 'pendiente';
+        $nueva->plan_mitigacion_titulo      = null;
+        $nueva->plan_mitigacion_descripcion = null;
+
+        foreach (range(1, 10) as $i) {
+            $nueva->{"lineamiento_{$i}"} = null;
+        }
+
+        $nueva->save();
+
+        // Clonar relaciones hijo actualizando la FK
+        foreach (['especificacionProyecto', 'especificacionEmpaque', 'cotizacionAdicional', 'requisicionCotizacion', 'termoformado', 'usoCliente', 'cajaCliente'] as $relacion) {
+            if ($cotizacion->$relacion) {
+                $hijo = $cotizacion->$relacion->replicate();
+                $hijo->cotizacion_id = $nueva->id;
+                $hijo->save();
+            }
+        }
+
+        return redirect()->route('cotizaciones.edit', $nueva)
+            ->with('success', 'Requisición clonada exitosamente. Modifica los valores necesarios y guarda.');
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Cotizacion $cotizacion)
