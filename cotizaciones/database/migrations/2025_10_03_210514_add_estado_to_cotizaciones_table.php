@@ -12,51 +12,56 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('cotizaciones', function (Blueprint $table) {
-            $table->enum('estado', ['pendiente', 'aceptada', 'rechazada'])
-                ->default('pendiente')
-                ->after('id');
-
-            // 🔹 Campo: enviada a Costeos (desde Ventas)
-            $table->boolean('enviado_a_costeos')
-                ->default(false)
-                ->after('estado');
-            // 🔹 Campo: enviada a Ventas (desde Costeos)
-            $table->boolean('enviado_a_ventas')
-                ->default(false)
-                ->after('enviado_a_costeos');
-
-            $table->foreignId('enviado_por_ventas')
-                ->nullable()
-                ->constrained('users')
-                ->onDelete('set null')
-                ->after('enviado_a_ventas');
-
-            $table->timestamp('fecha_envio_ventas')
-                ->nullable()
-                ->after('enviado_por_ventas');
-
-            // 🔹 Campo: usuario de Costeos que envía de vuelta a Ventas
-            $table->foreignId('enviado_por_costeos')
-                ->nullable()
-                ->constrained('users')
-                ->onDelete('set null')
-                ->after('fecha_envio_ventas');
-
-            // 🔹 Campo: fecha cuando Costeos envía de vuelta a Ventas
-            $table->timestamp('fecha_envio_costeos')
-                ->nullable()
-                ->after('enviado_por_costeos');
-
-            // 🔹 Campos para Plan de Mitigación de Riesgos
-            $table->string('plan_mitigacion_titulo')
-                ->nullable()
-                ->default('No necesario')
-                ->after('fecha_envio_costeos');
-
-            $table->text('plan_mitigacion_descripcion')
-                ->nullable()
-                ->default('En caso de que el nivel de riesgo sea rojo, se generará un plan de mitigación')
-                ->after('plan_mitigacion_titulo');
+            if (!Schema::hasColumn('cotizaciones', 'estado')) {
+                $table->enum('estado', ['pendiente', 'aceptada', 'rechazada'])
+                    ->default('pendiente')
+                    ->after('id');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'enviado_a_costeos')) {
+                $table->boolean('enviado_a_costeos')
+                    ->default(false)
+                    ->after('estado');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'enviado_a_ventas')) {
+                $table->boolean('enviado_a_ventas')
+                    ->default(false)
+                    ->after('enviado_a_costeos');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'enviado_por_ventas')) {
+                $table->foreignId('enviado_por_ventas')
+                    ->nullable()
+                    ->constrained('users')
+                    ->onDelete('set null')
+                    ->after('enviado_a_ventas');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'fecha_envio_ventas')) {
+                $table->timestamp('fecha_envio_ventas')
+                    ->nullable()
+                    ->after('enviado_por_ventas');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'enviado_por_costeos')) {
+                $table->foreignId('enviado_por_costeos')
+                    ->nullable()
+                    ->constrained('users')
+                    ->onDelete('set null')
+                    ->after('fecha_envio_ventas');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'fecha_envio_costeos')) {
+                $table->timestamp('fecha_envio_costeos')
+                    ->nullable()
+                    ->after('enviado_por_costeos');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'plan_mitigacion_titulo')) {
+                $table->string('plan_mitigacion_titulo')
+                    ->nullable()
+                    ->default('No necesario')
+                    ->after('fecha_envio_costeos');
+            }
+            if (!Schema::hasColumn('cotizaciones', 'plan_mitigacion_descripcion')) {
+                $table->text('plan_mitigacion_descripcion')
+                    ->nullable()
+                    ->after('plan_mitigacion_titulo');
+            }
         });
     }
 

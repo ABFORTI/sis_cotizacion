@@ -218,8 +218,8 @@ $esCorridaPiloto = false;
                         class="bg-white w-full border-gray-300 border rounded-md p-2" readonly>
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Calibre (mm):</label>
-                    <input type="number" step="0.01" name="calibre_costeo" value="{{ $calibre_costeo ?: $calibre }}"
+                    <label class="font-bold block mb-2">Calibre ("):</label>
+                    <input type="number" step="0.0001" name="calibre_costeo" value="{{ $calibre_costeo ?: $calibre }}"
                         class="bg-white w-full border-gray-300 border rounded-md p-2" onchange="calcularPesoNeto(), calcularPesoEstimadoPieza(), calcularPesoTotal()">
                 </div>
                 <div>

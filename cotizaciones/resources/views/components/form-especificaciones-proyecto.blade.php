@@ -80,8 +80,8 @@ $materialOtroActivo = $materialOld === 'Otros';
                 <input type="text" id="material_otro" name="material_otro" placeholder="Ingrese el material personalizado" value="{{ $materialOtroOld }}">
             </div>
             <div class="form-group">
-                <label for="calibre">Calibre (mm):</label>
-                <input type="number" id="calibre" name="calibre" step="0.01" placeholder="0.00" value="{{ $calibreOld }}">
+                <label for="calibre">Calibre ("):</label>
+                <input type="number" id="calibre" name="calibre" step="0.0001" placeholder="0.0000" value="{{ $calibreOld }}">
             </div>
             <div class="form-group">
                 <label for="color">Color:</label>
