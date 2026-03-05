@@ -421,15 +421,14 @@
 
         {{-- ===== RESUMEN DE HERRAMENTAL ===== --}}
         @if($costeoRequisicion && ($costeoRequisicion->TOTAL_FINAL || $costeoRequisicion->total_molde))
-        <div class="mt-6">
-            <fieldset class="border border-gray-300 rounded p-4">
-                <legend class="text-lg font-bold text-white-800 px-2">Resumen de Herramental</legend>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm border-collapse border border-gray-300">
+            <div class="mt-6">
+                <fieldset>
+                    <legend class="text-xl font-bold text-white-800 mb-2">Resumen de Herramental</legend>
+                    <table class="w-full text-center border-collapse border border-gray-400">
                         <thead class="bg-[#848484] text-white">
                             <tr>
-                                <th class="border border-gray-300 p-2 text-left">Concepto</th>
-                                <th class="border border-gray-300 p-2 text-right">Costo (MXN)</th>
+                                <th class="border border-gray-300 p-2">Concepto</th>
+                                <th class="border border-gray-300 p-2">Costo total<br><span class="text-xs font-normal">(MXN)</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -449,20 +448,34 @@
                             @foreach($herramentales as $concepto => $valor)
                                 @if($valor)
                                 <tr class="hover:bg-gray-50">
-                                    <td class="border border-gray-300 p-2 font-medium">{{ $concepto }}</td>
-                                    <td class="border border-gray-300 p-2 text-right">$ {{ number_format($valor, 2) }}</td>
+                                    <td class="border border-gray-300 p-2 font-bold">{{ $concepto }}</td>
+                                    <td class="border border-gray-300 p-2 font-semibold text-blue-900">$ {{ number_format($valor, 2) }}</td>
                                 </tr>
                                 @endif
                             @endforeach
                         </tbody>
                         <tfoot>
                             <tr class="bg-blue-100 font-bold">
-                                <td class="border border-gray-300 p-2">Total Herramental</td>
-                                <td class="border border-gray-300 p-2 text-right">$ {{ number_format($costeoRequisicion->TOTAL_FINAL ?? 0, 2) }}</td>
+                                <td class="border border-gray-300 p-2 text-right">Total Herramental</td>
+                                <td class="border border-gray-300 p-2 text-blue-900 text-right">$ {{ number_format($costeoRequisicion->TOTAL_FINAL ?? 0, 2) }}</td>
+                            </tr>
+                            <tr class="bg-gray-50 font-bold">
+                                <td class="border border-gray-300 p-2 text-right">Margen</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.01" id="herramental-margen" name="herramental_margen" form="resumen-save-form"
+                                        value="{{ old('herramental_margen', $ventasResumen->herramental_margen ?? 1) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1 text-right"
+                                        oninput="calcularHerramental()">
+                                </td>
                             </tr>
                             <tr class="bg-green-100 font-bold">
-                                <td class="border border-gray-300 p-2">Total Herramental (Ventas)</td>
-                                <td class="border border-gray-300 p-2 text-right">$ {{ number_format($costeoRequisicion->TOTAL_VENTAS ?? 0, 2) }}</td>
+                                <td class="border border-gray-300 p-2 text-right">Total Herramental (Ventas)</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.01" id="herramental-ventas" name="herramental_total_ventas" form="resumen-save-form"
+                                        readonly
+                                        value="{{ old('herramental_total_ventas', $ventasResumen->herramental_total_ventas ?? $costeoRequisicion->TOTAL_VENTAS ?? 0) }}"
+                                        class="w-full bg-green-100 border-0 p-1 text-right text-green-900">
+                                </td>
                             </tr>
                             @if($costeoRequisicion->tiempo_herramientas)
                             <tr>
@@ -472,9 +485,8 @@
                             @endif
                         </tfoot>
                     </table>
-                </div>
-            </fieldset>
-        </div>
+                </fieldset>
+            </div>
         @endif
 
         {{-- ===== COMENTARIOS DEL ÁREA DE COSTEOS ===== --}}
@@ -505,7 +517,6 @@ function scheduleCalcularTotales(delay = 120) {
     }, delay);
 }
 
-// calcularFila now accepts an optional `recalc` flag (default true).
 function calcularFila(concepto, recalc = true) {
 
     const costoTotal = parseFloat(
@@ -541,7 +552,6 @@ function calcularFila(concepto, recalc = true) {
         inputPrecioVenta.value = precioVenta.toFixed(4);
     }
 
-    // Recalcular totales generales (debounced)
     if (recalc) scheduleCalcularTotales();
 } 
 
@@ -606,17 +616,29 @@ function calcularComision() {
     scheduleCalcularTotales();
 }
 
-// Calcular costo total y precio de venta final antes de enviar
+function calcularHerramental() {
+    const margenInput = document.getElementById('herramental-margen');
+    const ventasInput = document.getElementById('herramental-ventas');
+
+    // La sección de herramental puede no renderizarse en todos los casos.
+    if (!margenInput || !ventasInput) return;
+
+    const totalHerramental = Number(@json($costeoRequisicion->TOTAL_FINAL ?? 0)) || 0;
+    const margen = parseFloat(margenInput.value) || 0;
+    const totalVentas = totalHerramental * margen;
+
+    ventasInput.value = totalVentas.toFixed(2);
+}
+
+
 function calcularCostoTotalYPrecioVenta() {
     const resumen_total_costo_unit = parseFloat(document.querySelector('input[name="resumen_total_costo_unit"]').value) || 0;
     const lote_compra = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
     const coeficiente_merma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
 
-    // costo total = resumen_total_costo_unit * (lote + lote * (merma/100))
     const totalCosto = resumen_total_costo_unit * (lote_compra + (lote_compra * (coeficiente_merma / 100)));
     const precioVentaFinal = parseFloat(document.querySelector('input[name="resumen_total_precio_venta"]').value) || 0;
 
-    // Setear los inputs visibles/ocultos
     const costoInput = document.querySelector('input[name="costo_total"]');
     if (costoInput) costoInput.value = isFinite(totalCosto) ? totalCosto.toFixed(2) : '';
 
@@ -624,7 +646,7 @@ function calcularCostoTotalYPrecioVenta() {
     if (precioInput) precioInput.value = isFinite(precioVentaFinal) ? precioVentaFinal.toFixed(2) : '';
 }
 
-// Asegurar cálculo antes de submit
+
 document.addEventListener('DOMContentLoaded', function() {
     // Mostrar modal de éxito si hay mensaje de sesión
     @if(session('success'))
@@ -644,7 +666,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     @endif
 
-    // Calcular valores iniciales en carga (evitar recalcular totales por cada fila)
     try {
         calcularFila('procesos', false);
         calcularFila('empaque', false);
@@ -657,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
         calcularFila('etiqueta', false);
     } catch (e) { console.error(e); }
     try { calcularComision(); } catch (e) { console.error(e); }
-    // Ejecutar una única vez la recalculación de totales (debounced con delay 0 para ejecutar pronto)
+    try { calcularHerramental(); } catch (e) { console.error(e); }
     try { scheduleCalcularTotales(0); } catch (e) { console.error(e); }
 
     const form = document.getElementById('resumen-save-form');
@@ -666,6 +687,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Recalcular totales y campos dependientes
             try { calcularTotales(); } catch (e) { console.error(e); }
             try { calcularComision(); } catch (e) { console.error(e); }
+            try { calcularHerramental(); } catch (e) { console.error(e); }
             //try { calcularCostoTotalYPrecioVenta(); } catch (e) { console.error(e); }
             // Allow submit to proceed
         });

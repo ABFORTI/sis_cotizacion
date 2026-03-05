@@ -167,7 +167,10 @@ public function eliminarArchivo($id)
             'lote_compra' => 'nullable|integer',
             'coeficiente_merma' => 'nullable|numeric',
             'costo_total' => 'nullable|numeric',
-            'precio_venta_final' => 'nullable|numeric'
+            'precio_venta_final' => 'nullable|numeric',
+
+            'herramental_margen' => 'nullable|numeric',
+            'herramental_total_ventas' => 'nullable|numeric',
         ]);
 
         // Log inputs for debugging
@@ -187,8 +190,16 @@ public function eliminarArchivo($id)
             'resumen_costo_etiqueta','resumen_piezas_etiqueta','resumen_costo_unit_etiqueta','resumen_margen_etiqueta','resumen_precio_venta_etiqueta',
             'resumen_margen_administrativo_aux','resumen_margen_administrativo','resumen_total_costo_unit',
             'resumen_total_comision','resumen_total_comision_final','resumen_total_precio_venta_aux','resumen_total_precio_venta',
-            'lote_compra','coeficiente_merma','costo_total','precio_venta_final'
+            'lote_compra','coeficiente_merma','costo_total','precio_venta_final',
+            'herramental_margen','herramental_total_ventas',
         ]);
+
+        // Evitar guardar null para herramental_total_ventas; usar 0 si no viene o no es numérico
+        if (isset($datos['herramental_total_ventas'])) {
+            $datos['herramental_total_ventas'] = is_numeric($datos['herramental_total_ventas'])
+                ? round((float) $datos['herramental_total_ventas'], 2)
+                : null;
+        }
 
         // relacionar costeo si existe
         $datos['cotizacion_id'] = $cotizacion->id;
