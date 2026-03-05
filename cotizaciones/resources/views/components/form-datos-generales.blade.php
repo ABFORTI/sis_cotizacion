@@ -86,12 +86,11 @@ $tipo_de_empaque = oldValue('tipo_de_empaque', $aux);
         </div>
 
         <div class="form-group">
-            <label for="correo">Correo electrónico: <span class="text-orange-600">*</span></label>
-            <input type="email" id="correo" name="correo"
+            <label for="correo">Correo electrónico:</label>
+            <input type="text" id="correo" name="correo"
                 value="{{ $correo}}"
                 title="Ingrese un correo electrónico de contacto"
                 placeholder="Correo electrónico de contacto">
-            <small class="text-gray-500 text-xs">* Obligatorio: Correo electrónico</small>
         </div>
 
         <div class="form-group">

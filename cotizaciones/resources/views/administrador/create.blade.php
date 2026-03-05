@@ -48,7 +48,6 @@
                             name="email" 
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200" 
                             placeholder="ejemplo@innovet.com"
-                            required
                             value="{{ old('email') }}"
                         >
                         @error('email')
