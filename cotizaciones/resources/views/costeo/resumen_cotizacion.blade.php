@@ -500,6 +500,77 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
     </div>
 </fieldset>
 
+{{-- Archivos adjuntos cargados por Ventas en la requisición --}}
+@if($cotizacion->archivosAdjuntos->isNotEmpty())
+<fieldset class="upload-section mt-6">
+    <legend>Archivos de la Requisición (Ventas)</legend>
+    <div class="form-group full-width">
+        <p class="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Archivos adjuntos de la cotización
+        </p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            @foreach($cotizacion->archivosAdjuntos as $archivo)
+                @php
+                    $ext = strtolower($archivo->tipo_archivo ?? pathinfo($archivo->path, PATHINFO_EXTENSION));
+                    $nombreMostrar = $archivo->nombre_original ?? basename($archivo->path);
+                @endphp
+                <div class="relative group bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
+                    <div class="aspect-square bg-gray-50 flex items-center justify-center p-3">
+                        @if(in_array($ext, ['jpg', 'jpeg', 'png', 'gif']))
+                            <img src="{{ asset('storage/' . $archivo->path) }}"
+                                class="w-full h-full object-cover rounded"
+                                alt="{{ $nombreMostrar }}">
+                        @else
+                            <div class="text-center">
+                                @if($ext === 'pdf')
+                                    <svg class="w-12 h-12 text-red-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 17v-1h7v1h-7zm0-3v-1h7v1h-7zm0-3v-1h4v1h-4z"/>
+                                    </svg>
+                                @elseif(in_array($ext, ['dwg', 'dxf']))
+                                    <svg class="w-12 h-12 text-yellow-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                @elseif($ext === 'zip')
+                                    <svg class="w-12 h-12 text-purple-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                    </svg>
+                                @else
+                                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                    </svg>
+                                @endif
+                                <span class="text-xs text-gray-600 font-medium">{{ strtoupper($ext) }}</span>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="p-2 bg-white border-t border-gray-100">
+                        <p class="text-xs text-gray-700 truncate font-medium" title="{{ $nombreMostrar }}">
+                            {{ $nombreMostrar }}
+                        </p>
+                        @if($archivo->tamaño)
+                            <p class="text-xs text-gray-400">{{ number_format($archivo->tamaño / 1024, 0) }} KB</p>
+                        @endif
+                    </div>
+                    <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                        <a href="{{ asset('storage/' . $archivo->path) }}"
+                            class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors flex items-center gap-1"
+                            download="{{ $nombreMostrar }}">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Descargar
+                        </a>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
+</fieldset>
+@endif
+
     @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {

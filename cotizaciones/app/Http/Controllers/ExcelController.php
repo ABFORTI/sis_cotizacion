@@ -441,7 +441,7 @@ class ExcelController extends Controller
             $sheet->setCellValue('A' . $row, '#');
             $sheet->setCellValue('B' . $row, 'Descripción');
             $sheet->setCellValue('C' . $row, 'Detalles');
-            $sheet->setCellValue('H' . $row, 'Precio (MXN)');
+            $sheet->setCellValue('H' . $row, 'Precio Total (MXN)');
 
             for ($col = 'A'; $col <= 'H'; $col++) {
                 $sheet->getStyle($col . $row)->applyFromArray(ExcelStyleFactory::headerStyle());
@@ -874,7 +874,7 @@ class ExcelController extends Controller
         $service->setCellValue('B' . $row, 'Desarrollo de Herramentales.', ExcelStyleFactory::headerStyle());
         $service->mergeCells('B' . $row . ':F' . $row);
         $service->setCellValue('G' . $row, '', ExcelStyleFactory::headerStyle());
-        $service->setCellValue('H' . $row, 'Precio Unitario (MXN)', ExcelStyleFactory::headerStyle());
+        $service->setCellValue('H' . $row, 'Precio Total (MXN)', ExcelStyleFactory::headerStyle());
 
         $row++;
 
@@ -955,7 +955,7 @@ class ExcelController extends Controller
                     <th class="header-style" style="width: 5%;"></th>
                     <th class="header-style" style="width: 50%;" colspan="5">Desarrollo de Herramentales.</th>
                     <th class="header-style" style="width: 20%;"></th>
-                    <th class="header-style" style="width: 25%;">Precio Unitario (MXN)</th>
+                    <th class="header-style" style="width: 25%;">Precio Total (MXN)</th>
                 </tr>
             </thead>
             <tbody>
