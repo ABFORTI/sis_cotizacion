@@ -6,6 +6,7 @@ use App\Models\Cotizacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use App\Models\ArchivoAdjunto;
 
 class CotizacionController extends Controller
@@ -489,14 +490,23 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
 
         // . Archivos
         if ($request->hasFile('archivos')) {
-            $filePaths = [];
+            $request->validate([
+                'archivos.*' => 'file|mimes:jpg,jpeg,png,gif,pdf,dwg,dxf,zip|max:25600',
+            ]);
+
+            $registros = [];
             foreach ($request->file('archivos') as $file) {
-                $path = $file->store('cotizaciones', 'public');
-                $filePaths[] = $path;
+                $extension     = strtolower($file->getClientOriginalExtension());
+                $nombreUnico   = Str::uuid() . '.' . $extension;
+                $path          = $file->storeAs('cotizaciones_archivos', $nombreUnico, 'public');
+                $registros[]   = [
+                    'path'           => $path,
+                    'nombre_original' => $file->getClientOriginalName(),
+                    'tipo_archivo'   => $extension,
+                    'tamaño'         => $file->getSize(),
+                ];
             }
-            $cotizacion->archivosAdjuntos()->createMany(
-                collect($filePaths)->map(fn($path) => ['path' => $path])->toArray()
-            );
+            $cotizacion->archivosAdjuntos()->createMany($registros);
         }
 
         return redirect()->route('cotizaciones.index')
@@ -666,17 +676,23 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
 
         // 3. Manejo de archivos
         if ($request->hasFile('archivos')) {
-            $filePaths = [];
+            $request->validate([
+                'archivos.*' => 'file|mimes:jpg,jpeg,png,gif,pdf,dwg,dxf,zip|max:25600',
+            ]);
 
+            $registros = [];
             foreach ($request->file('archivos') as $file) {
-                $path = $file->store('cotizaciones', 'public');
-                $filePaths[] = $path;
+                $extension     = strtolower($file->getClientOriginalExtension());
+                $nombreUnico   = Str::uuid() . '.' . $extension;
+                $path          = $file->storeAs('cotizaciones_archivos', $nombreUnico, 'public');
+                $registros[]   = [
+                    'path'            => $path,
+                    'nombre_original' => $file->getClientOriginalName(),
+                    'tipo_archivo'    => $extension,
+                    'tamaño'          => $file->getSize(),
+                ];
             }
-
-            // Crea múltiples registros relacionados
-            $cotizacion->archivosAdjuntos()->createMany(
-                collect($filePaths)->map(fn($path) => ['path' => $path])->toArray()
-            );
+            $cotizacion->archivosAdjuntos()->createMany($registros);
         }
 
         return redirect()->route('cotizaciones.index')

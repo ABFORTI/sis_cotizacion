@@ -10,7 +10,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-slate-100 flex flex-col min-h-screen">
+<body class="flex flex-col min-h-screen" style="background-color: #e3e8de;">
     <x-navbar />
     <main class="flex-grow">
         @yield('content')
@@ -65,25 +65,21 @@
             // Mostrar el modal
             modal.classList.remove('hidden');
             
-            // Manejar el clic en Aceptar
             okBtn.onclick = function() {
                 modal.classList.add('hidden');
                 if (onConfirm) onConfirm();
             };
             
-            // Manejar el clic en Cancelar
             cancelBtn.onclick = function() {
                 modal.classList.add('hidden');
             };
             
-            // Cerrar al hacer clic fuera del modal
             modal.onclick = function(event) {
                 if (event.target === modal) {
                     modal.classList.add('hidden');
                 }
             };
             
-            // Cerrar con la tecla Escape
             document.addEventListener('keydown', function(event) {
                 if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
                     modal.classList.add('hidden');
@@ -91,7 +87,6 @@
             });
         }
 
-        // Función para mostrar mensajes de éxito (reutiliza el mismo modal)
         function showSuccessMessage(message) {
             const modal = document.getElementById('confirmModal');
             const titleEl = document.getElementById('confirmModalTitle');
@@ -121,7 +116,6 @@
             };
         }
 
-        // Función para mostrar mensajes de error (reutiliza el mismo modal)
         function showErrorMessage(message) {
             const modal = document.getElementById('confirmModal');
             const titleEl = document.getElementById('confirmModalTitle');
@@ -129,23 +123,17 @@
             const okBtn = document.getElementById('confirmModalOk');
             const cancelBtn = document.getElementById('confirmModalCancel');
             
-            // Cambiar el contenido del modal para mostrar error
             titleEl.textContent = '❌ Error';
             messageEl.textContent = message;
             
-            // Ocultar el botón Cancelar
             cancelBtn.style.display = 'none';
             okBtn.textContent = 'Aceptar';
-            // Mantener el color rojo para errores
             okBtn.className = 'px-6 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition duration-150';
             
-            // Mostrar el modal
             modal.classList.remove('hidden');
             
-            // Solo cerrar al hacer clic en OK
             okBtn.onclick = function() {
                 modal.classList.add('hidden');
-                // Restaurar el estado original del modal
                 cancelBtn.style.display = 'block';
             };
         }

@@ -26,7 +26,7 @@ $path = oldValue('path', $aux);
                             <span class="text-blue-600 font-semibold hover:text-blue-700">haz clic para seleccionar</span>
                         </p>
                         <p class="text-xs text-gray-500 mt-1">
-                            Formatos compatibles: PDF, JPG, PNG, GIF
+                            Formatos compatibles: PDF, JPG, PNG, GIF, DWG, DXF, ZIP &mdash; máx. 25 MB por archivo
                         </p>
                     </div>
                 </div>
@@ -35,7 +35,7 @@ $path = oldValue('path', $aux);
                     id="archivos"
                     name="archivos[]"
                     multiple
-                    accept=".pdf,.jpg,.jpeg,.png,.gif"
+                    accept=".pdf,.jpg,.jpeg,.png,.gif,.dwg,.dxf,.zip"
                     class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
             </div>
             @if($cotizacion && $cotizacion->archivosAdjuntos->isNotEmpty())
@@ -50,23 +50,40 @@ $path = oldValue('path', $aux);
             @foreach($cotizacion->archivosAdjuntos as $archivo)
                         <div class="relative group bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200" 
                             data-archivo="{{ $archivo->path }}">
-                            <div class="aspect-square bg-gray-50 flex items-center justify-center p-3">
-                                @if(preg_match('/\.(jpg|jpeg|png|gif)$/i', $archivo->path))
-                                    <img src="{{ asset('storage/' . $archivo->path) }}" 
-                                        class="w-full h-full object-cover rounded" 
+                        <div class="aspect-square bg-gray-50 flex items-center justify-center p-3">
+                                @php
+                                    $ext = strtolower($archivo->tipo_archivo ?? pathinfo($archivo->path, PATHINFO_EXTENSION));
+                                @endphp
+                                @if(in_array($ext, ['jpg', 'jpeg', 'png', 'gif']))
+                                    <img src="{{ asset('storage/' . $archivo->path) }}"
+                                        class="w-full h-full object-cover rounded"
                                         alt="Miniatura">
                                 @else
                                     <div class="text-center">
-                                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span class="text-xs text-gray-600 font-medium">{{ strtoupper(pathinfo($archivo->path, PATHINFO_EXTENSION)) }}</span>
+                                        @if($ext === 'pdf')
+                                            <svg class="w-12 h-12 text-red-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8.5 17v-1h7v1h-7zm0-3v-1h7v1h-7zm0-3v-1h4v1h-4z"/>
+                                            </svg>
+                                        @elseif(in_array($ext, ['dwg', 'dxf']))
+                                            <svg class="w-12 h-12 text-yellow-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                            </svg>
+                                        @elseif($ext === 'zip')
+                                            <svg class="w-12 h-12 text-purple-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+                                            </svg>
+                                        @else
+                                            <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                            </svg>
+                                        @endif
+                                        <span class="text-xs text-gray-600 font-medium">{{ strtoupper($ext) }}</span>
                                     </div>
                                 @endif
                             </div>
                             <div class="p-2 bg-white border-t border-gray-100">
-                                <p class="text-xs text-gray-700 truncate font-medium" title="{{ basename($archivo->path) }}">
-                                    {{ basename($archivo->path) }}
+                                <p class="text-xs text-gray-700 truncate font-medium" title="{{ $archivo->nombre_original ?? basename($archivo->path) }}">
+                                    {{ $archivo->nombre_original ?? basename($archivo->path) }}
                                 </p>
                             </div>
                             <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">

@@ -30,6 +30,7 @@ $materialOtroActivo = $materialOld === 'Otros';
                 <option value="Bimestral" {{ $frecuenciaOld == 'Bimestral' ? 'selected' : '' }}>Bimestral</option>
                 <option value="Trimestral" {{ $frecuenciaOld == 'Trimestral' ? 'selected' : '' }}>Trimestral</option>
                 <option value="Cuatrimestral" {{ $frecuenciaOld == 'Cuatrimestral' ? 'selected' : '' }}>Cuatrimestral</option>
+                <option value="Semestral" {{ $frecuenciaOld == 'Semestral' ? 'selected' : '' }}>Semestral</option>
                 <option value="Anual" {{ $frecuenciaOld == 'Anual' ? 'selected' : '' }}>Anual</option>
             </select>
         </div>
