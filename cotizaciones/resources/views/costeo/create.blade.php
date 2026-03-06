@@ -13,6 +13,11 @@ $especificacion_proyecto = optional($requisicion->especificacionProyecto);
 $frecuencia_compra = oldValue('frecuencia_compra', $especificacion_proyecto);
 $lote_compra = oldValue('lote_compra', $especificacion_proyecto);
 $material = oldValue('material', $especificacion_proyecto);
+$material_otro = oldValue('material_otro', $especificacion_proyecto);
+$material_normalizado = strtolower(trim((string) $material));
+$material_mostrado = in_array($material_normalizado, ['otro', 'otros'], true) && !empty(trim((string) $material_otro))
+    ? trim((string) $material_otro)
+    : $material;
 $calibre = oldValue('calibre', $especificacion_proyecto);
 $color = oldValue('color', $especificacion_proyecto);
 $franja_color = oldValue('franja_color', $especificacion_proyecto);
@@ -214,7 +219,7 @@ $esCorridaPiloto = false;
                 <legend class="sub-legend">Especificaciones de material</legend>
                 <div>
                     <label class="font-bold block mb-2">Material:</label>
-                    <input type="text" name="material" value="{{ $material }}"
+                    <input type="text" name="material" value="{{ $material_mostrado }}"
                         class="bg-white w-full border-gray-300 border rounded-md p-2" readonly>
                 </div>
                 <div>
@@ -579,7 +584,7 @@ $esCorridaPiloto = false;
                                 <div class="grid gap-1" id="grid-avance">
                                     <!-- HOJA AVANCE -->
                                     <input type="number" name="hoja_avance" id="input-hoja-avance"
-                                        value="{{ $hoja_avance }}" readonly
+                                        value="{{ $hoja_avance }}"
                                         class="w-full p-2 text-center font-bold bg-gray-200">
                                 </div>
                             </td>
@@ -773,7 +778,7 @@ $esCorridaPiloto = false;
                 </div>
                 <div>
                     <label class="font-bold block mb-2">Coeficiente de merma (%):</label>
-                    <input type="number" step="1" name="coeficiente_merma" oninput="calcularPesoTotal(), calcularHojasDelPedido(), calcularPrecioLamina()"
+                    <input type="number" step="0.01" name="coeficiente_merma" oninput="calcularPesoTotal(), calcularHojasDelPedido(), calcularPrecioLamina()"
                         value="{{ $coeficiente_merma }}" placeholder="Ingrese el porcentaje %"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
@@ -3248,20 +3253,49 @@ $esCorridaPiloto = false;
 
         <!-- Sección: Costeo -->
         <fieldset>
-            <legend>Costo Total</legend>
-            <div class="mb-4">
-            <label for="costo_total" class="font-bold block text-sm font-medium text-gray-700 cursor-pointer" onclick="costototal()">Costo Total</label>
-            <input type="number" step="0.01" name="costo_total" id="costo_total" class="mt-1 block font-bold w-full rounded-md border-gray-300 shadow-sm" value="{{ old('costo_total', $costeoRequisicion->costo_total) }}" readonly>
+            <legend>Cálculo de Costo Total</legend>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                <div>
+                    <label for="costo_total" class="font-bold block mb-2">Costo Total:</label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        name="costo_total"
+                        id="costo_total"
+                        class="w-full border-gray-300 border rounded-md p-2 bg-gray-50"
+                        value="{{ old('costo_total', $costeoRequisicion->costo_total) }}"
+                        readonly>
+                </div>
+
+                <div>
+                    <button
+                        type="button"
+                        onclick="calcularCostoTotal()"
+                        class="font-bold block px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
+                        title="Calcular costo total">
+                        Calcular costo
+                    </button>
+                </div>
             </div>
-            <script>
-                function costototal() {
-                    const resumen_total_costo_unit = parseFloat(document.querySelector('input[name="resumen_total_costo_unit"]').value) || 0;
-                    const lote_compra = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
-                    let totalCosto = resumen_total_costo_unit * lote_compra;
-                    document.getElementById('costo_total').value = totalCosto.toFixed(2);
-                }
-            </script>
         </fieldset>
+
+<script>
+function calcularCostoTotal() {
+
+    const resumenTotalCostoUnit = parseFloat(
+        document.querySelector('input[name="resumen_total_costo_unit"]')?.value
+    ) || 0;
+
+    const loteCompra = parseFloat(
+        document.querySelector('input[name="lote_compra"]')?.value
+    ) || 0;
+
+    const totalCosto = resumenTotalCostoUnit * loteCompra;
+
+    document.getElementById('costo_total').value = totalCosto.toFixed(2);
+}
+</script>
 
         <!-- Sección: Tiempos de entrega -->
         <fieldset>

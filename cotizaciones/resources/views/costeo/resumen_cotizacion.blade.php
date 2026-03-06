@@ -229,7 +229,7 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
 
                     <tr>
                         <td class="p-1 border border-black bg-gray-100 font-bold">Especificación de material:</td>
-                        <td colspan="3" class="p-1 border border-black bg-white">{{ $cotizacion->especificacionProyecto->material ?? '' }}</td>
+                        <td colspan="3" class="p-1 border border-black bg-white">{{ $cotizacion->especificacionProyecto->material_mostrado ?? '' }}</td>
                     </tr>
 
                     <tr>

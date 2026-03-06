@@ -383,7 +383,7 @@
                                     <tr>
                                         <td class="spec-col-dim center font-semibold">{{ $cotizacion->especificacionProyecto->pieza_largo }} x {{ $cotizacion->especificacionProyecto->pieza_ancho }} x {{ $cotizacion->especificacionProyecto->pieza_alto }} mm</td>
                                         <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->frecuencia_compra }}</td>
-                                        <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->material }}</td>
+                                        <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->material_mostrado ?? '' }}</td>
                                         <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->calibre }}</td>
                                         <td class="spec-col-small center font-semibold">{{$cotizacion->especificacionProyecto->color}}</td>
                                     </tr>
