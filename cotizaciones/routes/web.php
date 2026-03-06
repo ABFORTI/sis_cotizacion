@@ -76,6 +76,11 @@ Route::middleware(['auth', 'rol.todos'])
     ->resource('cotizaciones', CotizacionController::class)
     ->parameters(['cotizaciones' => 'cotizacion']);
 
+// 🔹 Clonar requisición (ventas y admin)
+Route::middleware(['auth', 'rol.todos'])
+    ->post('cotizaciones/{cotizacion}/clonar', [CotizacionController::class, 'clone'])
+    ->name('cotizaciones.clone');
+
 // 🔹 Enviar cotización a Costeos (ventas y admin)
 Route::middleware(['auth', 'rol.todos'])
     ->patch('cotizaciones/{cotizacion}/enviar', [CotizacionController::class, 'marcarEnviado'])

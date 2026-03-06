@@ -43,13 +43,9 @@ class CotizacionReportService
     public function getPrecioHerramentales(): float
     {
         $ventasResumen = $this->cotizacion->ventasResumen;
-        
-        if ($ventasResumen && $ventasResumen->resumen_total_precio_venta) {
-            return (float) $ventasResumen->resumen_total_precio_venta;
-        }
 
-        if ($this->cotizacion->costeoRequisicion && $this->cotizacion->costeoRequisicion->TOTAL_VENTAS) {
-            return (float) $this->cotizacion->costeoRequisicion->TOTAL_VENTAS;
+        if ($ventasResumen && $ventasResumen->herramental_total_ventas) {
+            return (float) $ventasResumen->herramental_total_ventas;
         }
 
         return 0;

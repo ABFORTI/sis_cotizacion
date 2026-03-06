@@ -383,7 +383,7 @@
                                     <tr>
                                         <td class="spec-col-dim center font-semibold">{{ $cotizacion->especificacionProyecto->pieza_largo }} x {{ $cotizacion->especificacionProyecto->pieza_ancho }} x {{ $cotizacion->especificacionProyecto->pieza_alto }} mm</td>
                                         <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->frecuencia_compra }}</td>
-                                        <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->material }}</td>
+                                        <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->material_mostrado ?? '' }}</td>
                                         <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->calibre }}</td>
                                         <td class="spec-col-small center font-semibold">{{$cotizacion->especificacionProyecto->color}}</td>
                                     </tr>
@@ -413,7 +413,7 @@
                     <th class="p-3 w-12">&nbsp;</th>
                     <th class="p-3 text-left">Desarrollo de Herramientas.</th>
                     <th class="p-3 w-28 text-center"></th>
-                    <th class="p-3 w-40 text-center ">Precio Unitario<br />(MXN)</th>
+                    <th class="p-3 w-40 text-center ">Precio Total<br />(MXN)</th>
                 </tr>
             </thead>
             <tbody>
@@ -435,9 +435,9 @@
                         <div>
                             @php
                                 $ventasResumen = $cotizacion->ventasResumen ?? null;
-                                $precioHerramentales = $ventasResumen->resumen_total_precio_venta ?? ($cotizacion->costeoRequisicion->TOTAL_VENTAS ?? null);
+                                $precioHerramentales = $ventasResumen->herramental_total_ventas ?? null;
                             @endphp
-                            $ {{ $precioHerramentales ? number_format($precioHerramentales, 2) : 'N/C' }}
+                            $ {{ $precioHerramentales !== null ? number_format($precioHerramentales, 2) : 'N/C' }}
                         </div>
                     </td>
                 </tr>

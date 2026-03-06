@@ -246,7 +246,7 @@
                                 @endif
                                 @if(!$cotizacion->enviado_a_ventas)
                                     @if(Auth::user()->role === 'ventas')
-                                        <div class="grid h-56 grid-cols-2 content-center gap-4">
+                                        <div class="grid h-56 grid-cols-3 content-center gap-4">
                                         @if(!$cotizacion->enviado_a_costeos)
                                             <a href="{{ route('cotizaciones.edit', $cotizacion) }}"
                                             class="btn-edit inline-flex items-center justify-center
@@ -263,13 +263,7 @@
                                                 @csrf
                                                 @method('DELETE')
                                                     <button type="button"
-                                                        onclick="showConfirmModal(
-                                                        '¿Eliminar cotización?',
-                                                        'Esta acción no se puede deshacer.',
-                                                            function() {
-                                                                document.getElementById('delete-form-{{ $cotizacion->id }}').submit();
-                                                            }
-                                                        )"
+                                                        onclick="showConfirmModal('¿Eliminar cotización?', 'Esta acción no se puede deshacer.', function() { document.getElementById('delete-form-{{ $cotizacion->id }}').submit(); })"
                                                         class="inline-flex items-center justify-center
                                                             w-10 h-10 rounded-base
                                                             bg-red-500 text-white
@@ -278,17 +272,31 @@
                                                             shadow-xs"> 🗑
                                                     </button>
                                                 </form>
+                                        @else
+                                            <span></span>
+                                            <span></span>
                                         @endif
+                                        <form id="clone-form-{{ $cotizacion->id }}"
+                                              action="{{ route('cotizaciones.clone', $cotizacion) }}"
+                                              method="POST">
+                                            @csrf
+                                            <button type="button"
+                                                onclick="showConfirmModal('¿Clonar requisición?', 'Se creará una copia de la requisición con fecha actual. Podrás modificar los valores antes de enviarla.', function() { document.getElementById('clone-form-{{ $cotizacion->id }}').submit(); })"
+                                                class="inline-flex items-center justify-center
+                                                    w-10 h-10 rounded-base
+                                                    bg-blue-500 text-white
+                                                    hover:bg-blue-600
+                                                    focus:ring-4 focus:ring-blue-300
+                                                    shadow-xs">
+                                                📋
+                                            </button>
+                                        </form>
                                         @if($cotizacion->oculta_para_costeos)
-                                            <form id="delete-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.destroy', $cotizacion) }}" method="POST" class="w-full">
+                                            <form id="delete-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.destroy', $cotizacion) }}" method="POST" class="w-full col-span-3">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="button"
-                                                    onclick="showConfirmModal(
-                                                        '¿Eliminar cotización?',
-                                                        'Esta acción no se puede deshacer.',
-                                                        function() { document.getElementById('delete-form-{{ $cotizacion->id }}').submit(); }
-                                                    )"
+                                                    onclick="showConfirmModal('¿Eliminar cotización?', 'Esta acción no se puede deshacer.', function() { document.getElementById('delete-form-{{ $cotizacion->id }}').submit(); })"
                                                     class="btn-submit w-full">
                                                     Eliminar
                                                 </button>

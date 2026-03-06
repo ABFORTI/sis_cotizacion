@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ArchivoAdjunto extends Model
 {
     protected $table = 'archivos_adjuntos';
-    protected $fillable = ['cotizacion_id', 'path'];
+    protected $fillable = ['cotizacion_id', 'path', 'nombre_original', 'tipo_archivo', 'tamaño'];
 
     // Relación inversa con Cotizacion
     public function cotizacion()
