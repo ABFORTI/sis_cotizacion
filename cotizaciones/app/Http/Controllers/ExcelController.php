@@ -798,22 +798,14 @@ class ExcelController extends Controller
         }
     }
 
-    /**
-     * Llenar PDF de costeo (stub para implementación futura)
-     */
+    
     private function llenarCostoePdf(PdfReportService $service, Request $request): void
     {
         // Implementar lógica de costeo aquí
         // Por ahora es un placeholder
     }
 
-    /**
-     * ========== MÉTODOS AUXILIARES PRIVADOS ==========
-     */
 
-    /**
-     * Agregar encabezado de tabla de cotización
-     */
     private function agregarEncabezadoCotizacion(ExcelReportService $service, int $row): void
     {
         $headers = ['', 'Descripción del proyecto', '', '', '', '', 'Piezas (MOQ)', 'Precio Unitario (MXN)'];
@@ -897,9 +889,6 @@ class ExcelController extends Controller
         $service->setRowHeight($row, CotizacionConfig::ROW_HEIGHT_TEXT);
     }
 
-    /**
-     * Generar tabla de producto en PDF
-     */
     private function generarTablaProductoPdf(PdfReportService $service): string
     {
         $cotizacion = $service->getCotizacion();

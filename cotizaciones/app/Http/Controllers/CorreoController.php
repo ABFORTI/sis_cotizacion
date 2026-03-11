@@ -20,7 +20,7 @@ class CorreoController extends Controller
 
         // Generar el Excel temporalmente
         $excelController = new ExcelController();
-        $excel = $excelController->generarCotizacionExcel($id, true); // true = modo interno
+        $excel = $excelController->generarCotizacionExcel($id, true);
 
         // Enviar correo
         Mail::to($request->correo_destino)->send(new CotizacionExcelMailable($cotizacion, $excel));
