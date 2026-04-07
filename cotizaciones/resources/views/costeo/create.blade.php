@@ -1,23 +1,126 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 @section('content')
 
+<!-- Loading Indicator Overlay - VERSIÓN PREMIUM -->
+<style>
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    @keyframes shimmer {
+        0% { width: 0%; opacity: 1; }
+        50% { opacity: 0.8; }
+        100% { width: 100%; opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    #loadingOverlay.show {
+        pointer-events: auto;
+    }
+
+    #loadingOverlay.show::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+    }
+
+    #loadingOverlay.show #progressBar {
+        display: block !important;
+    }
+
+    #loadingOverlay #progressBar {
+        display: none;
+    }
+
+    #loadingOverlay.show .overlay-content {
+        display: flex !important;
+    }
+
+    #loadingOverlay .overlay-content {
+        display: none;
+    }
+</style>
+
+<div id="loadingOverlay">
+    <!-- Barra de progreso superior -->
+    <div id="progressBar" style="position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, #3b82f6, #22c55e, #3b82f6); width: 0%; z-index: 10000; transition: width 0.3s ease; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);"></div>
+
+    <!-- Contenedor del modal -->
+    <div class="overlay-content" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px;">
+        <div style="background: white; border-radius: 24px; padding: 48px; max-width: 400px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: slideUp 0.5s ease-out;">
+
+            <!-- Spinner -->
+            <div style="display: flex; justify-content: center; margin-bottom: 32px;">
+                <div style="position: relative; width: 112px; height: 112px;">
+                    <div style="position: absolute; inset: 0; border-radius: 50%; border: 8px solid #f3f4f6;"></div>
+                    <div style="position: absolute; inset: 0; border-radius: 50%; border: 8px solid transparent; border-top: 8px solid #2563eb; border-right: 8px solid #22c55e; animation: spin 2s linear infinite;"></div>
+                    <div style="position: absolute; inset: 0; border-radius: 50%; border: 4px solid #60a5fa; opacity: 0.2; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
+                </div>
+            </div>
+
+            <!-- Título -->
+            <h2 style="font-size: 30px; font-weight: bold; margin-bottom: 12px; text-align: center; background: linear-gradient(to right, #2563eb, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                Generando requisición
+            </h2>
+
+            <!-- Mensaje dinámico -->
+            <p id="loadingMessage" style="color: #4b5563; text-align: center; margin-bottom: 24px; height: 24px; font-size: 14px;">
+                Procesando archivo...
+            </p>
+
+            <!-- Dots -->
+            <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 24px;">
+                <div style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; animation: bounce 1.4s infinite; animation-delay: 0s;"></div>
+                <div style="width: 12px; height: 12px; background: #22c55e; border-radius: 50%; animation: bounce 1.4s infinite; animation-delay: 0.2s;"></div>
+                <div style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; animation: bounce 1.4s infinite; animation-delay: 0.4s;"></div>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div style="width: 100%; background: #e5e7eb; height: 4px; border-radius: 9999px; overflow: hidden;">
+                <div id="internalProgress" style="background: linear-gradient(90deg, #3b82f6, #22c55e); height: 100%; border-radius: 9999px; width: 0%; animation: shimmer 1.5s infinite;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @php
-// SECCIÓN: INFORMACIÓN DE LA REQUISICIÓN NO EDITABLE
+
 $requisicion = optional($cotizacion);
 $no_proyecto = oldValue('no_proyecto', $requisicion);
 $tipo_de_empaque = oldValue('tipo_de_empaque', $requisicion);
 $nombre_del_proyecto = oldValue('nombre_del_proyecto', $requisicion);
+$lugar_entrega = oldValue('lugar_entrega', $requisicion);
 
-//RELACION ESPECIFICACIONPROYECTO
 $especificacion_proyecto = optional($requisicion->especificacionProyecto);
 $frecuencia_compra = oldValue('frecuencia_compra', $especificacion_proyecto);
 $lote_compra = oldValue('lote_compra', $especificacion_proyecto);
 $material = oldValue('material', $especificacion_proyecto);
-$material_otro = oldValue('material_otro', $especificacion_proyecto);
-$material_normalizado = strtolower(trim((string) $material));
-$material_mostrado = in_array($material_normalizado, ['otro', 'otros'], true) && !empty(trim((string) $material_otro))
-    ? trim((string) $material_otro)
-    : $material;
 $calibre = oldValue('calibre', $especificacion_proyecto);
 $color = oldValue('color', $especificacion_proyecto);
 $franja_color = oldValue('franja_color', $especificacion_proyecto);
@@ -25,37 +128,25 @@ $pieza_largo = oldValue('pieza_largo', $especificacion_proyecto);
 $pieza_ancho = oldValue('pieza_ancho', $especificacion_proyecto);
 $pieza_alto = oldValue('pieza_alto', $especificacion_proyecto);
 
-//REQUICIOENES DE COTIZACION
 $requisicionCotizacion = optional($requisicion->requisicionCotizacion);
 $pared = oldValue('pared', $requisicionCotizacion);
 $tipo_estiba = oldValue('tipo_estiba', $requisicionCotizacion);
 $proceso_de_inocuidad = oldValue('proceso_de_inocuidad', $requisicionCotizacion);
 
-//RELACION ESPECIFICACIONEMPAQUE
 $especificacionEmpaque = optional($requisicion->especificacionEmpaque);
 $cajas_corrugado = oldValue('cajas_corrugado', $especificacionEmpaque);
 $bolsa_plastico = oldValue('bolsa_plastico', $especificacionEmpaque);
 $esquineros = oldValue('esquineros', $especificacionEmpaque);
 $liner = oldValue('liner', $especificacionEmpaque);
 
-//RELACIONES
-//especificacionProyecto
-//especificacionEmpaque
-//cotizacionAdicional
-//requisicionCotizacion
-//termoformado
-//usoCliente
-//cajaCliente
-//archivosAdjuntos
-//costeo
 
 $pedimento_virtual = oldValue('pedimento_virtual', optional($requisicion->cotizacionAdicional));
 
-//RELACION CON LA TABLA COSTEOREQUISICIONES
 $costeoRequisicion = optional($requisicion->costeoRequisicion);
 $insertos = oldValue('insertos', $costeoRequisicion);
 $calibre_costeo = oldValue('calibre_costeo', $costeoRequisicion);
 $acomodo_ancho_medida_cantidad = oldValue('acomodo_ancho_medida_cantidad', $costeoRequisicion);
+$acomodo_ancho_medida_total = oldValue('acomodo_ancho_medida_total', $costeoRequisicion);
 $acomodo_ancho_orillas_mm = oldValue('acomodo_ancho_orillas_mm', $costeoRequisicion);
 $acomodo_ancho_orillas_cantidad = oldValue('acomodo_ancho_orillas_cantidad', $costeoRequisicion);
 $acomodo_ancho_orillas_total = oldValue('acomodo_ancho_orillas_total', $costeoRequisicion);
@@ -75,7 +166,7 @@ $molde_avance = oldValue('molde_avance', $costeoRequisicion);
 $hoja_ancho = oldValue('hoja_ancho', $costeoRequisicion);
 $hoja_avance = oldValue('hoja_avance', $costeoRequisicion);
 $placa_de_enfriamiento = oldValue('placa_de_enfriamiento', $costeoRequisicion);
-//select dinamico
+
 $opciones = [
 "320 x 420 mm",
 "350 x 560 mm",
@@ -98,6 +189,7 @@ $opciones = [
 "1450 x 1630 mm",
 "1450 x 3000 mm"
 ];
+
 $peso_especifico = oldValue('peso_especifico', $costeoRequisicion);
 $area_formado_hoja = oldValue('area_formado_hoja', $costeoRequisicion);
 $cantidad_hojas = oldValue('cantidad_hojas', $costeoRequisicion);
@@ -122,18 +214,15 @@ $sugerencia_costos_mp = oldValue('sugerencia_costos_mp', $costeoRequisicion);
 
 $hojas_del_pedido = oldValue('hojas_del_pedido', $costeoRequisicion);
 
-// VARIABLES PARA LOS PROCESOS DE MAQUINAS
 $nombre_maquina_termoformado = oldValue('nombre_maquina_termoformado', $costeoRequisicion);
 $nombre_maquina_suaje = oldValue('nombre_maquina_suaje', $costeoRequisicion);
 
-// Variables para los campos de termoformado
 $no_personas_termoformado = oldValue('no_personas_termoformado', $costeoRequisicion);
 $bajadas_por_minuto_termoformado = oldValue('bajadas_por_minuto_termoformado', $costeoRequisicion);
 $total_hojas_turno_termoformado = oldValue('total_hojas_turno_termoformado', $costeoRequisicion);
 $total_dias_turnos_termoformado = oldValue('total_dias_turnos_termoformado', $costeoRequisicion);
 $costo_termoformado = oldValue('costo_termoformado', $costeoRequisicion);
 
-// Variables para los campos de suaje
 $no_personas_suaje = oldValue('no_personas_suaje', $costeoRequisicion);
 $bajadas_por_minuto_suaje = oldValue('bajadas_por_minuto_suaje', $costeoRequisicion);
 $total_hojas_turno_suaje = oldValue('total_hojas_turno_suaje', $costeoRequisicion);
@@ -141,8 +230,6 @@ $total_piezas_turno_suaje = oldValue('total_piezas_turno_suaje', $costeoRequisic
 $total_dias_turnos_suaje = oldValue('total_dias_turnos_suaje', $costeoRequisicion);
 $costo_suaje = oldValue('costo_suaje', $costeoRequisicion);
 
-// procesos existentes
-//$procesos = $costeoRequisicion->procesos ?? collect([]);
 @endphp
 
 @if(request()->has('btn_corrida_piloto') && request()->input('btn_corrida_piloto') === 'corrida_piloto')
@@ -155,137 +242,172 @@ $esCorridaPiloto = false;
 @endphp
 @endif
 
-
 <div class="container mx-auto p-4">
+    <a href="{{ route('cotizaciones.index') }}"
+        class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2 rounded text-xs transition duration-150 ease-in-out shadow-md">
+        <span class="text-base">←</span>
+    </a>
+    
     @if($esCorridaPiloto)
         <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Corrida Piloto</h1>
     @else
         <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Costeo</h1>
     @endif
+    
     <form action="{{ route('costeo.store', $cotizacion->id) }}" method="POST" id="costeoForm">
         @csrf  
         @if($esCorridaPiloto)
             <input type="hidden" name="btn_corrida_piloto" value="corrida_piloto">
         @endif
-        <fieldset>
-            <legend>Información de la Requisición</legend>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div>
-                    <label class="font-bold block mb-2">Fecha:</label>
-                    <input type="date" name="fecha" value="{{ date('Y-m-d') }}"
-                        class="bg-white w-full border-gray-300 border rounded-md p-2" readonly>
+        
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Información de la Requisición -</legend>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-600">Fecha</label>
+                        <input type="date" name="fecha" value="{{ date('Y-m-d') }}"
+                            class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
+                            readonly>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-600">Folio</label>
+                        <input type="text" name="no_proyecto" value="{{ $no_proyecto }}"
+                            class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
+                            readonly>
+                    </div>
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">Folio:</label>
-                    <input type="text" name="no_proyecto" value="{{ $no_proyecto }}"
-                        class="bg-white w-full border-gray-300 border rounded-md p-2" readonly>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                    <div class="space-y-1 md:col-span-2">
+                        <label class="text-sm font-medium text-gray-600">Nombre del Proyecto</label>
+                        <input type="text" name="nombre_del_proyecto" value="{{ $nombre_del_proyecto }}"
+                            class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
+                            readonly>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-600">Frecuencia de Compra</label>
+                        <input type="text" name="frecuencia_compra" value="{{ $frecuencia_compra }}"
+                            class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
+                            readonly>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-600">Lugar de entrega</label>
+                        <input type="text" name="lugar_entrega" value="{{ $lugar_entrega }}"
+                            class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700"
+                            readonly>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-600">MOQ</label>
+                            @if($esCorridaPiloto)
+                            <input type="number" name="lote_compra" value="{{ $lote_compra }}"
+                            class="w-full border border-blue-300 focus:ring-2 focus:ring-blue-400 rounded-lg p-2 transition"
+                            oninput="/* funciones */">
+                            @else
+                            <input type="number" name="lote_compra" value="{{ $lote_compra }}"
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
+                                readonly>
+                            @endif
+                    </div>
+                    @if(!$esCorridaPiloto)
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Tipo de Empaque</label>
+                            <input type="text" name="tipo_de_empaque" value="{{ $tipo_de_empaque }}"
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
+                                readonly>
+                        </div>
+                    @endif
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">Tipo de Empaque:</label>
-                    <input type="text" name="tipo_de_empaque" value="{{ $tipo_de_empaque }}"
-                        class="bg-white w-full border-gray-300 border rounded-md p-2" readonly>
+                <div class="mt-8 border-t pt-6">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4">
+                        Especificaciones de material
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Material</label>
+                            <input type="text" name="material" value="{{ $material }}"
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
+                                readonly>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Calibre</label>
+                            <input type="number" step="0.0001" name="calibre_costeo"
+                                value="{{ $calibre_costeo ?: $calibre }}"
+                                class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-gray-700"
+                                onchange="calcularPesoNeto(), calcularPesoEstimadoPieza(), calcularPesoTotal()">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Color</label>
+                            <input type="text" name="color" value="{{ $color }}"
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
+                                readonly>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Franja de Color</label>
+                            <input type="text" name="franja_color" value="{{ $franja_color }}"
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
+                                readonly>
+                        </div>
+                    </div>
+                    <div class="mt-8 border-t pt-6">
+                    <h3 class="text-md font-semibold text-gray-700 mb-4">
+                        Dimensiones
+                    </h3>
+                    <div class="grid grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Largo (mm):</label>
+                            <input  type="number" step="0.01" name="largo" value="{{ $pieza_largo }}"
+                            class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Ancho (mm):</label>
+                            <input type="number" step="0.01" name="ancho" value="{{ $pieza_ancho }}"
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Alto (mm):</label>
+                            <input type="number" step="0.01" name="alto" value="{{ $pieza_alto }}"
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
+                        </div>
+                    </div>    
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">Nombre del Proyecto:</label>
-                    <input type="text" name="nombre_del_proyecto" value="{{ $nombre_del_proyecto }}"
-                        class="bg-white w-full border-gray-300 border rounded-md p-2" readonly>
-                </div>
-                <div>
-                    <label class="font-bold block mb-2">Frecuencia de Compra:</label>
-                    <input type="text" name="frecuencia_compra" value="{{ $frecuencia_compra }}"
-                        class="bg-white w-full border-gray-300 border rounded-md p-2" readonly>
-                </div>
-                @if($esCorridaPiloto)
-                <div>
-                    <label class="font-bold block mb-2">MOQ:</label>
-                    <input type="number" name="lote_compra" value="{{ $lote_compra}}"
-                        oninput="if(this.value > 0) { calcularCantidadHojas(); calcularPesoNeto(); calcularPesoTotal(); calcularPesoBrutoHoja(); 
-                        calcularPiezasPorCaja(); calcularHojasDelPedido(); calcularCostoMontaje2(); calcularCostoAmortizacionHerramentales2(); 
-                        calcularCostoEnergiaE2(); calcularCostoAmortizacionMaquinaria2(); calcularTotalHojasPorTurnoTermoformado(); 
-                        calcularTotalHojasPorTurnoSuaje(); calcularTotalCostoBolsas(); calcularCostoInocuidad(); calcularParedMedia(); 
-                        calcularEstaticida(); asignarLoteCompraEnResumenPiezas();  calcularResumenCostos(); calcularMargenAdministrativo(); calcularCostoTotalResumen(); }"
-                        class="bg-white w-full border-gray-300 border rounded-md p-2">
-                </div>
-                @else
-                <div>
-                    <label class="font-bold block mb-2">MOQ:</label>
-                    <input type="number" name="lote_compra" value="{{ $lote_compra}}" readonly
-                        class="bg-white w-full border-gray-300 border rounded-md p-2">
-                </div>
-                @endif
-            </div>
-            <!-- ESPECIFICACIONES DE MATERIAL -->
-            <fieldset class="sub-fieldset grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <legend class="sub-legend">Especificaciones de material</legend>
-                <div>
-                    <label class="font-bold block mb-2">Material:</label>
-                    <input type="text" name="material" value="{{ $material_mostrado }}"
-                        class="bg-white w-full border-gray-300 border rounded-md p-2" readonly>
-                </div>
-                <div>
-                    <label class="font-bold block mb-2">Calibre ("):</label>
-                    <input type="number" step="0.0001" name="calibre_costeo" value="{{ $calibre_costeo ?: $calibre }}"
-                        class="bg-white w-full border-gray-300 border rounded-md p-2" onchange="calcularPesoNeto(), calcularPesoEstimadoPieza(), calcularPesoTotal()">
-                </div>
-                <div>
-                    <label class="font-bold block mb-2">Color:</label>
-                    <input class="bg-white" type="text" name="color" value="{{ $color }}"
-                        class="w-full border-gray-300 border rounded-md p-2" readonly>
-                </div>
-                <div>
-                    <label class="font-bold block mb-2">Franja de Color:</label>
-                    <input class="bg-white" type="text" name="franja_color" value="{{ $franja_color }}"
-                        class="w-full border-gray-300 border rounded-md p-2" readonly>
-                </div>
-            </fieldset>
-
-            <!-- DIMENSIONES -->
-            <fieldset class="sub-fieldset grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <legend class="mb-4">Dimensiones</legend>
-                <div>
-                    <label class="font-bold block mb-2">Largo (mm):</label>
-                    <input class="bg-white" type="number" step="0.01" name="largo" value="{{ $pieza_largo }}"
-                        class="w-full border-gray-300 border rounded-md p-2" readonly>
-                </div>
-                <div>
-                    <label class="font-bold block mb-2">Ancho (mm):</label>
-                    <input class="bg-white" type="number" step="0.01" name="ancho" value="{{ $pieza_ancho }}"
-                        class="w-full border-gray-300 border rounded-md p-2" readonly>
-                </div>
-                <div>
-                    <label class="font-bold block mb-2">Alto (mm):</label>
-                    <input class="bg-white" type="number" step="0.01" name="alto" value="{{ $pieza_alto }}"
-                        class="w-full border-gray-300 border rounded-md p-2" readonly>
-                </div>
-            </fieldset>
         </fieldset>
 
-        <!-- SECCIÓN: DISTRIBUCIÓN DE HERRAMENTAL -->
-        <fieldset>
-            <legend>Distribución de Herramental</legend>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="font-bold block mb-2">Insertos:</label>
-                    <input type="number" step="1" name="insertos"
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Distribución de Herramental -</legend>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-gray-600">Insertos</label>
+                    <input 
+                        type="number" 
+                        step="1" 
+                        name="insertos" 
                         value="{{$insertos}}"
                         placeholder="Número de insertos"
-                        class="w-full border-gray-300 border rounded-md p-2"
-                        oninput="calcularPesoNeto(),calcularCantidadHojas(), document.querySelector('input[name=&quot;resumen_piezas_procesos&quot;]').value = this.value">
+                        class="w-full border border-blue-300 focus:ring-2 focus:ring-blue-400 rounded-lg p-2 transition"
+                        oninput="
+                            calcularPesoNeto(),
+                            calcularCantidadHojas(),
+                            document.querySelector('input[name=&quot;resumen_piezas_procesos&quot;]').value = this.value
+                    ">
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">Corte:</label>
-                    <input type="text" value="{{$pared}}" placeholder="NA" 
-                        class="{{ $pared === 'Media' ? 'bg-blue-50 text-blue-800 font-bold' : '' }}" readonly>
+                <div class="space-y-1">
+                    <label class="text-sm font-medium text-gray-600">Tipo de Corte</label>
+                    <input 
+                        type="text" 
+                        value="{{$pared}}" 
+                        placeholder="NA"
+                        readonly
+                        class="w-full rounded-lg p-2 border 
+                        {{ $pared === 'Media' 
+                            ? 'bg-blue-50 text-blue-700 border-blue-200 font-semibold' 
+                            : 'bg-gray-200 text-gray-600 border-gray-200 cursor-not-allowed' 
+                        }}">
                 </div>
             </div>
         </fieldset>
 
-        <!-- SECCIÓN: ACOMODO ANCHO -->
-        <fieldset>
-            <legend>Acomodo Ancho</legend>
-
-            <table class="w-full text-center border-collapse border border-gray-400 mb-4">
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Acomodo Ancho -</legend>
+            <table class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden">
                 <thead class="bg-[#848484] text-white">
                     <tr>
                         <th class="border border-gray-300 p-2"></th>
@@ -309,7 +431,7 @@ $esCorridaPiloto = false;
                         </td>
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.01" name="acomodo_ancho_total_1" readonly
-                                value="{{$pieza_alto}}" class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                value="{{$pieza_alto}}" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
                     <tr>
@@ -327,7 +449,7 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.01" name="acomodo_ancho_total_2" readonly
                                 value="{{ $acomodo_ancho_orillas_total }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
                     <tr>
@@ -345,13 +467,13 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.01" name="acomodo_ancho_total_3" readonly
                                 value="{{ $acomodo_ancho_medianiles_total }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
                     <tr class="bg-gray-50">
                         <td class="font-bold border border-gray-300 p-2" colspan="3">Total Ancho Molde</td>
                         <td class="border border-gray-300 p-2">
-                            <input step="0.01" name="total_ancho_molde" class="w-full p-2 font-bold" value="{{ $molde_ancho }}" readonly>
+                            <input step="0.01" name="total_ancho_molde" class="w-full p-2 font-bold cursor-not-allowed" value="{{ $molde_ancho }}" readonly>
                         </td>
                     </tr>
                 </tbody>
@@ -371,7 +493,7 @@ $esCorridaPiloto = false;
                 document.querySelector('input[name="molde_ancho"]').value = total.toFixed(2);
                 document.querySelector('input[name="molde_ancho_copia"]').value = total.toFixed(2);
                 asignarPlacaEnfriamiento();
-                calcularAjustesHerramentales();
+                marcarMedidasComoPendientes('acomodo_ancho');
             }
 
             function calcularAcomodoAvance() {
@@ -387,7 +509,7 @@ $esCorridaPiloto = false;
                 document.querySelector('input[name="molde_avance"]').value = total.toFixed(2);
                 document.querySelector('input[name="molde_avance_copia"]').value = total.toFixed(2);
                 asignarPlacaEnfriamiento();
-                calcularAjustesHerramentales();
+                marcarMedidasComoPendientes('acomodo_avance');
             }
 
             function calcularInsertos() {
@@ -421,11 +543,9 @@ $esCorridaPiloto = false;
             }
         </script>
 
-        <!-- SECCIÓN: ACOMODO AVANCE -->
-        <fieldset>
-            <legend>Acomodo Avance</legend>
-
-            <table class="w-full text-center border-collapse border border-gray-400 mb-4">
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Acomodo Avance -</legend>
+            <table class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden">
                 <thead class="bg-[#848484] text-white">
                     <tr>
                         <th class="border border-gray-300 p-2"></th>
@@ -450,7 +570,7 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.01" name="acomodo_avance_total_1" readonly
                                 value="{{ $acomodo_avance_medida_total }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
                     <tr>
@@ -468,7 +588,7 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.01" name="acomodo_avance_total_2" readonly
                                 value="{{ $acomodo_avance_orillas_total }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
                     <tr>
@@ -486,27 +606,32 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.01" name="acomodo_avance_total_3"
                                 value="{{ $acomodo_avance_medianiles_total }}"
-                                class=" w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class=" w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
                     <tr class="bg-gray-50">
                         <td class="font-bold border border-gray-300 p-2" colspan="3">Total Avance Molde</td>
                         <td class="border border-gray-300 p-2">
-                            <input step="0.01" name="total_avance_molde" class="w-full p-2 font-bold" value="{{ $molde_avance }}" readonly>
+                            <input step="0.01" name="total_avance_molde" class="w-full p-2 font-bold cursor-not-allowed" value="{{ $molde_avance }}" readonly>
                         </td>
                     </tr>
                 </tbody>
             </table>
+            <button 
+                type="button"
+                onclick="intercambiarMedidasAvance()"
+                class="btn-swap"
+                title="Intercambiar valores">
+
+                ⇄ Intercambiar
+            </button>
         </fieldset>
 
-        <!-- SECCIÓN: HOJA Y PLACA DE ENFRIAMIENTO -->
-        <fieldset>
-            <legend>Hoja y Placa de Enfriamiento</legend>
-
-            <!-- Tabla de molde -->
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm" >
+            <legend>- Hoja y Placa de Enfriamiento -</legend>
             <div class="mb-6">
                 <h3 class="text-xl font-bold text-red-800 mb-2">Molde</h3>
-                <table class="w-full border-collapse border border-gray-400 text-center">
+                <table class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden">
                 <thead class="bg-[#848484] text-white">
                         <tr>
                             <th class="border border-gray-300 p-2">Molde</th>
@@ -533,34 +658,59 @@ $esCorridaPiloto = false;
                     </tbody>
                 </table>
             </div>
-            <div class="mb-6">
-                <h3 class="text-xl font-bold text-red-800 mb-2">Maquinaria a ocupar: </h3>
-                <label class="font-bold block mb-2">Esta selección ayudará a calcular valores futuros</label>
-                <select id="maquina_principal" name="maquina_principal" class="w-full border rounded-md p-1" onchange="sincronizarMaquina(); calcularAnchoHoja(); calcularAvanceHoja(); actualizarCostosMaquina(); actualizarAmortizacion();">
-                                    <option value="Máquina de Termoformado">Seleccione Máquina</option>
-                                    <option value="TA-1" {{ $nombre_maquina_termoformado == 'TA-1' ? 'selected' : '' }}>TA-1</option>
-                                    <option value="TA-2" {{ $nombre_maquina_termoformado == 'TA-2' ? 'selected' : '' }}>TA-2</option>
-                                    <option value="TA-3" {{ $nombre_maquina_termoformado == 'TA-3' ? 'selected' : '' }}>TA-3</option>
-                                    <option value="TA-4" {{ $nombre_maquina_termoformado == 'TA-4' ? 'selected' : '' }}>TA-4</option>
-                                    <option value="Max-18" {{ $nombre_maquina_termoformado == 'Max-18' ? 'selected' : '' }}>Max-18</option>
-                                    <option value="ILLIG 1" {{ $nombre_maquina_termoformado == 'ILLIG 1' ? 'selected' : '' }}>ILLIG 1</option>
-                                    <option value="ILLIG 2" {{ $nombre_maquina_termoformado == 'ILLIG 2' ? 'selected' : '' }}>ILLIG 2</option>
-                                    <option value="TCH-1" {{ $nombre_maquina_termoformado == 'TCH-1' ? 'selected' : '' }}>TCH-1</option>
-                                    <option value="TCH-2" {{ $nombre_maquina_termoformado == 'TCH-2' ? 'selected' : '' }}>TCH-2</option>
-                                    <option value="TCH-3" {{ $nombre_maquina_termoformado == 'TCH-3' ? 'selected' : '' }}>TCH-3</option>
-                                    <option value="TCH-4" {{ $nombre_maquina_termoformado == 'TCH-4' ? 'selected' : '' }}>TCH-4</option>
-                                    <option value="Monster" {{ $nombre_maquina_termoformado == 'Monster' ? 'selected' : '' }}>Monster</option>
-                                    <option value="GF-1" {{ $nombre_maquina_termoformado == 'GF-1' ? 'selected' : '' }}>GF-1</option>
-                                    <option value="GF-2" {{ $nombre_maquina_termoformado == 'GF-2' ? 'selected' : '' }}>GF-2</option>
-                                    <option value="TA-1,TA-3" {{ $nombre_maquina_termoformado == 'TA-1,TA-3' ? 'selected' : '' }}>TA-1,TA-3</option>
-                                    <option value="TA-1,TA-3,Max-18" {{ $nombre_maquina_termoformado == 'TA-1,TA-3,Max-18' ? 'selected' : '' }}>TA-1,TA-3,Max-18</option>
-                                    <option value="TA-2,TA-4,TCH-1" {{ $nombre_maquina_termoformado == 'TA-2,TA-4,TCH-1' ? 'selected' : '' }}>TA-2,TA-4,TCH-1</option>
-                                </select>
+            
+            <div class="mb-6 border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+                    <div>
+                        <h3 class="text-xl font-bold text-red-800 mb-2">Maquinaria a ocupar</h3>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Selecciona la máquina para habilitar el cálculo automático de costos y producción.
+                        </p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-600">
+                            Máquina principal <span class="text-red-500">*</span>
+                        </label>
+                        <select 
+                            id="maquina_principal" 
+                            name="maquina_principal"
+                            required
+                            class="w-full border border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-400 rounded-lg p-2 transition"
+                            onchange="
+                                validarSeleccionMaquina();
+                                sincronizarMaquina(); 
+                                calcularAnchoHoja(); 
+                                calcularAvanceHoja(); 
+                                actualizarCostosMaquina(); 
+                                actualizarAmortizacion();
+                            "
+                        >
+                            <option value="" disabled selected>Selecciona una máquina</option>
+
+                            <option value="TA-1" {{ $nombre_maquina_termoformado == 'TA-1' ? 'selected' : '' }}>TA-1</option>
+                            <option value="TA-2" {{ $nombre_maquina_termoformado == 'TA-2' ? 'selected' : '' }}>TA-2</option>
+                            <option value="TA-3" {{ $nombre_maquina_termoformado == 'TA-3' ? 'selected' : '' }}>TA-3</option>
+                            <option value="TA-4" {{ $nombre_maquina_termoformado == 'TA-4' ? 'selected' : '' }}>TA-4</option>
+                            <option value="Max-18" {{ $nombre_maquina_termoformado == 'Max-18' ? 'selected' : '' }}>Max-18</option>
+                            <option value="ILLIG 1" {{ $nombre_maquina_termoformado == 'ILLIG 1' ? 'selected' : '' }}>ILLIG 1</option>
+                            <option value="ILLIG 2" {{ $nombre_maquina_termoformado == 'ILLIG 2' ? 'selected' : '' }}>ILLIG 2</option>
+                            <option value="TCH-1" {{ $nombre_maquina_termoformado == 'TCH-1' ? 'selected' : '' }}>TCH-1</option>
+                            <option value="TCH-2" {{ $nombre_maquina_termoformado == 'TCH-2' ? 'selected' : '' }}>TCH-2</option>
+                            <option value="TCH-3" {{ $nombre_maquina_termoformado == 'TCH-3' ? 'selected' : '' }}>TCH-3</option>
+                            <option value="TCH-4" {{ $nombre_maquina_termoformado == 'TCH-4' ? 'selected' : '' }}>TCH-4</option>
+                            <option value="Monster" {{ $nombre_maquina_termoformado == 'Monster' ? 'selected' : '' }}>Monster</option>
+                            <option value="GF-1" {{ $nombre_maquina_termoformado == 'GF-1' ? 'selected' : '' }}>GF-1</option>
+                            <option value="GF-2" {{ $nombre_maquina_termoformado == 'GF-2' ? 'selected' : '' }}>GF-2</option>
+                            <option value="TA-1,TA-3" {{ $nombre_maquina_termoformado == 'TA-1,TA-3' ? 'selected' : '' }}>TA-1,TA-3</option>
+                            <option value="TA-1,TA-3,Max-18" {{ $nombre_maquina_termoformado == 'TA-1,TA-3,Max-18' ? 'selected' : '' }}>TA-1,TA-3,Max-18</option>
+                            <option value="TA-2,TA-4,TCH-1" {{ $nombre_maquina_termoformado == 'TA-2,TA-4,TCH-1' ? 'selected' : '' }}>TA-2,TA-4,TCH-1</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <!-- Tabla de Hoja -->
             <div class="mb-6">
                 <h3 class="text-xl font-bold text-red-800 mb-2">Hoja</h3>
-                <table class="w-full border-collapse border border-gray-400 text-center">
+                <table class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden">
                     <thead class="bg-[#848484] text-white">
                         <tr>
                             <th class="border border-gray-300 p-2">Hoja</th>
@@ -572,37 +722,43 @@ $esCorridaPiloto = false;
                         <tr>
                             <td class="border border-gray-300 p-2 font-bold">Hoja</td>
                             <td class="border border-gray-300 p-2">
-                                <!-- HOJA ANCHO -->
                                 <div class="grid gap-1" id="grid-ancho">
                                     <input type="number" id="input-hoja-ancho" name="hoja_ancho"
                                         value="{{ $hoja_ancho ?? '' }}"
-                                        class="w-full p-2 text-center font-bold bg-gray-200"
+                                        class="w-full border-gray-300 border rounded-md p-1"
                                     />
                                 </div>
                             </td>
-                            <td class="border border-gray-300 p-2">
+                            <td class="border border-gray-300 bg-gray-50 p-2">
                                 <div class="grid gap-1" id="grid-avance">
-                                    <!-- HOJA AVANCE -->
                                     <input type="number" name="hoja_avance" id="input-hoja-avance"
                                         value="{{ $hoja_avance }}"
-                                        class="w-full p-2 text-center font-bold bg-gray-200">
+                                        class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700">
                                 </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <div>
-                <h3 class="text-xl font-bold text-red-800 mb-2">Placa de Enfriamiento</h3>
-                <label class="font-bold block mb-2">Selecciona una medida:</label>
-                <select name="placa_de_enfriamiento" class="w-full border-gray-300 border rounded-md p-2" oninput="calcularPlacaFijacion()">
-                    <option value="">Seleccione una opción</option>
-                    @foreach ($opciones as $index => $texto)
-                    <option value="{{ $index + 1 }}" {{ $placa_de_enfriamiento == ($index + 1) ? 'selected' : '' }}>
-                        {{ $texto }}
-                    </option>
-                    @endforeach
-                </select>
+            <div class="mb-6 border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+                    <div>
+                        <h3 class="text-xl font-bold text-red-800 mb-2">Placa de Enfriamiento</h3>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Selecciona la placa de enfriamiento recomendada según las dimensiones del molde. El sistema asignará automáticamente la placa adecuada, pero puedes ajustarla si es necesario.
+                        </p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-600">Placa de Enfriamiento</label>
+                        <select name="placa_de_enfriamiento" class="w-full border border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-400 rounded-lg p-2 transition" onchange="calcularPlacaFijacion()">
+                            <option value="">Seleccione una opción</option>
+                            @foreach ($opciones as $index => $texto)
+                            <option value="{{ $index + 1 }}" {{ $placa_de_enfriamiento == ($index + 1) ? 'selected' : '' }}> {{ $texto }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
             </div>
         </fieldset>
         <script>
@@ -707,7 +863,6 @@ $esCorridaPiloto = false;
 
             function calcularPlacaFijacion() {
                 const placas = parseInt(document.querySelector('select[name="placa_de_enfriamiento"]').value) || 0;
-                // Mapeo de índices a valores de placa
                 const valoresPlaca = [
                     600.00, // 1: 320 x 420 mm
                     874.21, // 2: 350 x 560 mm
@@ -739,97 +894,138 @@ $esCorridaPiloto = false;
             }
         </script>
 
-        <!-- SECCIÓN: CÁLCULOS DE MATERIAL -->
-        <fieldset>
-            <legend>Cálculos de Material Prima</legend>
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                    <label class="font-bold block mb-2">Peso Específico (g/cm³):</label>
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Cálculos de Materia Prima -</legend>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mt-4">
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Peso Específico (g/cm³)</label>
                     <input type="number" step="0.0001" name="peso_especifico"
                         value="{{ $peso_especifico }}" oninput="calcularPesoEstimadoPieza()"
-                        class="w-full border-gray-300 border rounded-md p-2">
+                        class="input-base bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700">
                 </div>
 
-                <div>
-                    <label class="font-bold block mb-2">Área de Formado Hoja (mm):</label>
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Área Formado Hoja (mm)</label>
                     <input type="number" step="0.0001" name="area_formado_hoja"
                         value="{{ $area_formado_hoja }}"
-                        class="w-full border-gray-300 border rounded-md p-2 bg-gray-50">
+                        class="input-base bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700">
                 </div>
-                
-                <div>
-                    <label class="font-bold block mb-2">Cantidad de Hojas:</label>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Cantidad de Hojas</label>
                     <input type="number" step="0.01" name="cantidad_hojas"
-                        value="{{ $cantidad_hojas }}" oninput="calcularPesoNetoHoja(), calcularPesoBrutoHoja(), calcularHojasDelPedido()"
-                        class="w-full border-gray-300 border rounded-md p-2">
+                        value="{{ $cantidad_hojas }}"
+                        oninput="calcularPesoNetoHoja(), calcularPesoBrutoHoja(), calcularHojasDelPedido()"
+                        class="input-base bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700">
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">Peso estimado x Pieza (kg):</label>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Peso x Pieza (kg)</label>
                     <input type="number" step="0.0001" name="peso_pieza"
                         value="{{ $peso_pieza}}"
-                        class="w-full border-gray-300 border rounded-md p-2 bg-gray-50" readonly>
+                        class="input-readonly bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700" readonly>
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">Peso neto de hoja (kg):</label>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Peso Neto Hoja (kg)</label>
                     <input type="number" step="0.0001" name="peso_neto_hoja"
                         value="{{ $peso_neto_hoja }}"
-                        class="w-full border-gray-300 border rounded-md p-2">
+                        class="input-base bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700">
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">Coeficiente de merma (%):</label>
-                    <input type="number" step="0.01" name="coeficiente_merma" oninput="calcularPesoTotal(), calcularHojasDelPedido(), calcularPrecioLamina()"
-                        value="{{ $coeficiente_merma }}" placeholder="Ingrese el porcentaje %"
-                        class="w-full border-gray-300 border rounded-md p-2">
+
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Merma (%)</label>
+                    <input type="number" step="0.01" name="coeficiente_merma"
+                        value="{{ $coeficiente_merma }}"
+                        oninput="calcularPesoTotal(), calcularHojasDelPedido(), calcularPrecioLamina()"
+                        placeholder="Ej. 5%"
+                        class="input-editable">
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">Peso merma (kg):</label>
-                    <input type="number" step="0.0001" name="peso_merma"
+
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Peso Merma (kg)</label>
+                    <input type="number" step="0.0001" id="input-peso-merma" name="peso_merma"
                         value="{{ $peso_merma }}"
-                        class="w-full border-gray-300 border rounded-md p-2">
+                        class="input-readonly bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700">
+                    <!-- Alerta de validación -->
+                    <div id="alertPesoMerma" class="hidden mt-2 p-3 rounded-lg border-l-4 border-red-500 bg-red-50">
+                        <p id="messagePesoMerma" class="text-sm text-red-700 font-semibold"></p>
+                        <p class="text-xs text-red-600 mt-1">Haz clic en <strong>Recalcular</strong> para ajustar.</p>
+                    </div>
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">Peso bruto de hoja (kg):</label>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Peso Bruto Hoja (kg)</label>
                     <input type="number" step="0.0001" name="peso_bruto_hoja"
-                        value="{{ $peso_bruto_hoja }}" oninput="calcularCostoMP()"
-                        class="w-full border-gray-300 border rounded-md p-2">
+                        value="{{ $peso_bruto_hoja }}"
+                        oninput="calcularCostoMP()"
+                        class="input-base bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700">
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">Peso neto (kg):</label>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Peso Neto (kg)</label>
                     <input type="number" step="0.0001" name="peso_neto"
-                        value="{{ $peso_neto }}" oninput="calcularPesoNetoHoja(), calcularPesoMerma()"
-                        class="w-full border-gray-300 border rounded-md p-2">
+                        value="{{ $peso_neto }}"
+                        oninput="calcularPesoNetoHoja(), calcularPesoMerma()"
+                        class="input-base bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700">
                 </div>
-                <div>
-                    <div class = "grid gap-2 items-center" >
-                        <button  type="button" onclick="calcularPesoTotalFormula2()" 
-                        class="font-bold block px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200" title="Calcular peso total usando fórmula 2 (Peso Neto + Peso Merma)">
-                        Peso total (kg)
-                    </button>
-                    </div>
+
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Peso Total</label>
                     <input type="number" step="0.0001" name="peso_total"
-                        value="{{ $peso_total }}" oninput="calcularPesoBrutoHoja(), calcularPesoMerma(), calcularPrecioPorKg()"
-                        class="w-full border-gray-300 border rounded-md p-2"
-                        placeholder="Click en botón para calcular">
+                        value="{{ $peso_total }}"
+                        oninput="calcularPesoBrutoHoja(), calcularPesoMerma(), calcularPrecioPorKg()"
+                        class="input-highlight bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700"
+                        placeholder="Se calcula automáticamente">
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">PRM</label>
-                    <div class="grid gap-2 items-center" id="grid-prm">
-                        <input type="number" step="0.0001" name="PRM" id="input-prm"
-                            value="{{ $PRM }}" placeholder="Calcular PRM"
-                            class="border-gray-300 border rounded-md p-2">
+                <div class="space-y-1">
+                    <label class="text-xs font-medium text-gray-500">Recalcular Peso Total</label>
+                    <button id="btnRecalcularPesoTotal" class="font-medium px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200" type="button">
+                        Recalcular
+                    </button>
+                </div>
+
+                <!-- PRM -->
+                <div class="md:col-span-4 mt-4">
+                    <div class="border border-gray-200 rounded-xl p-4 bg-gray-50">
+                        <h4 class="text-sm font-semibold text-gray-700 mb-3">
+                            PRM (Peso Relativo del Material)
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="space-y-1">
+                                <label class="text-xs text-gray-500">Base calculada</label>
+                                <input type="number" id="prm_base"
+                                    class="input-readonly bg-gray-100 border-gray-200 rounded-lg p-2 text-gray-700" readonly>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs text-gray-500">
+                                    Ajuste manual
+                                </label>
+                                <input type="number" id="prm_ajuste"
+                                    oninput="calcularPRM()"
+                                    class="input-editable">
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-xs text-gray-500">PRM final</label>
+                                <input type="number" name="PRM" id="input-prm"
+                                    class="input-highlight bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700" readonly>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-gray-400 mt-2">Ajusta el PRM según condiciones del proyecto.</p>
                     </div>
                 </div>
-                <div>
-                    <label class="font-bold block mb-2">PZRM:</label>
+                <div class="space-y-1 md:col-span-1">
+                    <label class="text-xs font-medium text-gray-500">PZRM</label>
                     <input type="number" step="0.0001" name="PZRM"
-                        value="{{ $PZRM }}" placeholder="Calcular PZRM"
-                        class="w-full border-gray-300 border rounded-md p-2">
+                        value="{{ $PZRM }}"
+                        class="input-readonly bg-gray-200 border-gray-200 rounded-lg p-2 text-gray-700">
                 </div>
+
             </div>
-        </fieldset>
+        </fieldset>        
+
         <script>
-            //FUNCION A CAMBIAR POR EL CRUD DE MATERIALES SE OBTENDRA DE AHI
             function calcularPesoEspecifico() {
                 const tablaPesos = {
                     ABS: 1.02,
@@ -988,7 +1184,6 @@ $esCorridaPiloto = false;
             }
 
             function calcularPesoNeto() {
-
                 const moq = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
                 const insertos = parseFloat(document.querySelector('input[name="insertos"]').value) || 0;
                 const areaFormadoHoja = parseFloat(document.querySelector('input[name="area_formado_hoja"]').value) || 0;
@@ -999,8 +1194,10 @@ $esCorridaPiloto = false;
 
                 if (insertos !== 0) {
                     const hojas = moq / insertos;
-                    const volumen = hojas * areaFormadoHoja * 10000 * (calibre / 393.7);
-                    const pesoNeto = volumen * pesoEspecifico / 1000;
+                    const calibrePulgadas = calibre / 393.7;
+                    const pesoEspecificoKgCm3 = pesoEspecifico / 1000;
+                    const volumen = hojas * areaFormadoHoja * 10000 * calibrePulgadas;
+                    const pesoNeto = volumen * pesoEspecificoKgCm3;
                     resultado = Math.round(pesoNeto * 10) / 10;
                 }
 
@@ -1017,10 +1214,60 @@ $esCorridaPiloto = false;
 
             function calcularPesoMerma() {
                 const pesoneto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
-                const pesototal = parseFloat(document.querySelector('input[name="peso_total"]').value) || 0;
-                const resultado = pesototal - pesoneto;
-                document.querySelector('input[name="peso_merma"]').value = resultado.toFixed(2);
+                const pesoTotal = parseFloat(document.querySelector('input[name="peso_total"]').value) || 0;
+                const resultado = (pesoTotal - pesoneto) || 0;
+                document.querySelector('input[name="peso_merma"]').value = resultado.toFixed(1);
                 calcularPZRM();
+                validarPesoMerma();
+            }
+
+            /**
+             * Valida coherencia entre peso_merma, PRM y coeficiente_merma
+             * Muestra alerta si hay inconsistencias
+             */
+            function validarPesoMerma() {
+                const pesoMerma = parseFloat(document.querySelector('input[name="peso_merma"]').value) || 0;
+                const prm = parseFloat(document.querySelector('input[name="PRM"]').value) || 0;
+                const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
+                const tolerancia = 5;
+
+                const alertDiv = document.getElementById('alertPesoMerma');
+                const messageDiv = document.getElementById('messagePesoMerma');
+
+                if (!alertDiv || !messageDiv) {
+                    console.log('ℹ️ Elementos de validación no encontrados en DOM');
+                    return true;
+                }
+
+                // No validar si ambos son 0
+                if (pesoMerma === 0 && prm === 0) {
+                    alertDiv.classList.add('hidden');
+                    return true;
+                }
+
+                let errores = [];
+                let esValido = true;
+
+                // Validación 1: Peso Merma vs PRM
+                if (Math.abs(pesoMerma - prm) > tolerancia) {
+                    errores.push(`Peso Merma (${pesoMerma.toFixed(2)} kg) difiere > ${tolerancia} kg de PRM (${prm.toFixed(2)} kg)`);
+                    esValido = false;
+                }
+
+                // Validación 2: Coeficiente Merma
+                if (coeficienteMerma > 20) {
+                    errores.push(`Coef. Merma (${coeficienteMerma.toFixed(2)}) > máx permitido (20)`);
+                    esValido = false;
+                }
+
+                if (!esValido) {
+                    messageDiv.textContent = errores.join(' | ');
+                    alertDiv.classList.remove('hidden');
+                } else {
+                    alertDiv.classList.add('hidden');
+                }
+
+                return esValido;
             }
 
             function calcularPesoBrutoHoja() {
@@ -1042,24 +1289,21 @@ $esCorridaPiloto = false;
             function calcularPRM() {
                 const pesoNetoHoja = parseFloat(document.querySelector('input[name="peso_neto_hoja"]').value) || 0;
                 const pesoNeto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
-                const resultado = ((30 * pesoNetoHoja) * (pesoNeto / 130)) + 70;
+                const ajuste = parseFloat(document.getElementById('prm_ajuste').value) || 0;
+
+                const base = (30 * pesoNetoHoja) * (pesoNeto / 130);
+
+                document.getElementById('prm_base').value = base.toFixed(2);
+                const resultado = base + ajuste;
 
                 document.querySelector('input[name="PRM"]').value = resultado.toFixed(2);
 
                 calcularPesoTotal();
             }
 
-            function calcularPesoTotal() {
-                const pesoneto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
-                const prm = parseFloat(document.querySelector('input[name="PRM"]').value) || 0;
-                const resultado = pesoneto + prm;
-                document.querySelector('input[name="peso_total"]').value = resultado.toFixed(4);
-                calcularPesoBrutoHoja();
-                calcularPesoMerma();
-            }
+            function calcularPesoTotal(){
+                console.log('📐 calcularPesoTotal() iniciada...');
 
-            function calcularPesoTotalFormula2() {
-                // (MOQ / Insertos) * AreadeFormadoHoja * 10000 * (Calibre / 393.7) * PesoEspecifico / 1000 * (1 + (CoeficienteMerma)
                 const moq = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
                 const insertos = parseFloat(document.querySelector('input[name="insertos"]').value) || 0;
                 const areaFormadoHoja = parseFloat(document.querySelector('input[name="area_formado_hoja"]').value) || 0;
@@ -1067,13 +1311,24 @@ $esCorridaPiloto = false;
                 const pesoEspecifico = parseFloat(document.querySelector('input[name="peso_especifico"]').value) || 1.02;
                 const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
 
+                console.log('📊 Valores entrada: MOQ=' + moq + ', insertos=' + insertos + ', area=' + areaFormadoHoja);
+
+                if (insertos <= 0 || areaFormadoHoja <= 0) {
+                    console.warn('⚠️ Valores inválidos: insertos=' + insertos + ', area=' + areaFormadoHoja);
+                    document.querySelector('input[name="peso_total"]').value = '0.0';
+                    calcularPesoBrutoHoja();
+                    calcularPesoMerma();
+                    calcularPrecioPorKg();
+                    return;
+                }
+
                 const hojas = moq / insertos;
                 const volumen = hojas * areaFormadoHoja * 10000 * (calibre / 393.7);
                 const pesoNeto = volumen * pesoEspecifico / 1000;
-                const pesoConMerma = pesoNeto * (1 + (coeficienteMerma / 100));
+                const pesoConMerma = pesoNeto * (1 + coeficienteMerma);
 
                 const resultado = Math.round(pesoConMerma * 10) / 10;
-
+                console.log('💾 Calculado: peso_total = ' + resultado.toFixed(1));
                 document.querySelector('input[name="peso_total"]').value = resultado.toFixed(1);
 
                 calcularPesoBrutoHoja();
@@ -1083,6 +1338,43 @@ $esCorridaPiloto = false;
                     calcularCostoAmortizacionMaquinaria2();
                     calcularResumenCostos();
                 @endif
+                console.log('✅ calcularPesoTotal() completada');
+            }
+
+            function recalcularPesoTotal(){
+                console.log('🔵 recalcularPesoTotal() - FÓRMULA ALTERNATIVA');
+
+                const pesoNeto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
+                const prm = parseFloat(document.querySelector('input[name="PRM"]').value) || 0;
+
+                console.log('📊 Entrada: peso_neto=' + pesoNeto.toFixed(2) + ', PRM=' + prm.toFixed(2));
+
+                // FÓRMULA ALTERNATIVA: peso_neto + PRM
+                const resultado = pesoNeto + prm;
+
+                console.log('💾 Calculando: peso_total = peso_neto + PRM = ' + pesoNeto.toFixed(2) + ' + ' + prm.toFixed(2) + ' = ' + resultado.toFixed(1));
+
+                // Asignar nuevo valor
+                document.querySelector('input[name="peso_total"]').value = resultado.toFixed(1);
+                console.log('✅ peso_total = ' + resultado.toFixed(1));
+
+                // Actualizar campos dependientes
+                console.log('🔄 Actualizando campos dependientes...');
+                calcularPesoBrutoHoja();
+                calcularPesoMerma();
+                calcularPrecioPorKg();
+
+                // Si es corrida piloto, actualizar costos
+                @if($esCorridaPiloto)
+                    if (typeof calcularCostoAmortizacionMaquinaria2 === 'function') {
+                        calcularCostoAmortizacionMaquinaria2();
+                    }
+                    if (typeof calcularResumenCostos === 'function') {
+                        calcularResumenCostos();
+                    }
+                @endif
+
+                console.log('✅ FINALIZADO - Todos los valores actualizados');
             }
 
             function calcularPZRM() {
@@ -1099,66 +1391,92 @@ $esCorridaPiloto = false;
                     pzrmInput.value = '0';
                 }
             }
+
+            function intercambiarMedidasAvance() {
+                const input1 = document.querySelector('input[name="acomodo_ancho_medida_1"]');
+                const input2 = document.querySelector('input[name="acomodo_avance_medida_1"]');
+
+                const temp = input1.value;
+                input1.value = input2.value;
+                input2.value = temp;
+
+                if (typeof calcularAcomodoAvance === "function") {
+                    calcularAcomodoAvance();
+                }
+            }
+
+            // ========================================
+            // Event Listener para botón "Recalcular"
+            // ========================================
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('✅ DOMContentLoaded - Inicializando botón Recalcular');
+                const btnRecalcular = document.getElementById('btnRecalcularPesoTotal');
+                if (btnRecalcular) {
+                    btnRecalcular.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('🔘 Click en botón Recalcular');
+                        recalcularPesoTotal();
+                    });
+                    console.log('✅ Event listener agregado exitosamente');
+                } else {
+                    console.warn('⚠️ Botón con ID "btnRecalcularPesoTotal" no encontrado');
+                }
+            });
         </script>
 
-        <!-- SECCIÓN: COSTOS DE MATERIAL PRIMA -->
-        <fieldset>
-            <legend>Costos de Material Prima</legend>
-
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Costos de Materia Prima -</legend>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                    <label class="font-bold block mb-2">Costo por Kilo ($MXN):</label>
+                    <label class="text-sm font-medium text-gray-600">Costo por Kilo (MXN):</label>
                     <input type="number" step="0.01" name="costo_kilo"
-                        value="{{ $costo_kilo }}" placeholder="Ingrese costo ($MXN)"
+                        value="{{ $costo_kilo }}" placeholder="Ingrese costo (MXN)"
                         class="w-full border-gray-300 border rounded-md p-2" oninput="calcularPrecioPorKg()">
                 </div>
-
                 <div>
-                    <label class="font-bold block mb-2">Tipo de Cambio:</label>
+                    <label class="text-sm font-medium text-gray-600">Tipo de Cambio:</label>
                     <input type="number" step="0.0001" name="TC" placeholder="Ingrese tipo de cambio"
                         value="{{ $TC }}" oninput="calcularPrecioPorKg()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
-
                 <div>
-                    <label class="font-bold block mb-2">Costo Flete MP (MXN):</label>
+                    <label class="text-sm font-medium text-gray-600">Costo Flete MP (MXN):</label>
                     <input type="number" step="0.01" name="costo_flete"
                         value="{{ $costo_flete }}" placeholder="Ingrese costo del flete"
                         class="w-full border-gray-300 border rounded-md p-2" oninput="calcularPrecioPorKg()">
                 </div>
-
                 <div>
-                    <label class="font-bold block mb-2">Precio por KG (MXN):</label>
+                    <label class="text-sm font-medium text-gray-600">Precio x Kg (MXN):</label>
                     <input type="number" step="0.0001" name="precio_kg"
                         value="{{ $precio_kg}}" oninput="calcularCostoMP()"
-                        class="w-full border-gray-300 border rounded-md p-2 bg-gray-50">
+                        class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Costo Lámina (MXN):</label>
+                    <label class="text-sm font-medium text-gray-600">Costo Lámina (MXN):</label>
                     <input type="number" step="0.01" name="costo_lamina" placeholder="Ingrese el costo de lamina"
                         value="{{ $costo_lamina }}" oninput="calcularPrecioLamina()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Tipo de Cambio:</label>
+                    <label class="text-sm font-medium text-gray-600">Tipo de Cambio:</label>
                     <input type="number" step="0.0001" name="TC_lamina" placeholder="Ingrese tipo de cambio"
                         value="{{ $TC_lamina }}" oninput="calcularPrecioLamina()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Costo de Flete (MXN):</label>
+                    <label class="text-sm font-medium text-gray-600">Costo de Flete (MXN):</label>
                     <input type="number" step="0.0001" name="costo_flete_lamina" placeholder="Ingrese costo de flete"
                         value="{{ $costo_flete_lamina }}" oninput="calcularPrecioLamina()"
                         class="w-full border-gray-300 border rounded-md p-2">
                 </div>
                 <div>
-                    <label class="font-bold block mb-2">Precio Lámina (MXN):</label>
+                    <label class="text-sm font-medium text-gray-600">Precio Lámina (MXN):</label>
                     <input type="number" step="0.0001" name="precio_lamina"
                         value="{{ $precio_lamina }}" oninput="calcularCostoMP()"
-                        class="w-full border-gray-300 border rounded-md p-2">
+                        class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
                 </div>
                 <div class="md:col-span-4">
-                    <label class="font-bold block mb-2 text-center">Sugerencias Costos MP:</label>
+                    <label class="text-sm font-medium text-gray-600 block mb-2 text-center">Sugerencias Costos MP:</label>
                     <textarea name="sugerencia_costos_mp" rows="4"
                         class="w-full border-gray-300 border rounded-md p-2 text-center resize-vertical"
                         placeholder="Escribe aquí tus observaciones o notas...">{{ $sugerencia_costos_mp }}</textarea>
@@ -1186,32 +1504,40 @@ $esCorridaPiloto = false;
             }
         </script>
 
-        <!-- COSTOS DE PROCESOS -->
-        <fieldset>
-            <legend>Costos de Procesos</legend>
-
-            <div class="grid grid-cols-1 gap-4">
-            <!-- Sección: Hojas del Pedido -->
-            <div class="mb-6">
-                <h3 class="text-xl font-bold text-red-800 mb-2">Hojas del Pedido:</h3>
-                <input type="number" step="0.0001" name="hojas_del_pedido"
-                    value="{{ $hojas_del_pedido}}"
-                    class="w-full border-gray-300 border rounded-md p-2">
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Costos de Procesos -</legend>
+             <div class="mb-6 border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+                    <div>
+                        <h3 class="text-xl font-bold text-red-800 mb-2">Hojas del Pedido</h3>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Se calculo la siguiente cantidad de hojas para este pedido. Este valor se redondea al número entero más cercano, ya que no se pueden pedir fracciones de hojas.
+                        </p>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-sm font-medium text-gray-600"> # </label>
+                        <input type="number" step="0.0001" name="hojas_del_pedido"
+                    value="{{ $hojas_del_pedido}}" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
+                    </div>
+                </div>
             </div>
-            <!-- Máquina formado -->
+            <div class="grid grid-cols-1 gap-4">
+            
             <div class="overflow-x-auto -mx-4 px-4">
-                <fieldset class="sub-fieldset">
-                    <legend class="sub-legend">Proceso de Termoformado</legend>
-
-                    <table class="w-full border-collapse border border-gray-400 text-center" style="min-width: 900px;">
+                <div class="mt-8 border-t pt-6">
+                    <h3 class="text-xl font-bold text-red-800 mb-2">
+                        Proceso de Termoformado
+                    </h3>
+                    <div>
+                        <table class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden" style="min-width: 900px;">
                     <thead class="bg-[#848484] text-white">
                         <tr>
                             <th class="border border-gray-300 p-2">Máquina</th>
-                            <th class="border border-gray-300 p-2">No. de Personas</th>
-                            <th class="border border-gray-300 p-2">Bajadas por Minuto</th>
-                            <th class="border border-gray-300 p-2">Total Hojas por Turno</th>
-                            <th class="border border-gray-300 p-2">Total Días (2 Turnos)</th>
-                            <th class="border border-gray-300 p-2">Costo Termoformado (MXN)</th>
+                            <th class="border border-gray-300 p-2 text-sm font-medium text-white">No. de Personas</th>
+                            <th class="border border-gray-300 p-2 text-sm font-medium text-white">Bajadas por Minuto</th>
+                            <th class="border border-gray-300 p-2 text-sm font-medium text-white">Total Hojas por Turno</th>
+                            <th class="border border-gray-300 p-2 text-sm font-medium text-white">Total Días (2 Turnos)</th>
+                            <th class="border border-gray-300 p-2 text-sm font-medium text-white">Costo Termoformado (MXN)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1240,28 +1566,28 @@ $esCorridaPiloto = false;
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="no_personas_termoformado" step="1" value="{{ $no_personas_termoformado }}"
-                                    oninput="calcularTotalHojasPorTurnoTermoformado(),calcularCostoInocuidad(), recalcularTodo()" placeholder="Ingrese número de personas" class="w-full border rounded-md p-1">
+                                    oninput="calcularTotalHojasPorTurnoTermoformado(),calcularCostoInocuidad(), recalcularTodo()" placeholder="Ingrese número de personas" class="w-full border-gray-300 border rounded-md p-2">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="bajadas_por_minuto_termoformado" step="0.0001" value="{{ $bajadas_por_minuto_termoformado }}"
-                                    oninput="calcularTotalHojasPorTurnoTermoformado()" placeholder="Ingrese bajadas por minuto" class="w-full border rounded-md p-1">
+                                    oninput="calcularTotalHojasPorTurnoTermoformado()" placeholder="Ingrese bajadas por minuto" class="w-full border-gray-300 border rounded-md p-2">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="total_hojas_turno_termoformado" step="1" value="{{ $total_hojas_turno_termoformado }}"
-                                    placeholder="calcular total de hojas" class="w-full border rounded-md p-1">
+                                    readonly class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="total_dias_turnos_termoformado" step="0.01" value="{{ $total_dias_turnos_termoformado }}"
-                                    placeholder="calcular total de días" class="w-full border rounded-md p-1">
+                                    readonly class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                             </td>
                             <td class="border border-gray-300 p-2">
                                 <input type="number" name="costo_termoformado" step="0.01" value="{{ $costo_termoformado }}"
-                                    class="w-full border rounded-md p-1" placeholder="calcular costo">
+                                    class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly >
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                </fieldset>
+                    </div>
             </div>
             <script>
                 function calcularTotalHojasPorTurnoTermoformado() {
@@ -1285,69 +1611,100 @@ $esCorridaPiloto = false;
                     const totalHojasPorTurno = parseFloat(document.querySelector('input[name="total_hojas_turno_termoformado"]').value) || 1;
                     const costoTotal = (costoPorPersonaPorDia * noPersonas) / totalHojasPorTurno;
                     document.querySelector('input[name="costo_termoformado"]').value = costoTotal.toFixed(2);
+                    calcularCostoEnergiaE2();
                 }
             </script>
 
-            <!-- Máquina suaje -->
             <div class="overflow-x-auto -mx-4 px-4">
-                <fieldset class="sub-fieldset">
-                    <legend class="sub-legend">Proceso de Suaje</legend>
-
-                    <table class="w-full border-collapse border border-gray-400 text-center" style="min-width: 1000px;">
-                    <thead class="bg-[#848484] text-white">
-                        <tr>
-                            <th class="border border-gray-300 p-2">Máquina</th>
-
-                            <th class="border border-gray-300 p-2">No. de Personas</th>
-                            <th class="border border-gray-300 p-2">Bajadas por Minuto</th>
-                            <th class="border border-gray-300 p-2">Total Hojas por Turno</th>
-                            <th class="border border-gray-300 p-2">Total Piezas por Turno</th>
-                            <th class="border border-gray-300 p-2">Total Días (2 Turnos)</th>
-                            <th class="border border-gray-300 p-2">Costo Suaje (MXN)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="border border-gray-300 p-2">
-                                <select name="nombre_maquina_suaje" class="w-full border rounded-md p-1">
-                                    <option value="Máquina de Suaje">Seleccione Máquina</option>
-                                    <option value="SH1" {{ $nombre_maquina_suaje == 'SH1' ? 'selected' : '' }}>SH1</option>
-                                    <option value="SH2" {{ $nombre_maquina_suaje == 'SH2' ? 'selected' : '' }}>SH2</option>
-                                    <option value="SH3" {{ $nombre_maquina_suaje == 'SH3' ? 'selected' : '' }}>SH3</option>
-                                    <option value="SH4" {{ $nombre_maquina_suaje == 'SH4' ? 'selected' : '' }}>SH4</option>
-                                    <option value="Suajadora de golpe" {{ $nombre_maquina_suaje == 'Suajadora de golpe' ? 'selected' : '' }}>Suajadora de golpe</option>
-                                    <option value="Router" {{ $nombre_maquina_suaje == 'Router' ? 'selected' : '' }}>Router</option>
-                                </select>
-                            </td>
-                            <td class="border border-gray-300 p-2">
-                                <input type="number" name="no_personas_suaje" step="1" value="{{ $no_personas_suaje }}"
-                                    oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad(), recalcularTodo()" placeholder="Ingrese número de personas" class="w-full border rounded-md p-1">
-                            </td>
-                            <td class="border border-gray-300 p-2">
-                                <input type="number" name="bajadas_por_minuto_suaje" step="0.0001" value="{{ $bajadas_por_minuto_suaje }}"
-                                    oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad(), calcularCostoFabricacion()" placeholder="Ingrese bajadas por minuto" class="w-full border rounded-md p-1">
-                            </td>
-                            <td class="border border-gray-300 p-2">
-                                <input type="number" name="total_hojas_turno_suaje" step="1" value="{{ $total_hojas_turno_suaje }}"
-                                    placeholder="calcular total de hojas" class="w-full border rounded-md p-1">
-                            </td>
-                            <td class="border border-gray-300 p-2">
-                                <input type="number" name="total_piezas_turno_suaje" step="1" value="{{ $total_piezas_turno_suaje }}"
-                                    placeholder="calcular total de piezas" class="w-full border rounded-md p-1">
-                            </td>
-                            <td class="border border-gray-300 p-2">
-                                <input type="number" name="total_dias_turnos_suaje" step="0.0001" value="{{ $total_dias_turnos_suaje }}"
-                                    placeholder="calcular total de días" class="w-full border rounded-md p-1">
-                            </td>
-                            <td class="border border-gray-300 p-2">
-                                <input type="number" name="costo_suaje" step="0.01" value="{{ $costo_suaje }}"
-                                    placeholder="calcular costo suaje" class="w-full border rounded-md p-1">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                </fieldset>
-            </div>
+                <div class="mt-8 border-t pt-6">
+                    <h3 class="text-xl font-bold text-red-800 mb-2">Proceso de Suaje</h3>
+                    <div>
+                        <table class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden" style="min-width: 900px;">
+                            <thead class="bg-[#848484] text-white">
+                            <tr>
+                                <th class="border border-gray-300 p-2 ">Máquina</th>
+                                <th class="border border-gray-300 p-2 text-sm font-medium text-white">No. de Personas</th>
+                                <th class="border border-gray-300 p-2 text-sm font-medium text-white">Bajadas por Minuto</th>
+                                <th class="border border-gray-300 p-2 text-sm font-medium text-white">Total Hojas por Turno</th>
+                                <th class="border border-gray-300 p-2 text-sm font-medium text-white">Total Piezas por Turno</th>
+                                <th class="border border-gray-300 p-2 text-sm font-medium text-white">Total Días (2 Turnos)</th>
+                                <th class="border border-gray-300 p-2 text-sm font-medium text-white">Costo Suaje (MXN)</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border border-gray-300 p-2">
+                                        <select name="nombre_maquina_suaje" class="w-full border rounded-md p-1">
+                                            <option value="Máquina de Suaje">Seleccione Máquina</option>
+                                            <option value="SH1" {{ $nombre_maquina_suaje == 'SH1' ? 'selected' : '' }}>SH1</option>
+                                            <option value="SH2" {{ $nombre_maquina_suaje == 'SH2' ? 'selected' : '' }}>SH2</option>
+                                            <option value="SH3" {{ $nombre_maquina_suaje == 'SH3' ? 'selected' : '' }}>SH3</option>
+                                            <option value="SH4" {{ $nombre_maquina_suaje == 'SH4' ? 'selected' : '' }}>SH4</option>
+                                            <option value="Suajadora de golpe" {{ $nombre_maquina_suaje == 'Suajadora de golpe' ? 'selected' : '' }}>Suajadora de golpe</option>
+                                            <option value="Router" {{ $nombre_maquina_suaje == 'Router' ? 'selected' : '' }}>Router</option>
+                                        </select>
+                                    </td>
+                                    <td class="border border-gray-300 p-2">
+                                        <input type="number" name="no_personas_suaje" step="1" value="{{ $no_personas_suaje }}"
+                                            oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad(), recalcularTodo()" placeholder="Ingrese número de personas" class="w-full border rounded-md p-1">
+                                    </td>
+                                    <td class="border border-gray-300 p-2">
+                                        <input type="number" name="bajadas_por_minuto_suaje" step="0.0001" value="{{ $bajadas_por_minuto_suaje }}"
+                                            oninput="calcularTotalHojasPorTurnoSuaje(), calcularCostoInocuidad(), calcularCostoFabricacion()" placeholder="Ingrese bajadas por minuto" class="w-full border rounded-md p-1">
+                                    </td>
+                                    <td class="border border-gray-300 p-2">
+                                        <input type="number" name="total_hojas_turno_suaje" step="1" value="{{ $total_hojas_turno_suaje }}"
+                                            readonly class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
+                                    </td>
+                                    <td class="border border-gray-300 p-2">
+                                        <input type="number" name="total_piezas_turno_suaje" step="1" value="{{ $total_piezas_turno_suaje }}"
+                                            readonly class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
+                                    </td>
+                                    <td class="border border-gray-300 p-2">
+                                        <input type="number" name="total_dias_turnos_suaje" step="0.0001" value="{{ $total_dias_turnos_suaje }}"
+                                            readonly class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
+                                    </td>
+                                    <td class="border border-gray-300 p-2">
+                                        <input type="number" name="costo_suaje" step="0.01" value="{{ $costo_suaje }}"
+                                            readonly class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="overflow-x-auto -mx-4 px-4">
+                    <div class=" justify-center md:justify-start md:col-span-4 mt-4">
+                        <button type="button" name="agregar_procesos_add" id="btn-agregar-procesos-add"
+                            class="ml-2 px-3 py-1 bg-blue-500 text-sm text-white mt-1 rounded hover:bg-blue-600 text-sm font-normal">
+                            + Agregar proceso adicional
+                        </button>
+                    </div>
+                    <fieldset class="sub-fieldset" name="proceso_adicional_section" id="proceso_adicional_section" style="display: none;">
+                        <legend class="sub-legend">Procesos Adicionales</legend>
+                        <div id="contenedor-procesos-adicionales" class="space-y-4 bg-gray-50 p-4 rounded">
+                            <table class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden" style="min-width: 1200px;">
+                                <thead class="bg-[#848484] text-white">
+                                    <tr>
+                                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Concepto</th>
+                                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">No. Personas</th>
+                                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Bajadas/Min</th>
+                                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Hojas/Turno</th>
+                                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Piezas/Turno</th>
+                                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Días (2T)</th>
+                                        <th class="border border-gray-300 p-2">Costo (MXN)</th>
+                                        <th class="border border-gray-300 p-2">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lista-procesos-adicionales"></tbody>
+                            </table>
+                        </div>
+                        <button type="button" id="btn-agregar-fila-proceso"
+                            class="mt-3 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm">
+                                + Agregar Fila de Proceso
+                        </button>
+                    </fieldset>
+                </div>
             <script>
                 function calcularTotalHojasPorTurnoSuaje() {
                     const bajadasPorMinuto = parseFloat(document.querySelector('input[name="bajadas_por_minuto_suaje"]').value) || 0;
@@ -1379,106 +1736,254 @@ $esCorridaPiloto = false;
                     const totalHojasPorTurno = parseFloat(document.querySelector('input[name="total_hojas_turno_suaje"]').value) || 1;
                     const costoTotal = (costoPorPersonaPorDia * noPersonas) / totalHojasPorTurno;
                     document.querySelector('input[name="costo_suaje"]').value = costoTotal.toFixed(2);
+                    calcularCostoEnergiaE2();
                 }
+
+                let numProcesosAdicionales = 0;
+                const insertos = () => parseFloat(document.querySelector('input[name="insertos"]').value) || 1;
+                const hojasDelPedido = () => parseFloat(document.querySelector('input[name="hojas_del_pedido"]').value) || 0;
+
+                document.getElementById('btn-agregar-procesos-add').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const seccion = document.getElementById('proceso_adicional_section');
+                    const listaVacia = document.getElementById('lista-procesos-adicionales').children.length === 0;
+                    if (listaVacia) {
+                        agregarProcesoAdicional();
+                    }
+                    seccion.style.display = seccion.style.display === 'none' ? 'block' : 'none';
+                });
+
+                document.getElementById('btn-agregar-fila-proceso').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    agregarProcesoAdicional();
+                });
+
+                function agregarProcesoAdicional() {
+                    const tbody = document.getElementById('lista-procesos-adicionales');
+                    const rowId = `proceso-${numProcesosAdicionales}`;
+
+                    const fila = document.createElement('tr');
+                    fila.id = rowId;
+                    fila.className = 'proceso-fila';
+                    fila.innerHTML = `
+                        <td class="border border-gray-300 p-2">
+                            <input type="text" name="procesos_adicionales[${numProcesosAdicionales}][concepto]"
+                                   class="w-full border rounded-md p-1" placeholder="Concepto">
+                        </td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" name="procesos_adicionales[${numProcesosAdicionales}][no_personas]"
+                                   step="1" class="w-full border rounded-md p-1 input-no-personas"
+                                   oninput="calcularProcesoDinamico(${numProcesosAdicionales})">
+                        </td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" name="procesos_adicionales[${numProcesosAdicionales}][bajadas_por_minuto]"
+                                   step="0.0001" class="w-full border rounded-md p-1 input-bajadas"
+                                   oninput="calcularProcesoDinamico(${numProcesosAdicionales})">
+                        </td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" name="procesos_adicionales[${numProcesosAdicionales}][total_hojas_turno]"
+                                   step="1" readonly class="w-full border rounded-md p-1 bg-gray-100 input-hojas">
+                        </td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" name="procesos_adicionales[${numProcesosAdicionales}][total_piezas_turno]"
+                                   step="1" readonly class="w-full border rounded-md p-1 bg-gray-100 input-piezas">
+                        </td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" name="procesos_adicionales[${numProcesosAdicionales}][total_dias_turnos]"
+                                   step="0.0001" readonly class="w-full border rounded-md p-1 bg-gray-100 input-dias">
+                        </td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" name="procesos_adicionales[${numProcesosAdicionales}][costo]"
+                                   step="0.01" readonly class="w-full border rounded-md p-1 bg-gray-100 input-costo">
+                        </td>
+                        <td class="border border-gray-300 p-2 text-center">
+                            <button type="button" class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs"
+                                    onclick="eliminarProcesoAdicional(${numProcesosAdicionales})">
+                                ✕
+                            </button>
+                        </td>
+                    `;
+
+                    tbody.appendChild(fila);
+                    numProcesosAdicionales++;
+                }
+
+                function calcularProcesoDinamico(id) {
+                    const noPersonas = parseFloat(document.querySelector(`input[name="procesos_adicionales[${id}][no_personas]"]`).value) || 0;
+                    const bajadasPorMinuto = parseFloat(document.querySelector(`input[name="procesos_adicionales[${id}][bajadas_por_minuto]"]`).value) || 0;
+                    const hojasPorTurno = bajadasPorMinuto * 60 * 11;
+                    
+                    document.querySelector(`input[name="procesos_adicionales[${id}][total_hojas_turno]"]`).value = hojasPorTurno.toFixed(0);
+
+                    const insertosVal = insertos();
+                    const piezasPorTurno = hojasPorTurno * insertosVal;
+                    
+                    document.querySelector(`input[name="procesos_adicionales[${id}][total_piezas_turno]"]`).value = piezasPorTurno.toFixed(0);
+
+                    const hojasDelPedidoVal = hojasDelPedido();
+                    const diasTurnos = hojasPorTurno > 0 ? ((hojasDelPedidoVal / insertosVal) / hojasPorTurno) / 2 : 0;
+                    
+                    document.querySelector(`input[name="procesos_adicionales[${id}][total_dias_turnos]"]`).value = diasTurnos.toFixed(4);
+
+                    const costoPorPersonaPorDia = 560;
+                    const costo = hojasPorTurno > 0 ? (costoPorPersonaPorDia * noPersonas) / hojasPorTurno : 0;
+                    document.querySelector(`input[name="procesos_adicionales[${id}][costo]"]`).value = costo.toFixed(2);
+
+                    calcularCostoFabricacion();
+                    calcularCostoEnergiaE2();
+                }
+
+                function eliminarProcesoAdicional(id) {
+                    const fila = document.getElementById(`proceso-${id}`);
+                    if (fila) {
+                        fila.remove();
+                    }
+
+                    const lista = document.getElementById('lista-procesos-adicionales');
+                    if (lista.children.length === 0) {
+                        document.getElementById('proceso_adicional_section').style.display = 'none';
+                    }
+
+                    calcularCostoFabricacion();
+                    calcularCostoEnergiaE2();
+                }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    const procesosExistentes = {!! json_encode($costeoRequisicion?->procesosAdicionales?->toArray() ?? []) !!};
+                    if (procesosExistentes && procesosExistentes.length > 0) {
+                        procesosExistentes.forEach((proceso, index) => {
+                            agregarProcesoAdicional();
+                            const id = numProcesosAdicionales - 1;
+
+                            document.querySelector(`input[name="procesos_adicionales[${id}][concepto]"]`).value = proceso.concepto || '';
+                            document.querySelector(`input[name="procesos_adicionales[${id}][no_personas]"]`).value = proceso.no_personas || '';
+                            document.querySelector(`input[name="procesos_adicionales[${id}][bajadas_por_minuto]"]`).value = proceso.bajadas_por_minuto || '';
+                            document.querySelector(`input[name="procesos_adicionales[${id}][total_hojas_turno]"]`).value = proceso.total_hojas_turno || '0';
+                            document.querySelector(`input[name="procesos_adicionales[${id}][total_piezas_turno]"]`).value = proceso.total_piezas_turno || '0';
+                            document.querySelector(`input[name="procesos_adicionales[${id}][total_dias_turnos]"]`).value = proceso.total_dias_turnos || '0';
+                            document.querySelector(`input[name="procesos_adicionales[${id}][costo]"]`).value = proceso.costo || '0';
+                        });
+
+                        if (procesosExistentes.length > 0) {
+                            document.getElementById('proceso_adicional_section').style.display = 'block';
+                        }
+                    }
+                });
             </script>
 
-            <!-- Sección: Costos de Procesos -->
-            <div class="mb-4 overflow-x-auto">
-                <h3 class="text-lg font-bold text-red-800 mb-4">Costos de Procesos</h3>
-
-                <table class="w-full border border-gray-400 text-sm text-center" style="min-width: 650px;">
-                    <thead class="bg-[#848484] text-white">
-                        <tr>
-                            <th class="border border-gray-400 p-2 w-1/3 text-left">Concepto</th>
-                            <th class="border border-gray-400 p-2 w-1/3">Costo (MXN)</th>
-                            <th class="border border-gray-400 p-2 w-1/3">Costo por Hoja (MXN)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        
-                        <tr>
-                            <td class="border border-gray-400 p-2 text-left font-bold">Costo de Montaje</td>
-                            <td class="border border-gray-400 p-2">
-                                <input type="number" step="0.0001" name="costo_montaje"
-                                    value="{{ old('costo_montaje', $costeoRequisicion->costo_montaje) }}"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de montaje"
-                                    >
-                            </td>
-                            <td class="border border-gray-400 p-2">
-                                <input type="number" step="0.0001" name="costo_montaje2"
-                                    value="{{ old('costo_montaje2', $costeoRequisicion->costo_montaje2) }}" placeholder="calcular costo de montaje"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center">
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td class="border border-gray-400 p-2 text-left font-bold">Costo de amortización de herramentales</td>
-                            <td class="border border-gray-400 p-2">
-                                <input type="number" step="0.0001" name="costo_amortizacion_herramentales"
-                                    value="{{ old('costo_amortizacion_herramentales', $costeoRequisicion->costo_amortizacion_herramentales) }}"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de amortización">
-                            </td>
-                            <td class="border border-gray-400 p-2">
-                                <input type="number" step="0.0001" name="costo_amortizacion_herramentales2"
-                                    value="{{ old('costo_amortizacion_herramentales2', $costeoRequisicion->costo_amortizacion_herramentales2) }}"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="calcular costo de amortización">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border border-gray-400 p-2 text-left font-bold">Costo de E. eléctrica</td>
-                            <td class="border border-gray-400 p-2">
-                                <input type="number" step="0.0001" name="costo_electricidad"
-                                    value="{{ old('costo_electricidad', $costeoRequisicion->costo_electricidad) }}" placeholder="Ingrese costo de electricidad"
-                                    oninput="calcularCostoEnergiaE2()" class="w-full border-gray-300 border rounded-md p-1 text-center">
-                            </td>
-                            <td class="border border-gray-400 p-2">
-                                <input type="number" step="0.0001" name="costo_electricidad2"
-                                    value="{{ old('costo_electricidad2', $costeoRequisicion->costo_electricidad2) }}" placeholder="calcular costo de electricidad"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center">
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="border border-gray-400 p-2 text-left font-bold">Amortización maquinaria</td>
-                            <td class="border border-gray-400 p-2">
-                                <input type="number" step="0.0001" name="amortizacion_maquinaria"
-                                    value="{{ old('amortizacion_maquinaria', $costeoRequisicion->amortizacion_maquinaria) }}" placeholder="Amortizacion maquinaria"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center">
-                            </td>
-                            <td class="border border-gray-400 p-2">
-                                <input type="number" step="0.0001" name="amortizacion_maquinaria2"
-                                    value="{{ old('amortizacion_maquinaria2', $costeoRequisicion->amortizacion_maquinaria2) }}"
-                                    class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="calcular amortizacion maquinaria">
-                            </td>
-                        </tr>
-
-                        <!-- Fila separada para totales -->
-                        <tr class="font-semibold bg-gray-50">
-                            <td class="border border-gray-400 p-2 text-left font-bold">Costo de Fabricación</td>
-                            <td colspan="2" class="border border-gray-400 p-2">
-                                <input class="w-full p-2 text-center font-bold" step="0.0001" name="costo_fabricacion"
-                                    value="{{ old('costo_fabricacion', $costeoRequisicion->costo_fabricacion) }}" placeholder="calcular costo de fabricacion" readonly>
-                            </td>
-                        </tr>
-
-                        <tr class="font-semibold bg-gray-50">
-                            <td class="border border-gray-400 p-2 text-left font-bold">Costo MP</td>
-                            <td colspan="2" class="border border-gray-400 p-2">
-                                <input class="w-full p-2 text-center font-bold" step="0.0001" name="costo_mp"
-                                    value="{{ old('costo_mp', $costeoRequisicion->costo_mp) }}" placeholder="calcular costo de material prima" readonly>      
-                            </td>
-                        </tr>
-
-                        <tr class="font-bold bg-gray-50">
-                            <td class="border border-gray-400 p-2 text-left font-bold">Costo Total</td>
-                            <td colspan="2" class="border border-gray-400 p-2">
-                                <input class="w-full p-2 text-center font-bold" step="0.0001" name="costo_total_procesos"
-                                    value="{{ old('costo_total_procesos', $costeoRequisicion->costo_total_procesos) }}" placeholder="calcular costo total" readonly>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="overflow-x-auto -mx-4 px-4">
+                <div class="mt-8 border-t pt-6">
+                    <h3 class="text-xl font-bold text-red-800 mb-2">Costos de Procesos</h3>
+                    <div>
+                        <table class="w-full border border-gray-200 text-sm text-center rounded-lg overflow-hidden" style="min-width: 650px;">
+                            <thead class="bg-[#848484] text-white">
+                                <tr>
+                                    <th class="border border-gray-400 p-2 w-1/3 text-left">Concepto</th>
+                                    <th class="border border-gray-400 p-2 w-1/3">Costo (MXN)</th>
+                                    <th class="border border-gray-400 p-2 w-1/3">Costo por Hoja (MXN)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-sm font-medium text-gray-600">Costo de Montaje</td>
+                                    <td class="border border-gray-400 p-2">
+                                        <input type="number" step="0.0001" name="costo_montaje"
+                                            value="{{ old('costo_montaje', $costeoRequisicion->costo_montaje) }}"
+                                            class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de montaje"
+                                            >
+                                    </td>
+                                    <td class="border border-gray-400 p-2">
+                                        <input type="number" step="0.0001" name="costo_montaje2"
+                                            value="{{ old('costo_montaje2', $costeoRequisicion->costo_montaje2) }}" placeholder="calcular costo de montaje"
+                                            class="w-full border-gray-300 border rounded-md p-1 text-center">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 text-sm font-medium text-gray-600">Costo de amortización de herramentales</td>
+                                    <td class="border border-gray-400 p-2">
+                                        <input type="number" step="0.0001" name="costo_amortizacion_herramentales"
+                                            value="{{ old('costo_amortizacion_herramentales', $costeoRequisicion->costo_amortizacion_herramentales) }}"
+                                            class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="Ingrese costo de amortización">
+                                    </td>
+                                    <td class="border border-gray-400 p-2">
+                                        <input type="number" step="0.0001" name="costo_amortizacion_herramentales2"
+                                            value="{{ old('costo_amortizacion_herramentales2', $costeoRequisicion->costo_amortizacion_herramentales2) }}"
+                                            class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="calcular costo de amortización">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 text-sm font-medium text-gray-600">Costo de E. eléctrica</td>
+                                    <td class="border border-gray-400 p-2">
+                                        <input type="number" step="0.0001" name="costo_electricidad"
+                                            value="{{ old('costo_electricidad', $costeoRequisicion->costo_electricidad ?? 50) }}" 
+                                            oninput="calcularCostoEnergiaE2()" 
+                                            class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 text-center cursor-not-allowed" readonly>
+                                    </td>
+                                    <td class="border border-gray-400 p-2">
+                                        <input type="number" step="0.0001" name="costo_electricidad2"
+                                            value="{{ old('costo_electricidad2', $costeoRequisicion->costo_electricidad2 ?? 0.11) }}" 
+                                            class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 text-center" oninput="calcularCostoFabricacion()">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-400 text-sm font-medium text-gray-600">Amortización maquinaria</td>
+                                    <td class="border border-gray-400 p-2">
+                                        <input type="number" step="0.0001" name="amortizacion_maquinaria"
+                                            value="{{ old('amortizacion_maquinaria', $costeoRequisicion->amortizacion_maquinaria) }}" placeholder="Amortizacion maquinaria"
+                                            class="w-full border-gray-300 border rounded-md p-1 text-center">
+                                    </td>
+                                    <td class="border border-gray-400 p-2">
+                                        <input type="number" step="0.0001" name="amortizacion_maquinaria2"
+                                            value="{{ old('amortizacion_maquinaria2', $costeoRequisicion->amortizacion_maquinaria2) }}"
+                                            class="w-full border-gray-300 border rounded-md p-1 text-center" placeholder="calcular amortizacion maquinaria" oninput="calcularCostoFabricacion()">
+                                    </td>
+                                </tr>
+                                <tr class="font-semibold bg-gray-50">
+                                    <td class="border border-gray-400 p-2 text-left font-bold">Costo de Fabricación</td>
+                                    <td colspan="2" class="border border-gray-400 p-2">
+                                        <input class="w-full p-2 text-center font-bold cursor-not-allowed" step="0.0001" name="costo_fabricacion"
+                                            value="{{ old('costo_fabricacion', $costeoRequisicion->costo_fabricacion) }}" placeholder="calcular costo de fabricacion" readonly>
+                                    </td>
+                                </tr>
+                                <tr class="font-semibold bg-gray-50">
+                                    <td class="border border-gray-400 p-2 text-left font-bold">
+                                        <div class="flex items-center justify-between">
+                                            <span>Costo MP</span>
+                                        </div>
+                                    </td>
+                                    <td colspan="2" class="border border-gray-400 p-2">
+                                        <input type="hidden" name="costo_mp_base" id="costo_mp_base"
+                                            value="{{ old('costo_mp', $costeoRequisicion->costo_mp) }}">
+                                        <input class="w-full p-2 text-center font-bold cursor-not-allowed" step="0.0001" name="costo_mp" id="input_costo_mp"
+                                            value="{{ old('costo_mp', $costeoRequisicion->costo_mp) }}" placeholder="calcular costo de material prima" readonly>
+                                    </td>
+                                </tr>
+                                <tr id="fila-procesos" style="display: none;">
+                                    <td colspan="3" class="border border-gray-400 p-2">
+                                        <div class="bg-gray-50 rounded p-4">
+                                            <h4 class="font-semibold mb-3 text-sm">Procesos Adicionales</h4>
+                                            <div id="contenedor-procesos" class="space-y-3">
+                                                <button type="button" id="btn-nuevo-proceso"
+                                                    class="mt-3 px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm">
+                                                    Agregar Proceso
+                                                </button>
+                                            </div>
+                                        </div> 
+                                    </td>
+                                </tr>
+                                <tr class="font-bold bg-gray-50">
+                                    <td class="border border-gray-400 p-2 text-left font-bold">Costo Total</td>
+                                    <td colspan="2" class="border border-gray-400 p-2">
+                                        <input class="w-full p-2 text-center font-bold cursor-not-allowed" step="0.0001" name="costo_total_procesos"
+                                            value="{{ old('costo_total_procesos', $costeoRequisicion->costo_total_procesos) }}" placeholder="calcular costo total" readonly>
+                                    </td>
+                                </tr>
+                            </tbody>
+                         </table>
+                    </div>
+                </div>
             </div>
-            </div>
+        </div>
         </fieldset>
         <script>
             function calcularCostoMontaje2() {
@@ -1499,14 +2004,22 @@ $esCorridaPiloto = false;
                 //  ((11*(total dias 2turnos maquina1*2))+(11*(total dias 2turnos maquina1*2)))/((cantidad de hojas+(cantidad de hojas*coeficiente de merma))/insertos)
                 const totalDiasMaquina1 = parseFloat(document.querySelector('input[name="total_dias_turnos_termoformado"]').value) || 0;
                 const totalDiasMaquina2 = parseFloat(document.querySelector('input[name="total_dias_turnos_suaje"]').value) || 0;
+
+                // Sumar días de procesos adicionales
+                let totalDiasAdiciones = 0;
+                document.querySelectorAll('input[name$="[total_dias_turnos]"]').forEach(input => {
+                    totalDiasAdiciones += parseFloat(input.value) || 0;
+                });
+
                 const cantidad_hojas = parseFloat(document.querySelector('input[name="cantidad_hojas"]').value) || 0;
                 const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
                 const insertos = parseFloat(document.querySelector('input[name="insertos"]').value) || 1;
                 const parte1 = (11 * (totalDiasMaquina1 * 2));
                 const parte2 = (11 * (totalDiasMaquina2 * 2));
+                const parte3Adicional = (11 * (totalDiasAdiciones * 2));
                 const parte3 = cantidad_hojas + (cantidad_hojas * (coeficienteMerma / 100));
                 const parte4 = parte3 / insertos;
-                const resultado = (parte1 + parte2) / parte4;
+                const resultado = (parte1 + parte2 + parte3Adicional) / parte4;
                 document.querySelector('input[name="costo_electricidad2"]').value = resultado.toFixed(2);
             }
 
@@ -1525,6 +2038,12 @@ $esCorridaPiloto = false;
                 const costoAmortizacionHerramentales2 = parseFloat(document.querySelector('input[name="costo_amortizacion_herramentales2"]').value) || 0;
                 const costoElectricidad2 = parseFloat(document.querySelector('input[name="costo_electricidad2"]').value) || 0;
                 const amortizacionMaquinaria2 = parseFloat(document.querySelector('input[name="amortizacion_maquinaria2"]').value) || 0;
+
+                let costosProcesosAdicionales = 0;
+                document.querySelectorAll('input[name$="[costo]"]').forEach(input => {
+                    costosProcesosAdicionales += parseFloat(input.value) || 0;
+                });
+
                 const resultado =
                 Math.round(
                     (costoTermoformado
@@ -1532,7 +2051,8 @@ $esCorridaPiloto = false;
                     + costoMontaje2
                     + costoAmortizacionHerramentales2
                     + costoElectricidad2
-                    + amortizacionMaquinaria2) * 10
+                    + amortizacionMaquinaria2
+                    + costosProcesosAdicionales) * 10
                 ) / 10;
                 document.querySelector('input[name="costo_fabricacion"]').value = resultado.toFixed(1);
                 calcularCostoMP();
@@ -1542,10 +2062,25 @@ $esCorridaPiloto = false;
                 const pesoBrutoHoja = parseFloat(document.querySelector('input[name="peso_bruto_hoja"]').value) || 0;
                 const precioKg = parseFloat(document.querySelector('input[name="precio_kg"]').value) || 0;
                 const precioLamina = parseFloat(document.querySelector('input[name="precio_lamina"]').value) || 0;
-                
-                const resultado = precioKg >= 0.01 ? (precioKg * pesoBrutoHoja) : precioLamina;
+
+                const costBase = precioKg >= 0.01 ? (precioKg * pesoBrutoHoja) : precioLamina;
+
+                document.querySelector('input[name="costo_mp_base"]').value = costBase.toFixed(1);
+
+                const sumaProcesos = calcularSumaProcesos();
+
+                const resultado = costBase + sumaProcesos;
                 document.querySelector('input[name="costo_mp"]').value = resultado.toFixed(1);
                 calcularCostoTotal();
+            }
+
+            function calcularSumaProcesos() {
+                let suma = 0;
+                const costosInputs = document.querySelectorAll('input[name$="[costo]"]');
+                costosInputs.forEach(input => {
+                    suma += parseFloat(input.value) || 0;
+                });
+                return suma;
             }
 
             function calcularCostoTotal() {
@@ -1557,7 +2092,10 @@ $esCorridaPiloto = false;
             }
 
             function actualizarCostosMaquina() {
-                const maquina = document.querySelector('select[name="maquina_principal"]').value;
+                const maquinaSelect = document.querySelector('select[name="maquina_principal"]');
+                if (!maquinaSelect) return;
+
+                const maquina = maquinaSelect.value;
                 let costo = '';
 
                 const costosPorMaquina = {
@@ -1584,21 +2122,33 @@ $esCorridaPiloto = false;
                 calcularCostoAmortizacionHerramentales2();
             }
 
+            function validarSeleccionMaquina() {
+                const principal = document.getElementById("maquina_principal");
+                if (!principal) return true;
+
+                if (!principal.value) {
+                    principal.setCustomValidity('Selecciona una maquina para continuar.');
+                    return false;
+                }
+
+                principal.setCustomValidity('');
+                return true;
+            }
+
             function sincronizarMaquina() {
                 const principal = document.getElementById("maquina_principal");
                 const secundaria = document.getElementById("maquina_secundaria");
+                if (!principal || !secundaria) return;
 
                 secundaria.value = principal.value;
-
                 secundaria.dispatchEvent(new Event('change'));
-
-                document.addEventListener("DOMContentLoaded", function() {
-                    sincronizarMaquina();
-                });
             }
 
             function actualizarAmortizacion() {
-                const maquina = document.querySelector('select[name="nombre_maquina_termoformado"]').value;
+                const secundaria = document.querySelector('select[name="nombre_maquina_termoformado"]');
+                if (!secundaria) return;
+
+                const maquina = secundaria.value;
 
                 let amortizacionBase = null;
 
@@ -1623,160 +2173,262 @@ $esCorridaPiloto = false;
                 document.querySelector('input[name="amortizacion_maquinaria"]').value = resultado.toFixed(2);
                 calcularCostoAmortizacionMaquinaria2();
             }
-            </script>
 
-        <!-- SECCIÓN: EMPAQUE -->
-        <fieldset>
-            <legend>Empaque</legend>
-            <!-- Tabla de Características de Empaque -->
-            <fieldset class="sub-fieldset">
-                <legend class="sub-legend">Características de Empaque</legend>
-                <table class="w-full border-collapse border border-gray-400 text-center mb-4">
-                    <thead class="bg-[#848484] text-white">
-                        <tr>
-                            <th class="border border-gray-300 p-2">Tipo de Estiba</th>
-                            <th class="border border-gray-300 p-2">Cajas Corrugado</th>
-                            <th class="border border-gray-300 p-2">Bolsa Plástico</th>
-                            <th class="border border-gray-300 p-2">Esquineros</th>
-                            <th class="border border-gray-300 p-2">Liner</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="border border-gray-300 p-2">
-                                <input type="text" name="tipo_estiba" class="w-full border-gray-300 border rounded-md p-1 {{ $tipo_estiba !== 'Sin estiba' ? 'bg-blue-50 text-blue-800 font-bold' : '' }}"
-                                    value="{{ $tipo_estiba }}" readonly>
-                            </td>
-                            <td class="border border-gray-300 p-2">
-                                <input type="text" name="cajas_corrugado" class="w-full border-gray-300 border rounded-md p-1 {{ $cajas_corrugado == 1 ? 'bg-blue-50 text-blue-800 font-bold' : '' }}"
-                                    value="{{ $cajas_corrugado == 1 ? 'Cajas de corrugado' : ($cajas_corrugado == 0 ? 'Sin cajas de corrugado' : $cajas_corrugado) }}" readonly>
-                            </td>
-                            <td class="border border-gray-300 p-2">
-                                <input type="text" name="bolsa_plastico" class="w-full border-gray-300 border rounded-md p-1 {{ $bolsa_plastico == 1 ? 'bg-blue-50 text-blue-800 font-bold' : '' }}"
-                                    value="{{ $bolsa_plastico == 1 ? 'Bolsa de plástico' : ($bolsa_plastico == 0 ? 'Sin bolsa de plástico' : $bolsa_plastico) }}" readonly>
-                            </td>
-                            <td class="border border-gray-300 p-2">
-                                <input type="text" name="esquineros" class="w-full border-gray-300 border rounded-md p-1 {{ $esquineros == 1 ? 'bg-blue-50 text-blue-800 font-bold' : '' }}"
-                                    value="{{ $esquineros == 1 ? 'Esquineros' : ($esquineros == 0 ? 'Sin esquineros' : $esquineros) }}" readonly>
-                            </td>
-                            <td class="border border-gray-300 p-2">
-                                <input type="text" name="liner" class="w-full border-gray-300 border rounded-md p-1 {{ $liner == 1 ? 'bg-blue-50 text-blue-800 font-bold' : '' }}"
-                                    value="{{ $liner == 1 ? 'Liner' : ($liner == 0 ? 'Sin liner' : $liner) }}" readonly>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </fieldset>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div>
-                    <label class="font-bold block mb-2">Corrugado:</label>
-                    <select name="costo_corrugado" class="w-full border border-gray-300 rounded-md p-2" oninput=" asignarCajasPorTarima(), calcularTotalCostoCorrugado(), calcularCostoTotalEmpaque()">
-                        <option value="0">Seleccione una opción</option>
-                        <option value="20.10" {{ old('costo_corrugado', $costeoRequisicion->costo_corrugado ?? '') == '20.10' ? 'selected' : '' }}>500x390x300 ----- $20.10</option>
-                        <option value="22.60" {{ old('costo_corrugado', $costeoRequisicion->costo_corrugado ?? '') == '22.60' ? 'selected' : '' }}>500x500x200 ----- $22.60</option>
-                        <option value="26.33" {{ old('costo_corrugado', $costeoRequisicion->costo_corrugado ?? '') == '26.33' ? 'selected' : '' }}>540x500x350 ----- $26.33</option>
-                        <option value="28.97" {{ old('costo_corrugado', $costeoRequisicion->costo_corrugado ?? '') == '28.97' ? 'selected' : '' }}>540x500x360 ----- $28.97</option>
-                        <option value="32.14" {{ old('costo_corrugado', $costeoRequisicion->costo_corrugado ?? '') == '32.14' ? 'selected' : '' }}>590x400x610 ----- $32.14</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="font-bold block mb-2">Bolsa:</label>
-                    <select name="costo_bolsa" class="w-full border border-gray-300 rounded-md p-2" oninput="asignarBolsa(), calcularTotalCostoBolsas()">
-                        <option value="0">Seleccione una opción</option>
-                        <option value="1.28" {{ old('costo_bolsa', $costeoRequisicion->costo_bolsa) == '1.28' ? 'selected' : '' }}>33x92 ----- $1.28</option>
-                        <option value="1.42" {{ old('costo_bolsa', $costeoRequisicion->costo_bolsa) == '1.42' ? 'selected' : '' }}>37x92 ----- $1.42</option>
-                        <option value="9.14" {{ old('costo_bolsa', $costeoRequisicion->costo_bolsa) == '9.14' ? 'selected' : '' }}>Doble bolsa ----- $9.14</option>
-                        <option value="4.57" {{ old('costo_bolsa', $costeoRequisicion->costo_bolsa) == '4.57' ? 'selected' : '' }}>Estándar ----- $4.57</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="font-bold block mb-2">Tarima:</label>
-                    <select name="costo_tarima" class="w-full border border-gray-300 rounded-md p-2" oninput="asignarTarima(), calcularTotalCostoTarimas()">
-                        <option value="0">Seleccione una opción</option>
-                        <option value="122.22" {{ 
-                            ($esquineros == 0 && $liner == 0) ? 'selected' : '' 
-                        }}>Tarima ----- $122.22</option>
-                        <option value="178.22" {{ 
-                            ($esquineros == 1 && $liner == 0) ? 'selected' : '' 
-                        }}>Tarima+esquineros ----- $178.22</option>
-                        <option value="146.15" {{ 
-                            ($esquineros == 0 && $liner == 1) ? 'selected' : '' 
-                        }}>Tarima+liner ----- $146.15</option>
-                        <option value="202.15" {{ 
-                            ($esquineros == 1 && $liner == 1) ? 'selected' : '' 
-                        }}>Tarima+liner+esquineros ----- $202.15</option>
-                    </select>
-                </div>
-            </div>
-            <table class="w-full border-collapse border border-gray-400 text-center">
-                <thead class="bg-[#848484] text-white">
-                    <tr>
-                        <th class="border border-gray-300 p-2">Cajas</th>
-                        <th class="border border-gray-300 p-2">Inputs Cajas</th>
-                        <th class="border border-gray-300 p-2">Bolsas</th>
-                        <th class="border border-gray-300 p-2">Inputs Bolsas</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th class="border border-gray-300 p-2">Piezas por Caja</th>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="piezas_por_caja" step="1" class="w-full border-gray-300 border rounded-md p-1"
-                                value="{{ old('piezas_por_caja', $costeoRequisicion->piezas_por_caja) }}" oninput="calcularTotalCajas()">
-                        </td>
-                        <th class="border border-gray-300 p-2">
-                            <button type="button" onclick="togglePiezasPorBolsa()" 
-                                class="font-medium px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200" title="Mostrar/Ocultar Piezas por Bolsa">
-                                Piezas por Bolsa
+            document.addEventListener('DOMContentLoaded', function() {
+                validarSeleccionMaquina();
+                sincronizarMaquina();
+                actualizarCostosMaquina();
+                actualizarAmortizacion();
+                calcularAnchoHoja();
+                calcularAvanceHoja();
+                calcularPlacaFijacion();
+            });
+
+            let numProcesos = 0;
+
+            function inicializarProcesos() {
+                const btnAgregar = document.getElementById('btn-agregar-procesos');
+                const btnNuevoProceso = document.getElementById('btn-nuevo-proceso');
+
+                if (btnAgregar) {
+                    btnAgregar.addEventListener('click', mostrarSeccionProcesos);
+                }
+
+                if (btnNuevoProceso) {
+                    btnNuevoProceso.addEventListener('click', agregarProceso);
+                }
+                cargarProcesosExistentes();
+            }
+
+            function cargarProcesosExistentes() {
+                const contenedor = document.getElementById('contenedor-procesos');
+                const procesosInput = document.querySelectorAll('input[name^="procesos["][name$="[descripcion]"]');
+
+                if (procesosInput.length > 0) {
+                    document.getElementById('fila-procesos').style.display = '';
+                    numProcesos = procesosInput.length;
+                } else {
+                    numProcesos = 0;
+                }
+            }
+
+            function mostrarSeccionProcesos(e) {
+                e.preventDefault();
+                document.getElementById('fila-procesos').style.display = '';
+
+                if (numProcesos === 0) {
+                    agregarProceso();
+                }
+            }
+
+            function agregarProceso(e) {
+                if (e) e.preventDefault();
+
+                const contenedor = document.getElementById('contenedor-procesos');
+                const procesoHTML = `
+                    <div class="proceso-item bg-white border border-gray-300 rounded p-3 flex gap-2" data-id="${numProcesos}">
+                        <div class="flex-1">
+                            <label class="text-xs font-semibold text-gray-600">Descripción:</label>
+                            <input type="text" name="procesos[${numProcesos}][descripcion]"
+                                class="w-full p-2 border border-gray-300 rounded text-sm bg-gray-100"
+                                placeholder="Nombre del proceso"
+                                value="${procesos[numProcesos]?.descripcion || ''}">
+                        </div>
+                        <div class="w-32">
+                            <label class="text-xs font-semibold text-gray-600">Costo:</label>
+                            <input type="number" name="procesos[${numProcesos}][costo]"
+                                class="w-full p-2 border border-gray-300 rounded text-sm bg-gray-100"
+                                placeholder="0.00" step="0.0001"
+                                value="${procesos[numProcesos]?.costo || ''}"
+                                data-id="${numProcesos}">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="button" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm"
+                                onclick="eliminarProceso(${numProcesos})">
+                                ✕
                             </button>
-                        </th>
-                        <td class="border border-gray-300 p-2">
-                            <div class="grid gap-2" id="grid-piezas-bolsa">
-                                <input type="number" name="piezas_por_bolsa" id="input-piezas-bolsa" step="1" class="w-full border-gray-300 border rounded-md p-1"
-                                    value="{{ old('piezas_por_bolsa', $costeoRequisicion->piezas_por_bolsa) }}" oninput="calcularPiezasPorCaja()">
-                                <input type="number" name="aux_piezas_por_bolsa" id="aux-piezas-bolsa" step="1" class="w-full border-gray-300 border rounded-md p-1 hidden"
-                                    placeholder="Bolsas X caja" value="{{ old('aux_piezas_por_bolsa', $costeoRequisicion->aux_piezas_por_bolsa) }}" oninput="calcularPiezasPorCaja()">
+                        </div>
+                    </div>
+                `;
+
+                contenedor.insertAdjacentHTML('beforeend', procesoHTML);
+
+                const inputCosto = contenedor.querySelector(`input[data-id="${numProcesos}"]`);
+                if (inputCosto) {
+                    inputCosto.addEventListener('input', () => {
+                        calcularCostoMP();
+
+                    });
+                }
+                numProcesos++;
+            }
+
+            function eliminarProceso(id) {
+                const procesoDiv = document.querySelector(`.proceso-item[data-id="${id}"]`);
+                if (procesoDiv) {
+                    procesoDiv.remove();
+                    calcularCostoMP();
+                }
+            }
+
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', inicializarProcesos);
+            } else {
+                inicializarProcesos();
+            }
+        </script>
+
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Empaque -</legend>
+                <h3 class="text-md font-semibold text-gray-700 mb-4">Especificaciones de material</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Tipo de estiba</label>
+                            <input type="text" name="tipo_estiba" class="w-full border-gray-300 border rounded-md p-1 {{ $tipo_estiba !== 'Sin estiba' ? 'bg-green-50 text-green-800 font-bold' : '' }}"
+                                    value="{{ $tipo_estiba }}" readonly>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Cajas Corrugado</label>
+                            <input type="text" name="cajas_corrugado" class="w-full bg-gray-200 border-gray-300 border rounded-md p-1 {{ $cajas_corrugado == 1 ? 'bg-green-50 text-green-800 font-bold' : '' }}"
+                                    value="{{ $cajas_corrugado == 1 ? 'Cajas de corrugado' : ($cajas_corrugado == 0 ? 'Sin cajas de corrugado' : $cajas_corrugado) }}" readonly>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Bolsa Plástico</label>
+                            <input type="text" name="bolsa_plastico" class="w-full bg-gray-200 border-gray-300 border rounded-md p-1 {{ $bolsa_plastico == 1 ? 'bg-green-50 text-green-800 font-bold' : '' }}"
+                                    value="{{ $bolsa_plastico == 1 ? 'Bolsa de plástico' : ($bolsa_plastico == 0 ? 'Sin bolsa de plástico' : $bolsa_plastico) }}" readonly>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Esquineros</label>
+                             <input type="text" name="esquineros" class="w-full bg-gray-200 border-gray-300 border rounded-md p-1 {{ $esquineros == 1 ? 'bg-green-50 text-green-800 font-bold' : '' }}"
+                                    value="{{ $esquineros == 1 ? 'Esquineros' : ($esquineros == 0 ? 'Sin esquineros' : $esquineros) }}" readonly>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-sm font-medium text-gray-600">Liner</label>
+                             <input type="text" name="liner" class="w-full bg-gray-200 border-gray-300 border rounded-md p-1 {{ $liner == 1 ? 'bg-green-50 text-green-800 font-bold' : '' }}"
+                                    value="{{ $liner == 1 ? 'Liner' : ($liner == 0 ? 'Sin liner' : $liner) }}" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border-t pt-6">
+                        <h3 class="text-md font-semibold text-gray-700 mb-4">
+                        Selección de materiales de empaque
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                            <div>
+                                <label class="text-sm font-medium text-gray-600">Corrugado:</label>
+                                <select name="costo_corrugado" class="w-full border border-gray-300 rounded-md p-2" oninput=" asignarCajasPorTarima(), calcularTotalCostoCorrugado(), calcularCostoTotalEmpaque()">
+                                    <option value="0">Seleccione una opción</option>
+                                    <option value="20.10" {{ old('costo_corrugado', $costeoRequisicion->costo_corrugado ?? '') == '20.10' ? 'selected' : '' }}>500x390x300 ----- $20.10</option>
+                                    <option value="22.60" {{ old('costo_corrugado', $costeoRequisicion->costo_corrugado ?? '') == '22.60' ? 'selected' : '' }}>500x500x200 ----- $22.60</option>
+                                    <option value="26.33" {{ old('costo_corrugado', $costeoRequisicion->costo_corrugado ?? '') == '26.33' ? 'selected' : '' }}>540x500x350 ----- $26.33</option>
+                                    <option value="28.97" {{ old('costo_corrugado', $costeoRequisicion->costo_corrugado ?? '') == '28.97' ? 'selected' : '' }}>540x500x360 ----- $28.97</option>
+                                    <option value="32.14" {{ old('costo_corrugado', $costeoRequisicion->costo_corrugado ?? '') == '32.14' ? 'selected' : '' }}>590x400x610 ----- $32.14</option>
+                                </select>
                             </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="border border-gray-300 p-2">Cajas por Tarima</th>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="cajas_por_tarima" step="1" class="w-full border-gray-300 border rounded-md p-1" oninput="calcularTotalTarimasCajas(), calcularTotalCostoTarimas()"
-                                value="{{ old('cajas_por_tarima', $costeoRequisicion->cajas_por_tarima) }}">
-                        </td>
-                        <th class="border border-gray-300 p-2">Bolsas por Tarima</th>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="bolsas_por_tarima" step="1" class="w-full border-gray-300 border rounded-md p-1" oninput="calcularTotalTarimasBolsas(), calcularTotalCostoTarimas()"
-                                value="{{ old('bolsas_por_tarima', $costeoRequisicion->bolsas_por_tarima) }}">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="border border-gray-300 bg-gray-50 p-2">Total Cajas</th>
-                        <td class="border border-gray-300 bg-gray-50 p-2">
-                            <input type="number" name="total_cajas" step="1" class="w-full border-gray-300 border rounded-md p-1" oninput="calcularTotalTarimasCajas(), calcularTotalCostoCorrugado(),calcularTotalCostoTarimas()"
-                                value="{{ old('total_cajas', $costeoRequisicion->total_cajas) }}">
-                        </td>
-                        <th class="border border-gray-300 bg-gray-50 p-2">Total Bolsas</th>
-                        <td class="border border-gray-300 bg-gray-50 p-2">
-                            <input type="number" name="total_bolsas" step="1" class="w-full border-gray-300 border rounded-md p-1" oninput="calcularTotalTarimasBolsas(), calcularTotalCostoBolsas(),calcularTotalCostoTarimas()"
-                                value="{{ old('total_bolsas', $costeoRequisicion->total_bolsas) }}">
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="border border-gray-300 bg-gray-50 p-2">Tarimas Totales Cajas</th>
-                        <td class="border border-gray-300 bg-gray-50 p-2">
-                            <input class="w-full p-2 text-center font-bold" name="tarimas_totales_cajas" step="0.01"
-                                value="{{ old('tarimas_totales_cajas', $costeoRequisicion->tarimas_totales_cajas) }}" oninput="calcularTotalCostoTarimas()" readonly>
-                        </td>
-                        <th class="border border-gray-300 bg-gray-50 p-2">Tarimas Totales Bolsas</th>
-                        <td class="border border-gray-300 bg-gray-50 p-2">
-                            <input class="w-full p-2 text-center font-bold" name="tarimas_totales_bolsas" step="0.01"
-                                value="{{ old('tarimas_totales_bolsas', $costeoRequisicion->tarimas_totales_bolsas) }}" oninput="calcularTotalCostoTarimas()" readonly>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                            <div>
+                                <label class="text-sm font-medium text-gray-600">Bolsa:</label>
+                                <select name="costo_bolsa" class="w-full border border-gray-300 rounded-md p-2" oninput="asignarBolsa(), calcularTotalCostoBolsas()">
+                                    <option value="0">Seleccione una opción</option>
+                                    <option value="1.28" {{ old('costo_bolsa', $costeoRequisicion->costo_bolsa) == '1.28' ? 'selected' : '' }}>33x92 ----- $1.28</option>
+                                    <option value="1.42" {{ old('costo_bolsa', $costeoRequisicion->costo_bolsa) == '1.42' ? 'selected' : '' }}>37x92 ----- $1.42</option>
+                                    <option value="9.14" {{ old('costo_bolsa', $costeoRequisicion->costo_bolsa) == '9.14' ? 'selected' : '' }}>Doble bolsa ----- $9.14</option>
+                                    <option value="4.57" {{ old('costo_bolsa', $costeoRequisicion->costo_bolsa) == '4.57' ? 'selected' : '' }}>Estándar ----- $4.57</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-600">Tarima:</label>
+                                <select name="costo_tarima" class="w-full border border-gray-300 rounded-md p-2" onchange="asignarTarima(); calcularTotalCostoTarimas();">
+                                    <option value="0">Seleccione una opción</option>
+                                    <option value="122.22" {{ 
+                                        ($esquineros == 0 && $liner == 0) ? 'selected' : '' 
+                                    }}>Tarima ----- $122.22</option>
+                                    <option value="178.22" {{ 
+                                        ($esquineros == 1 && $liner == 0) ? 'selected' : '' 
+                                    }}>Tarima+esquineros ----- $178.22</option>
+                                    <option value="146.15" {{ 
+                                        ($esquineros == 0 && $liner == 1) ? 'selected' : '' 
+                                    }}>Tarima+liner ----- $146.15</option>
+                                    <option value="202.15" {{ 
+                                        ($esquineros == 1 && $liner == 1) ? 'selected' : '' 
+                                    }}>Tarima+liner+esquineros ----- $202.15</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 border-t pt-6">
+                                <table class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden">
+                                    <thead class="bg-[#848484] text-white">
+                                        <tr>
+                                            <th class="border border-gray-300 p-2 text-sm font-medium text-white">Cajas</th>
+                                            <th class="border border-gray-300 p-2 text-sm font-medium text-white"># Cajas</th>
+                                            <th class="border border-gray-300 p-2 text-sm font-medium text-white">Bolsas</th>
+                                            <th class="border border-gray-300 p-2 text-sm font-medium text-white"># Bolsas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th class="text-sm font-medium text-gray-600">Piezas por Caja</th>
+                                            <td class="border border-gray-300 p-2">
+                                                <input type="number" name="piezas_por_caja" step="1" class="w-full border-gray-300 border rounded-md p-1"
+                                                    value="{{ old('piezas_por_caja', $costeoRequisicion->piezas_por_caja) }}" oninput="calcularTotalCajas()">
+                                            </td>
+                                            <th class="border border-gray-300 p-2">
+                                                <button type="button" onclick="togglePiezasPorBolsa()" 
+                                                    class="font-medium px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200" title="Mostrar/Ocultar Piezas por Bolsa">
+                                                    Piezas por Bolsa
+                                                </button>
+                                            </th>
+                                            <td class="border border-gray-300 p-2">
+                                                <div class="grid gap-2" id="grid-piezas-bolsa">
+                                                    <input type="number" name="piezas_por_bolsa" id="input-piezas-bolsa" step="1" class="w-full border-gray-300 border rounded-md p-1"
+                                                        value="{{ old('piezas_por_bolsa', $costeoRequisicion->piezas_por_bolsa) }}" oninput="calcularPiezasPorCaja()">
+                                                    <input type="number" name="aux_piezas_por_bolsa" id="aux-piezas-bolsa" step="1" class="w-full border-gray-300 border rounded-md p-1 hidden"
+                                                        placeholder="Bolsas X caja" value="{{ old('aux_piezas_por_bolsa', $costeoRequisicion->aux_piezas_por_bolsa) }}" oninput="calcularPiezasPorCaja()">
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-sm font-medium text-gray-600 border border-gray-300">Cajas por Tarima</th>
+                                            <td class="border border-gray-300 p-2">
+                                                <input type="number" name="cajas_por_tarima" step="1" class="w-full border-gray-300 border rounded-md p-1" oninput="calcularTotalTarimasCajas(), calcularTotalCostoTarimas()"
+                                                    value="{{ old('cajas_por_tarima', $costeoRequisicion->cajas_por_tarima) }}">
+                                            </td>
+                                            <th class="text-sm font-medium text-gray-600 border border-gray-300">Bolsas por Tarima</th>
+                                            <td class="border border-gray-300 p-2">
+                                                <input type="number" name="bolsas_por_tarima" step="1" class="w-full border-gray-300 border rounded-md p-1" oninput="calcularTotalTarimasBolsas(), calcularTotalCostoTarimas()"
+                                                    value="{{ old('bolsas_por_tarima', $costeoRequisicion->bolsas_por_tarima) }}">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="text-sm font-medium text-gray-600 border border-gray-300">Total de Cajas</th>
+                                            <td class="border border-gray-300 bg-gray-50 p-2">
+                                                <input type="number" name="total_cajas" step="1" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700" oninput="calcularTotalTarimasCajas(), calcularTotalCostoCorrugado(),calcularTotalCostoTarimas()"
+                                                    value="{{ old('total_cajas', $costeoRequisicion->total_cajas) }}">
+                                            </td>
+                                            <th class="text-sm font-medium text-gray-600 border border-gray-300">Total de Bolsas</th>
+                                            <td class="border border-gray-300 bg-gray-50 p-2">
+                                                <input type="number" name="total_bolsas" step="1" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700" oninput="calcularTotalTarimasBolsas(), calcularTotalCostoBolsas(),calcularTotalCostoTarimas()"
+                                                    value="{{ old('total_bolsas', $costeoRequisicion->total_bolsas) }}">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="border border-gray-300 bg-gray-50 p-2">Tarimas Totales Cajas</th>
+                                            <td class="border border-gray-300 bg-gray-50 p-2">
+                                                <input class="w-full p-2 text-center font-bold cursor-not-allowed" name="tarimas_totales_cajas" step="0.01"
+                                                    value="{{ old('tarimas_totales_cajas', $costeoRequisicion->tarimas_totales_cajas) }}" oninput="calcularTotalCostoTarimas()" readonly>
+                                            </td>
+                                            <th class="border border-gray-300 bg-gray-50 p-2">Tarimas Totales Bolsas</th>
+                                            <td class="border border-gray-300 bg-gray-50 p-2">
+                                                <input class="w-full p-2 text-center font-bold cursor-not-allowed" name="tarimas_totales_bolsas" step="0.01"
+                                                    value="{{ old('tarimas_totales_bolsas', $costeoRequisicion->tarimas_totales_bolsas) }}" oninput="calcularTotalCostoTarimas()" readonly>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                    </div>
         </fieldset>
         <script>
             function calcularPiezasPorCaja() {
@@ -1820,13 +2472,12 @@ $esCorridaPiloto = false;
                 const cajas = parseInt(document.querySelector('input[name="cajas_por_tarima"]').value) || 0;
                 const resultado = cajas > 0 ? totalcajas / cajas : 0;
                 document.querySelector('input[name="tarimas_totales_cajas"]').value = resultado.toFixed(2);
-
+                calcularTotalCostoTarimas();
             }
 
             function asignarCajasPorTarima() {
                 const costoCorrugado = parseFloat(document.querySelector('select[name="costo_corrugado"]').value) || 0;
 
-                // Mapeo de costos de corrugado a cajas por tarima y texto
                 const cajasPorTarimaMap = {
                     20.10: {
                         cajas: 24,
@@ -1865,13 +2516,14 @@ $esCorridaPiloto = false;
                 const totalBolsas = parseInt(document.querySelector('input[name="total_bolsas"]').value) || 0;
                 const bolsas = parseInt(document.querySelector('input[name="bolsas_por_tarima"]').value) || 0;
                 const resultado = bolsas > 0 ? (totalBolsas / bolsas) : 0;
-                document.querySelector('input[name="tarimas_totales_bolsas"]').value = resultado.toFixed(2);
+                const redondeado = Math.round(resultado * 10) / 10;
+                document.querySelector('input[name="tarimas_totales_bolsas"]').value = redondeado.toFixed(1);
+                calcularTotalCostoTarimas();
                 calcularCostoTotalEmpaque();
             }
 
             function asignarBolsa() {
                 const costoBolsa = parseFloat(document.querySelector('select[name="costo_bolsa"]').value) || 0;
-                // Mapeo de costos de bolsa a texto
                 const bolsaMap = {
                     1.28: "33x92 con costo de $1.28",
                     1.42: "37x92 con costo de $1.42",
@@ -1889,7 +2541,6 @@ $esCorridaPiloto = false;
 
             function asignarTarima() {
                 const costoTarima = parseFloat(document.querySelector('select[name="costo_tarima"]').value) || 0;
-                // Mapeo de costos de tarima a texto
                 const tarimaMap = {
                     122.22: "Tarima con costo de $122.22",
                     178.22: "Tarima+esquineros con costo de $178.22",
@@ -1902,7 +2553,7 @@ $esCorridaPiloto = false;
                     textoTarima = tarimaMap[costoTarima];
                 }
                 document.querySelector('input[name="caja_tarima_copia"]').value = textoTarima;
-                document.querySelector('input[name="total_tarima"]').value = costoTarima;
+                calcularTotalCostoTarimas();
             }
 
             function calcularTotalCostoTarimas() {
@@ -1942,99 +2593,87 @@ $esCorridaPiloto = false;
             }
 
             function togglePiezasPorBolsa() {
-                // Obtener los elementos
                 const auxBolsa = document.getElementById('aux-piezas-bolsa');
                 const gridBolsa = document.getElementById('grid-piezas-bolsa');
-                
-                // Verificar si está oculto
                 const isHidden = auxBolsa.classList.contains('hidden');
                 
                 if (isHidden) {
-                    // Mostrar input auxiliar
                     auxBolsa.classList.remove('hidden');
-                    // Cambiar a grid de 2 columnas
                     gridBolsa.classList.add('grid-cols-2');
                 } else {
-                    // Ocultar input auxiliar
                     auxBolsa.classList.add('hidden');
-                    // Cambiar a grid de 1 columna (ocupa todo el espacio)
                     gridBolsa.classList.remove('grid-cols-2');
                 }
             }
         </script>
 
-        <!-- SECCIÓN: COSTOS DE EMPAQUE -->
-        <fieldset>
-            <legend>Costos de Empaque</legend>
-
-            <table class="w-full border-collapse border border-gray-400 text-center">
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Costos de Empaque -</legend>
+            <table class="w-full border border-gray-200 text-sm text-center rounded-lg overflow-hidden">
                 <thead class="bg-[#848484] text-white">
                     <tr>
-                        <th class="border border-gray-300 p-2">Concepto</th>
-                        <th class="border border-gray-300 p-2">Costo</th>
-                        <th class="border border-gray-300 p-2">Total</th>
+                        <th class="border border-gray-300 p-2 text-white text-left">Concepto</th>
+                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Costo</th>
+                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="border border-gray-300 p-2 font-medium">Corrugado</td>
+                        <td class="text-sm font-medium text-gray-600">Corrugado</td>
                         <td class="border border-gray-300 p-2">
-                            <input type="text" class="w-full border border-gray-300 rounded-md p-1 bg-gray-50"
+                            <input type="text" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
                                 name="caja_corrugado_copia" readonly>
                         </td>
                         <td class="border border-gray-300 p-2 text-gray-600">
-                            <input type="number" step="0.01" class="w-full border border-gray-300 rounded-md p-1" name="total_corrugado"
+                            <input type="number" step="0.01" class="w-full border-gray-300 border rounded-md p-1 text-center" name="total_corrugado"
                                 value="{{ old('total_corrugado', $costeoRequisicion->total_corrugado)}}" oninput="calcularCostoTotalEmpaque()">
                         </td>
                     </tr>
                     <tr>
-                        <td class=" border border-gray-300 p-2 font-medium">Bolsa</td>
+                        <td class="text-sm font-medium text-gray-600 border border-gray-300 p-2">Bolsa</td>
                         <td class="border border-gray-300 p-2">
-                            <input type="text" class="w-full border border-gray-300 rounded-md p-1 bg-gray-50"
+                            <input type="text" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
                                 name="caja_bolsa_copia" readonly>
                         </td>
                         <td class="border border-gray-300 p-2 text-gray-600">
-                            <input type="number" step="0.01" class="w-full border border-gray-300 rounded-md p-1" name="total_bolsa"
+                            <input type="number" step="0.01" class="w-full border-gray-300 border rounded-md p-1 text-center" name="total_bolsa"
                                 value="{{ old('total_bolsa', $costeoRequisicion->total_bolsa)}}" oninput="calcularCostoTotalEmpaque()">
                         </td>
                     </tr>
                     <tr>
-                        <td class="border border-gray-300 p-2 font-medium">Tarima</td>
+                        <td class="text-sm font-medium text-gray-600 border border-gray-300 p-2">Tarima</td>
                         <td class="border border-gray-300 p-2">
-                            <input type="text" class="w-full border border-gray-300 rounded-md p-1 bg-gray-50"
+                            <input type="text" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
                                 name="caja_tarima_copia" readonly>
                         </td>
                         <td class="border border-gray-300 p-2 text-gray-600">
-                            <input type="number" step="0.01" class="w-full border border-gray-300 rounded-md p-1" name="total_tarima"
+                            <input type="number" step="0.01" class="w-full border-gray-300 border rounded-md p-1 text-center" name="total_tarima"
                                 value="{{ old('total_tarima', $costeoRequisicion->total_tarima)}}" oninput="calcularCostoTotalEmpaque()">
                         </td>
                     </tr>
                     <tr class="bg-gray-50 font-semibold">
                         <td class="border border-gray-300 p-2 text-center" colspan="2">Costos Totales de Empaque</td>
                         <td class="border border-gray-300 p-2">
-                            <input class="w-full p-2 text-center font-bold" name="costo_empaque_total" step="0.01"
+                            <input class="w-full p-2 text-center font-bold cursor-not-allowed" name="costo_empaque_total" step="0.01"
                                 value="{{ old('costo_empaque_total', $costeoRequisicion->costo_empaque_total)}}" readonly>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </fieldset>
-
-        <!-- SECCIÓN: COSTOS ADICIONALES -->
-        <fieldset>
-            <legend>Costos de Procesos Adicionales</legend>
-
-            <table class="w-full border-collapse border border-gray-400 text-center">
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Costos de Procesos Adicionales -</legend>
+            <table class="w-full border border-gray-200 text-sm text-center rounded-lg overflow-hidden">
                 <thead class="bg-[#848484] text-white">
                     <tr>
-                        <th class="border border-gray-300 p-2">Concepto</th>
-                        <th class="border border-gray-300 p-2">Factores de Cálculo</th>
-                        <th class="border border-gray-300 p-2">Valor</th>
+                        <th class="border border-gray-300 p-2 text-left">Concepto</th>
+                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Factores de Cálculo</th>
+                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Valor</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="border border-gray-300 p-2 font-medium">Proceso de inocuidad</td>
+                        <td class="text-sm font-medium text-gray-600">Proceso de inocuidad</td>
                         <td class="border border-gray-300 p-2">
                             <input type="text" name="proceso_de_inocuidad" class="w-full border border-gray-300 rounded-md p-1 text-center" value="{{ $proceso_de_inocuidad == 1 ? 'Sí' : ($proceso_de_inocuidad == 0 ? 'No' : $proceso_de_inocuidad) }}" disabled>
                         </td>
@@ -2054,18 +2693,18 @@ $esCorridaPiloto = false;
                         </td>
                     </tr>
                     <tr>
-                        <td class="border border-gray-300 p-2 font-medium">Tipo de pared</td>
+                        <td class="text-sm font-medium text-gray-600 border border-gray-300 p-2">Tipo de pared</td>
                         <td class="border border-gray-300 p-2">
                             <input type="text" value="{{$pared}}" class="w-full border border-gray-300 rounded-md p-1 text-center" disabled>
                         </td>
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.0001" name="costo_pared" class="w-full border border-gray-300 rounded-md p-1 text-center" placeholder="$0.00"
                                 value="{{old('costo_pared', $costeoRequisicion->costo_pared)}}"
-                                onchange="document.querySelector('input[name=&quot;resumen_costo_polipropileno&quot;]').value = this.value" disabled>
+                                onchange="document.querySelector('input[name=&quot;r2esumen_costo_polipropileno&quot;]').value = this.value" disabled>
                         </td>
                     </tr>
                     <tr>
-                        <td class="border border-gray-300 p-2 font-medium">Aplicación de estaticida</td>
+                        <td class="text-sm font-medium text-gray-600 border border-gray-300 p-2">Aplicación de estaticida</td>
                         <td class="border border-gray-300 p-2">
                             <div class="grid gap-2" id="grid-estaticida">
                                 <select class="w-full rounded-md p-1 border-blue-600 bg-blue-500 font-medium text-white [&>option]:bg-white [&>option]:text-gray-900" name="aplicacion_estaticida" onchange="toggleEstaticidaInputs()" title="Seleccione si se aplicará estaticida, para mostrar u ocultar los campos auxiliares">
@@ -2083,20 +2722,15 @@ $esCorridaPiloto = false;
                                         const isNo = selectEstaticida.value === 'no';
                                         
                                         if (isNo) {
-                                            // Ocultar inputs auxiliares
                                             auxPersonas.classList.add('hidden');
                                             auxPiezas.classList.add('hidden');
-                                            // Cambiar a grid de 1 columna
                                             gridEstaticida.classList.remove('grid-cols-3');
-                                            // Deshabilitar costo total
                                             costoEstaticidaInput.disabled = true;
                                             costoEstaticidaInput.value = '';
                                             document.querySelector('input[name="resumen_costo_estaticidad"]').value = '';
                                         } else {
-                                            // Mostrar inputs auxiliares
                                             auxPersonas.classList.remove('hidden');
                                             auxPiezas.classList.remove('hidden');
-                                            // Cambiar a grid de 3 columnas
                                             gridEstaticida.classList.add('grid-cols-3');
                                             costoEstaticidaInput.disabled = false;
                                         }
@@ -2115,7 +2749,7 @@ $esCorridaPiloto = false;
                         </td>
                     </tr>
                     <tr>
-                        <td class="border border-gray-300 p-2 font-medium">Maquila</td>
+                        <td class="text-sm font-medium text-gray-600 border border-gray-300 p-2">Maquila</td>
                         <td class="border border-gray-300 p-2">
                             <select name="maquila" id="maquila"
                                     class="w-full border border-gray-300 rounded-md p-1">
@@ -2125,7 +2759,7 @@ $esCorridaPiloto = false;
                         </td>
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.01" name="costo_maquila_total"
-                                    class="w-full border border-gray-300 rounded-md p-1 text-center bg-gray-100" readonly>
+                                    class="w-full border border-gray-300 rounded-md p-1 text-center bg-gray-200" readonly>
                         </td>
                     </tr>
                     <tr id="bloque-maquila" class="hidden">
@@ -2137,23 +2771,23 @@ $esCorridaPiloto = false;
                                 </div>
                                 <div>
                                     <label class="text-sm font-semibold">Costo MO x Persona</label>
-                                    <input type="number" value="450" readonly class="w-full border p-1 bg-gray-100">
+                                    <input type="number" value="450" readonly class="w-full border p-1 bg-gray-200">
                                 </div>
                                 <div>
                                     <label class="text-sm font-semibold">Total MO</label>
-                                    <input type="number" name="maquila_total_mo" readonly class="w-full border p-1 bg-gray-100">
+                                    <input type="number" name="maquila_total_mo" readonly class="w-full border p-1 bg-gray-200">
                                 </div>
                                 <div>
                                     <label class="text-sm font-semibold">E. Eléctrica</label>
-                                    <input type="number" value="1.4" readonly class="w-full border p-1 bg-gray-100">
+                                    <input type="number" value="1.4" readonly class="w-full border p-1 bg-gray-200">
                                 </div>
                                 <div>
                                     <label class="text-sm font-semibold">Amortización</label>
-                                    <input type="number" value="1.7" readonly class="w-full border p-1 bg-gray-100">
+                                    <input type="number" value="1.7" readonly class="w-full border p-1 bg-gray-200">
                                 </div>
                                 <div>
                                     <label class="text-sm font-semibold">Total Maquinaria</label>
-                                    <input type="number" name="maquila_total_maquinaria" readonly class="w-full border p-1 bg-gray-100">
+                                    <input type="number" name="maquila_total_maquinaria" readonly class="w-full border p-1 bg-gray-200">
                                 </div>
                                 <div>
                                     <label class="text-sm font-semibold">Camas de sello</label>
@@ -2169,15 +2803,15 @@ $esCorridaPiloto = false;
                                 </div>
                                 <div>
                                     <label class="text-sm font-semibold">Sellados / hora</label>
-                                    <input type="number" name="maquila_sellados_hora" readonly class="w-full border p-1 bg-gray-100">
+                                    <input type="number" name="maquila_sellados_hora" readonly class="w-full border p-1 bg-gray-200">
                                 </div>
                                 <div>
                                     <label class="text-sm font-semibold">Sellados / turno</label>
-                                    <input type="number" name="maquila_sellados_turno" readonly class="w-full border p-1 bg-gray-100">
+                                    <input type="number" name="maquila_sellados_turno" readonly class="w-full border p-1 bg-gray-200">
                                 </div>
                                 <div>
                                     <label class="text-sm font-semibold"># Turnos</label>
-                                    <input type="number" name="maquila_turnos" readonly class="w-full border p-1 bg-gray-100">
+                                    <input type="number" name="maquila_turnos" readonly class="w-full border p-1 bg-gray-200">
                                 </div>
                             </div>
                         </td>
@@ -2248,58 +2882,57 @@ $esCorridaPiloto = false;
                 }
             }
 
-            function calcularParedMedia() {
-                const pared = "{{ $pared }}"; // Obtener el valor de $pared desde el servidor
-                if (pared !== "Media") {
-                    return; // Salir si $pared no es "Media"
+
+
+function calcularParedMedia(){ 
+    const pared = "{{ $pared }}"; 
+    if (pared !== "Media") { 
+        document.querySelector('input[name="costo_pared"]').value = '0'; 
+        document.querySelector('input[name="resumen_costo_polipropileno"]').value = '0'; 
+        calcularResumenCostos(); 
+        return; 
+    } 
+    const tabla_polipropileno = 146.43; 
+    const tabla48 = 1219.2; 
+    const tabla96 = 2438.4; 
+    const avance = document.querySelector('input[name="hoja_avance"]'); 
+    const ancho = document.querySelector('input[name="hoja_ancho"]'); 
+    const cantidad_hojas = parseInt(document.querySelector('input[name="cantidad_hojas"]').value) || 0; 
+    const valorAdicional = parseFloat(document.querySelector('input[name="valor_media"]').value) || 0; 
+    const cortes48 = (tabla48 / ancho); 
+    const cortes96 = (tabla96 / avance); 
+    const cortesTotales = cortes48 * cortes96; 
+    const tablapolipropileno = tabla_polipropileno * 19; 
+    const porcorte = tablapolipropileno / cortesTotales; 
+    const corteFinal = porcorte * +20; 
+    const media= (cantidad_hojas/ valorAdicional) * corteFinal; 
+    document.querySelector('input[name="costo_pared"]').value = media.toFixed(2); 
+    document.querySelector('input[name="resumen_costo_polipropileno"]').value = media.toFixed(2); 
+    calcularResumenCostos(); }
+
+            function calcularEstaticida() {
+                const costo_litro_dolar = 7.00;
+                const tipo_cambio = 19.00;
+                const piezas_por_litro = 250;
+                const costo_diario_persona = 450;
+                const horas_turno = 11;
+                const piezas_turno =
+                    parseFloat(document.querySelector('input[name="total_piezas_turno_suaje"]')?.value) || 0;
+                const personas =
+                    parseInt(document.querySelector('input[name="no_personas_estaticida"]')?.value) || 0;
+
+                if (piezas_turno <= 0 || personas <= 0) {
+                    document.getElementById('costo-estaticida-total').value = '';
+                    return;
                 }
 
-                const tablaPolipropileno48 = 1219.2;
-                const tablaPolipropileno96 = 2438.4;
-
-                const hoja_ancho = parseFloat(document.querySelector('input[name="hoja_ancho"]').value) || 0;
-                const hoja_avance = parseFloat(document.querySelector('input[name="hoja_avance"]').value) || 0;
-
-                const rem = Math.floor(tablaPolipropileno48 / hoja_ancho);
-                const ram = Math.floor(tablaPolipropileno96 / hoja_avance);
-                const cantidadCortes = rem * ram;
-                const tablaPolipropileno = 2782.17;
-                const emilia = tablaPolipropileno / cantidadCortes;
-                cantidad_hojas = parseInt(document.querySelector('input[name="cantidad_hojas"]').value) || 0;
-                const resultado = (cantidad_hojas / 250) * (emilia + 20);
-                document.querySelector('input[name="costo_pared"]').value = resultado.toFixed(4);
-                document.querySelector('input[name="resumen_costo_polipropileno"]').value = resultado.toFixed(4);
-                calcularResumenCostos();
-            }
-
-       function calcularEstaticida() {
-            const costo_litro_dolar = 7.00;
-            const tipo_cambio = 19.00;
-            const piezas_por_litro = 250;
-            const costo_diario_persona = 450;
-            const horas_turno = 11;
-
-            const piezas_turno =
-                parseFloat(document.querySelector('input[name="total_piezas_turno_suaje"]')?.value) || 0;
-
-            const personas =
-                parseInt(document.querySelector('input[name="no_personas_estaticida"]')?.value) || 0;
-
-            if (piezas_turno <= 0 || personas <= 0) {
-                document.getElementById('costo-estaticida-total').value = '';
-                return;
-            }
-
             const costo_litro_pesos = costo_litro_dolar * tipo_cambio;
-
             const piezas_por_hora = piezas_turno / horas_turno;
             document.getElementById('aux-piezas-estaticida').value = piezas_por_hora.toFixed(2);
 
             const estaticida_por_pieza = costo_litro_pesos / piezas_por_litro;
-
             const total_MO = personas * costo_diario_persona;
             const MO_por_pieza = total_MO / piezas_turno;
-
             const estaticida_total = estaticida_por_pieza + MO_por_pieza;
 
             document.getElementById('costo-estaticida-total').value = estaticida_total.toFixed(2);
@@ -2309,48 +2942,68 @@ $esCorridaPiloto = false;
         }
         </script>
 
-        <!-- COSTEO DE HERRAMENTALES -->
-        <fieldset>
-            <legend>Costeo Herramentales</legend>
-
-            <table class="w-full border-collapse border border-gray-300 text-center mb-6">
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>- Costeo Herramentales -</legend>
+            <div class="mb-6 border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border border-gray-200 rounded-xl p-6 bg-white shadow-sm items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-red-800 mb-2"> Calcular Medidas</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">
+                            El sistema necesita calcular las medidas mediante el botón 
+                            <span class="font-semibold text-gray-700">“Medidas”</span>. 
+                            Si no se ejecuta este cálculo, no se podrán determinar correctamente 
+                            los ajustes ni el costo del nylon.
+                        </p>
+                    </div>
+                    <div class="flex flex-col items-center justify-center">
+                        <label class="text-xs text-gray-400 mb-2">Acción requerida</label>
+                        <button 
+                            name="botonMedidasHerramentales"
+                            type="button"
+                            onclick="calcularMedidasHerramentales()"
+                            title="Calcular ajustes de herramentales"
+                            class="mt-1 block font-bold w-full rounded-md border-gray-500 shadow-sm bg-gray-300 hover:bg-gray-400 text-gray-800 py-2">
+                            Medidas
+                        </button>
+                        <p id="mensaje-medidas-herramentales" class="text-xs text-red-600 mt-2 text-center">
+                            Debe calcular las medidas antes de continuar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <table name="tablaMedidasHerramentales" class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden">
                 <thead class="bg-[#848484] text-white">
                     <tr class="border-b font-semibold">
-                        <th class="border border-gray-300 p-2">
-                            <button type="button" onclick="calcularAjustesHerramentales2()" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" title="Calcular ajustes de herramentales: Toma como medidas de molde las dimensiones de la pieza.">
-                                Medidas
-                            </button>
-                        </th>
-                        <th class="border border-gray-300 p-2">Ajuste</th>
-                        <th class="border border-gray-300 p-2">Medida bloque</th>
-                        <th class="border border-gray-300 p-2">Kilos</th>
+                        <th class="border border-gray-300 p-2">Medidas</th>
+                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Ajuste</th>
+                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Medida bloque</th>
+                        <th class="border border-gray-300 p-2 text-sm font-medium text-white">Kilos</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     <tr class="border-none h-14">
-                        <td><input type="number" name="molde_avance_copia" class="w-full border rounded px-1 py-1 text-right" value="{{old('molde_avance_copia', $costeoRequisicion->molde_avance_copia)}}" readonly></td>
-                        <td><input type="number" step="0.05" name="ajuste_avance" class="w-full border rounded px-1 py-1 text-right" value="{{old('ajuste_avance', $costeoRequisicion->ajuste_avance)}}" oninput="calcularMedidasBloques()"></td>
-                        <td><input type="number" step="0.01" name="medida_bloque_avance" class="w-full border rounded px-1 py-1 text-right" value="{{old('medida_bloque_avance', $costeoRequisicion->medida_bloque_avance)}}"></td>
+                        <td><input type="number" name="molde_avance_copia" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 text-center cursor-not-allowed" value="{{old('molde_avance_copia', $costeoRequisicion->molde_avance_copia)}}" readonly></td>
+                        <td><input type="number" step="0.05" name="ajuste_avance" class="w-full border rounded px-1 py-1 text-center" value="{{old('ajuste_avance', $costeoRequisicion->ajuste_avance)}}" oninput="recalcularDesdeAjustes('ajuste_avance')" disabled></td>
+                        <td><input type="number" step="0.01" name="medida_bloque_avance" class="w-full border rounded px-1 py-1 text-center" value="{{old('medida_bloque_avance', $costeoRequisicion->medida_bloque_avance)}}"></td>
                        </tr>
                     <tr class="border-b h-14">
-                        <td> <input type="number" name="molde_ancho_copia" class="w-full border rounded px-1 py-1 text-right" value="{{old('molde_ancho_copia', $costeoRequisicion->molde_ancho_copia)}}" readonly> </td>
-                        <td> <input type="number" step="0.5" name="ajuste_ancho" value="{{old('ajuste_ancho', $costeoRequisicion->ajuste_ancho)}}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularMedidasBloques()"></td>
-                        <td><input type="number" step="0.01" name="medida_bloque_ancho" value="{{old('medida_bloque_ancho', $costeoRequisicion->medida_bloque_ancho)}}" class="w-full border rounded px-1 py-1 text-right"></td>
+                        <td> <input type="number" name="molde_ancho_copia" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 text-center cursor-not-allowed" value="{{old('molde_ancho_copia', $costeoRequisicion->molde_ancho_copia)}}" readonly> </td>
+                        <td> <input type="number" step="0.5" name="ajuste_ancho" value="{{old('ajuste_ancho', $costeoRequisicion->ajuste_ancho)}}" class="w-full border rounded px-1 py-1 text-center" oninput="recalcularDesdeAjustes('ajuste_ancho')" disabled></td>
+                        <td><input type="number" step="0.01" name="medida_bloque_ancho" value="{{old('medida_bloque_ancho', $costeoRequisicion->medida_bloque_ancho)}}" class="w-full border rounded px-1 py-1 text-center"></td>
                         <td>
                             <input type="number" name="kilos"
-                                class="w-full h-full border rounded-none text-right block"
+                                class="w-full h-full border rounded-none text-center block cursor-not-allowed bg-gray-200" readonly
                                 style="box-sizing: border-box;" value="{{old('kilos', $costeoRequisicion->kilos)}}">
                         </td>
                     </tr>
                     <tr class="border-b h-14">
-                        <td><input type="number" value="{{$pieza_alto}}" class="w-full border rounded px-1 py-1 text-right" readonly></td>
-                        <td><input type="number" step="0.5" name="ajuste_alto" value="{{old('ajuste_alto', $costeoRequisicion->ajuste_alto)}}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularMedidasBloques()"></td>
-                        <td><input type="number" step="0.01" name="medida_bloque_alto" value="{{old('medida_bloque_alto', $costeoRequisicion->medida_bloque_alto)}}" class="w-full border rounded px-1 py-1 text-right"></td>
+                        <td><input type="number" value="{{$pieza_alto}}" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 text-center cursor-not-allowed" readonly></td>
+                        <td><input type="number" step="0.5" name="ajuste_alto" value="{{old('ajuste_alto', $costeoRequisicion->ajuste_alto)}}" class="w-full border rounded px-1 py-1 text-center" oninput="recalcularDesdeAjustes('ajuste_alto')" disabled></td>
+                        <td><input type="number" step="0.01" name="medida_bloque_alto" value="{{old('medida_bloque_alto', $costeoRequisicion->medida_bloque_alto)}}" class="w-full border rounded px-1 py-1 text-center"></td>
                     </tr>
                     <tr class="bg-gray-50 font-semibold">
                         <td></td>
-                        <td class="text-center text-gray-700">Totales</td>
+                        <td class="text-right text-gray-700">Nylon</td>
                         <td></td>
                         <td class="text-center p-2">
                             <input name="constante_empujador" value="{{old('constante_empujador', $costeoRequisicion->constante_empujador)}}" class="w-full p-2 text-center font-bold" readonly>
@@ -2360,32 +3013,172 @@ $esCorridaPiloto = false;
             </table>
 
             <script>
-                function calcularAjustesHerramentales() {
-                    const molde_ancho = parseFloat(document.querySelector('input[name="molde_ancho"]').value) || 0;
-                    const molde_avance = parseFloat(document.querySelector('input[name="molde_avance"]').value) || 0;
-                    const molde_alto = parseFloat(document.querySelector('input[name="alto"]').value) || 0;
-                    const resultado_ancho = (Math.ceil(molde_ancho / 25.4)) + 1;
-                    const resultado_avance = (Math.ceil(molde_avance / 25.4)) + 1;
-                    const resultado_alto = (Math.ceil(molde_alto / 25.4)) + 1;
-                    document.querySelector('input[name="ajuste_ancho"]').value = resultado_ancho.toFixed(2);
-                    document.querySelector('input[name="ajuste_avance"]').value = resultado_avance.toFixed(2);
-                    document.querySelector('input[name="ajuste_alto"]').value = resultado_alto.toFixed(2);
+                let medidasCalculadas = false;
+
+                function obtenerInputMedidas(name) {
+                    return document.querySelector(`input[name="${name}"]`);
+                }
+
+                function obtenerNumeroMedidas(name) {
+                    return parseFloat(obtenerInputMedidas(name)?.value) || 0;
+                }
+
+                function limpiarResultadosMedidasHerramentales() {
+                    ['medida_bloque_alto', 'medida_bloque_avance', 'medida_bloque_ancho', 'kilos', 'constante_empujador'].forEach(name => {
+                        const input = obtenerInputMedidas(name);
+                        if (input) {
+                            input.value = '';
+                        }
+                    });
+                }
+
+                function hayResultadosCalculadosHerramentales() {
+                    return ['medida_bloque_alto', 'medida_bloque_avance', 'medida_bloque_ancho', 'kilos', 'constante_empujador']
+                        .every(name => obtenerNumeroMedidas(name) > 0);
+                }
+
+                function habilitarEdicionAjustes(habilitado) {
+                    ['ajuste_ancho', 'ajuste_avance', 'ajuste_alto'].forEach(name => {
+                        const input = obtenerInputMedidas(name);
+                        if (!input) {
+                            return;
+                        }
+
+                        input.disabled = !habilitado;
+                        input.classList.toggle('bg-gray-100', !habilitado);
+                        input.classList.toggle('cursor-not-allowed', !habilitado);
+                    });
+                }
+
+                function recalcularDesdeAjustes(origen = 'ajuste_manual') {
+                    if (!medidasCalculadas) {
+                        console.info('[Herramentales] Ajuste ignorado: primero presiona Medidas.', { origen });
+                        return;
+                    }
+
+                    console.info('[Herramentales] Recalculo por ajuste manual.', { origen });
                     calcularMedidasBloques();
                 }
 
-                function calcularAjustesHerramentales2() {
-                    const molde_ancho = {{$pieza_ancho}};
-                    const molde_avance = {{$pieza_largo}};
-                    const molde_alto = {{$pieza_alto}};
-                    document.querySelector('input[name="molde_ancho_copia"]').value = molde_ancho.toFixed(2);
-                    document.querySelector('input[name="molde_avance_copia"]').value = molde_avance.toFixed(2);
-                    const resultado_ancho = (Math.ceil(molde_ancho / 25.4)) + 1;
-                    const resultado_avance = (Math.ceil(molde_avance / 25.4)) + 1;
-                    const resultado_alto = (Math.ceil(molde_alto / 25.4)) + 1;
-                    document.querySelector('input[name="ajuste_ancho"]').value = resultado_ancho.toFixed(2);
-                    document.querySelector('input[name="ajuste_avance"]').value = resultado_avance.toFixed(2);
-                    document.querySelector('input[name="ajuste_alto"]').value = resultado_alto.toFixed(2);
+                function actualizarEstadoGuardadoHerramentales() {
+                    const form = document.getElementById('costeoForm');
+                    if (!form) {
+                        return;
+                    }
+
+                    const mensaje = document.getElementById('mensaje-medidas-herramentales');
+                    const submitButtons = form.querySelectorAll('button[type="submit"]');
+
+                    submitButtons.forEach(button => {
+                        button.disabled = !medidasCalculadas;
+                        button.classList.toggle('opacity-50', !medidasCalculadas);
+                        button.classList.toggle('cursor-not-allowed', !medidasCalculadas);
+                    });
+
+                    if (mensaje) {
+                        mensaje.textContent = medidasCalculadas
+                            ? 'Medidas calculadas correctamente. Ya puedes continuar.'
+                            : 'Debe calcular las medidas antes de continuar.';
+                        mensaje.classList.toggle('text-red-600', !medidasCalculadas);
+                        mensaje.classList.toggle('text-green-700', medidasCalculadas);
+                    }
+                }
+
+                function marcarMedidasComoPendientes(origen = 'manual', limpiar = true) {
+                    console.info('[Herramentales] Medidas pendientes.', { origen, limpiar, medidasCalculadas });
+                    medidasCalculadas = false;
+                    habilitarEdicionAjustes(false);
+
+                    if (limpiar) {
+                        limpiarResultadosMedidasHerramentales();
+                    }
+
+                    actualizarEstadoGuardadoHerramentales();
+                }
+
+                function calcularMedidasHerramentales(force = false) {
+                    // Obtener valor de insertos
+                    const insertos = parseFloat(document.querySelector('input[name="insertos"]')?.value) || 0;
+
+                    // Obtener valores actuales del formulario
+                    const largo = parseFloat(document.querySelector('input[name="largo"]')?.value) || 0;
+                    const ancho = parseFloat(document.querySelector('input[name="ancho"]')?.value) || 0;
+                    const moldeAnchoForm = parseFloat(document.querySelector('input[name="molde_ancho"]')?.value) || 0;
+                    const moldeAvanceForm = parseFloat(document.querySelector('input[name="molde_avance"]')?.value) || 0;
+                    const altoValue = parseFloat(@json($pieza_alto)) || 0;
+
+                    // Condicionar la fuente de datos según insertos
+                    let moldeAncho, moldeAvance;
+                    if (insertos !== 1) {
+                        // Caso 1: insertos != 1 → usar valores del molde
+                        moldeAncho = moldeAnchoForm;
+                        moldeAvance = moldeAvanceForm;
+                    } else {
+                        // Caso 2: insertos == 1 → usar valores originales
+                        moldeAncho = ancho;
+                        moldeAvance = largo;
+                    }
+                    const moldeAlto = altoValue;
+
+                    console.group('[Herramentales] calcularMedidasHerramentales');
+                    console.log('Entrada', { insertos, moldeAncho, moldeAvance, moldeAlto, force, medidasCalculadas, DEBUG: {largo, ancho, moldeAnchoForm, moldeAvanceForm} });
+
+                    if (medidasCalculadas && !force) {
+                        console.info('Cálculo omitido: ya existe una corrida vigente.');
+                        console.groupEnd();
+                        return;
+                    }
+
+                    if (hayResultadosCalculadosHerramentales() && !force && !confirm('Ya existen resultados calculados. ¿Deseas recalcular las medidas?')) {
+                        console.info('Re-cálculo cancelado por el usuario.');
+                        console.groupEnd();
+                        return;
+                    }
+
+                    limpiarResultadosMedidasHerramentales();
+
+                    const inputMoldeAnchoCopia = obtenerInputMedidas('molde_ancho_copia');
+                    const inputMoldeAvanceCopia = obtenerInputMedidas('molde_avance_copia');
+                    if (inputMoldeAnchoCopia) {
+                        inputMoldeAnchoCopia.value = moldeAncho.toFixed(2);
+                    }
+                    if (inputMoldeAvanceCopia) {
+                        inputMoldeAvanceCopia.value = moldeAvance.toFixed(2);
+                    }
+
+                    const resultadoAncho = (Math.ceil(moldeAncho / 25.4)) + 1;
+                    const resultadoAvance = (Math.ceil(moldeAvance / 25.4)) + 1;
+                    const resultadoAlto = (Math.ceil(moldeAlto / 25.4)) + 1;
+
+                    obtenerInputMedidas('ajuste_ancho').value = resultadoAncho.toFixed(2);
+                    obtenerInputMedidas('ajuste_avance').value = resultadoAvance.toFixed(2);
+                    obtenerInputMedidas('ajuste_alto').value = resultadoAlto.toFixed(2);
+
                     calcularMedidasBloques();
+
+                    medidasCalculadas = true;
+                    habilitarEdicionAjustes(true);
+                    actualizarEstadoGuardadoHerramentales();
+
+                    console.log('Salida', {
+                        ajusteAncho: obtenerNumeroMedidas('ajuste_ancho'),
+                        ajusteAvance: obtenerNumeroMedidas('ajuste_avance'),
+                        ajusteAlto: obtenerNumeroMedidas('ajuste_alto'),
+                        medidaBloqueAncho: obtenerNumeroMedidas('medida_bloque_ancho'),
+                        medidaBloqueAvance: obtenerNumeroMedidas('medida_bloque_avance'),
+                        medidaBloqueAlto: obtenerNumeroMedidas('medida_bloque_alto'),
+                        kilos: obtenerNumeroMedidas('kilos'),
+                        constanteEmpujador: obtenerNumeroMedidas('constante_empujador')
+                    });
+                    console.groupEnd();
+                }
+
+                function calcularAjustesHerramentales() {
+                    marcarMedidasComoPendientes('calcularAjustesHerramentales_legacy');
+                }
+
+                function calcularAjustesHerramentales2() {
+                    calcularMedidasHerramentales(true);
                 }
 
                 function calcularMedidaBloqueAlto() {
@@ -2432,20 +3225,23 @@ $esCorridaPiloto = false;
                 }
 
                 function calcularConstanteEmpujador() {
-                    //=+(REDONDEAR.MAS(((E108/1000)*(E109/1000)*E110*1.16),0))
                     const ajusteAlto = parseFloat(document.querySelector('input[name="medida_bloque_alto"]').value) || 0;
                     const ajusteAvance = parseFloat(document.querySelector('input[name="medida_bloque_avance"]').value) || 0;
                     const ajusteAncho = parseFloat(document.querySelector('input[name="medida_bloque_ancho"]').value) || 0;
                     const resultado = Math.ceil(((ajusteAncho / 1000) * (ajusteAvance / 1000) * ajusteAlto * 1.16));
                     document.querySelector('input[name="constante_empujador"]').value = resultado.toFixed(2);
                 }
-            </script>
 
-            <table class="table-auto w-full text-sm text-center">
-                <thead class="bg-[#848484] text-white">
+                document.addEventListener('DOMContentLoaded', function() {
+                    marcarMedidasComoPendientes('carga_inicial_herramentales', false);
+                });
+            </script>
+            <div class="mt-8 border-t pt-6">
+                 <table class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden">
+                    <thead class="bg-[#848484] text-white">
                     <tr class="border-b font-semibold">
-                        <th class="px-2 py-2">Concepto</th>
-                        <th class="px-2 py-2">$ Material MXN</th>
+                        <th class="px-2 py-2 text-left">Concepto</th>
+                        <th class="px-2 py-2 border border-gray-300 p-2 text-sm font-medium text-white">$ Material MXN</th>
                         <th class="px-2 py-2">
                             <div class="grid gap-2 items-center" id="grid-header-hrs-maquinado">
                                 <button type="button" onclick="toggleHrsMaquinadoMolde()" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600" title="Mostrar/Ocultar campo para configurar el costo por hora de maquinado">
@@ -2453,8 +3249,8 @@ $esCorridaPiloto = false;
                                 </button>
                                 <input type="number" step="0.01" name="costo_hora_maquinado" id="input-costo-hora-maquinado" 
                                     placeholder="$ Costo por hora" 
-                                    class="w-full border rounded px-2 py-1 text-center text-gray-800 hidden" 
-                                    value="{{ old('costo_hora_maquinado', $costeoRequisicion->costo_hora_maquinado ?? 60) }}" 
+                                    class="w-full border rounded px-2 py-1 text-center text-gray-800 hidden text-center" 
+                                    value="{{ old('costo_hora_maquinado', $costeoRequisicion->costo_hora_maquinado ?? 150) }}" 
                                     oninput="calcularTotalMolde(); calcularTotalEmpujador();">
                             </div>
                             <script>
@@ -2465,18 +3261,16 @@ $esCorridaPiloto = false;
                                     const isHidden = inputCostoHora.classList.contains('hidden');
                                     
                                     if (isHidden) {
-                                        // Mostrar input de costo por hora
                                         inputCostoHora.classList.remove('hidden');
                                         gridHeader.classList.add('grid-cols-2');
                                     } else {
-                                        // Ocultar input de costo por hora
                                         inputCostoHora.classList.add('hidden');
                                         gridHeader.classList.remove('grid-cols-2');
                                     }
                                 }
                             </script>
                         </th>
-                        <th class="px-2 py-2">$ TOTAL MXN</th>
+                        <th class="px-2 py-2border border-gray-300 p-2 text-sm font-medium text-white">$ TOTAL MXN</th>
                     </tr>
                 </thead>
 
@@ -2497,11 +3291,9 @@ $esCorridaPiloto = false;
                                     const isHidden = inputAluminio.classList.contains('hidden');
                                     
                                     if (isHidden) {
-                                        // Mostrar input
                                         inputAluminio.classList.remove('hidden');
                                         gridMolde.classList.add('grid-cols-2');
                                     } else {
-                                        // Ocultar input
                                         inputAluminio.classList.add('hidden');
                                         gridMolde.classList.remove('grid-cols-2');
                                     }
@@ -2541,11 +3333,9 @@ $esCorridaPiloto = false;
                                     const isHidden = inputEmpujador.classList.contains('hidden');
                                     
                                     if (isHidden) {
-                                        // Mostrar input
                                         inputEmpujador.classList.remove('hidden');
                                         gridEmpujador.classList.add('grid-cols-2');
                                     } else {
-                                        // Ocultar input
                                         inputEmpujador.classList.add('hidden');
                                         gridEmpujador.classList.remove('grid-cols-2');
                                     }
@@ -2614,8 +3404,8 @@ $esCorridaPiloto = false;
                         }
 
                         function calcularCostoMuestra() {
-                            const NoMuestras = parseFloat(document.querySelector('input[name="no_muestras"]').value) || 0;
-                            const auxMuestras = parseFloat(document.querySelector('input[name="aux_muestras"]').value) || 0;
+                            const NoMuestras = parseFloat(document.querySelector('input[name="no_muestras"]').value) || 30;
+                            const auxMuestras = parseFloat(document.querySelector('input[name="aux_muestras"]').value) || 36;
                             const resultado = NoMuestras * auxMuestras;
                             document.querySelector('input[name="costo_muestras"]').value = resultado.toFixed(2);
                             document.querySelector('input[name="total_costo_muestras"]').value = resultado.toFixed(2);
@@ -2631,12 +3421,11 @@ $esCorridaPiloto = false;
                         <td>
                             <input type="number" step="0.01" name="costo_suaje_base" value="{{old('costo_suaje_base', $costeoRequisicion->costo_suaje_base)}}"
                                 class="w-full border rounded px-1 py-1 text-right"
-                                placeholder="Costo suaje" oninput="copiarCostosATotales()"
-                                oninput="document.querySelector('input[name=\'total_suaje_base\']').value = this.value">
+                                placeholder="Costo suaje" oninput="document.querySelector('input[name=\'total_suaje_base\']').value = this.value; calcularTotalFinal();">
                         </td>
                         <td></td>
                         <td>
-                            <input type="number" name="total_suaje_base" class="w-full border rounded px-1 py-1 text-right" readonly placeholder="Total suaje" oninput="calcularTotalFinal()">
+                            <input type="number" name="total_suaje_base" class="w-full border rounded px-1 py-1 text-right cursor-not-allowed" readonly placeholder="Total suaje" oninput="calcularTotalFinal()">
                         </td>
                     </tr>
 
@@ -2647,8 +3436,8 @@ $esCorridaPiloto = false;
                                     MUESTRAS
                                 </button>
                                 <div class="grid grid-cols-2 gap-1 hidden" id="inputs-muestras">
-                                    <input type="number" name="no_muestras" id="input-no-muestras" placeholder="No. de muestras" value="{{ old('no_muestras', $costeoRequisicion->no_muestras) }}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularCostoMuestra()">
-                                    <input type="number" name="aux_muestras" id="input-aux-muestras" placeholder="Costo por muestra" value="{{ old('aux_muestras', $costeoRequisicion->aux_muestras) }}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularCostoMuestra()">
+                                    <input type="number" name="no_muestras" id="input-no-muestras" placeholder="No. de muestras" value="{{ (old('no_muestras') !== null && old('no_muestras') !== '') ? old('no_muestras') : ((($costeoRequisicion->no_muestras ?? '') !== '') ? $costeoRequisicion->no_muestras : 30) }}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularCostoMuestra()">
+                                    <input type="number" name="aux_muestras" id="input-aux-muestras" placeholder="Costo por muestra" value="{{ (old('aux_muestras') !== null && old('aux_muestras') !== '') ? old('aux_muestras') : ((($costeoRequisicion->aux_muestras ?? '') !== '') ? $costeoRequisicion->aux_muestras : 36) }}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularCostoMuestra()">
                                 </div>
                             </div>
                             <script>
@@ -2659,11 +3448,9 @@ $esCorridaPiloto = false;
                                     const isHidden = inputsMuestras.classList.contains('hidden');
                                     
                                     if (isHidden) {
-                                        // Mostrar inputs
                                         inputsMuestras.classList.remove('hidden');
                                         gridMuestras.classList.add('grid-cols-2');
                                     } else {
-                                        // Ocultar inputs
                                         inputsMuestras.classList.add('hidden');
                                         gridMuestras.classList.remove('grid-cols-2');
                                     }
@@ -2674,7 +3461,7 @@ $esCorridaPiloto = false;
                             <input type="number" step="0.01" name="costo_muestras" value="{{old('costo_muestras', $costeoRequisicion->costo_muestras)}}"
                                 class="w-full border rounded px-1 py-1 text-right"
                                 placeholder="Costo muestras"
-                                oninput="document.querySelector('input[name=\'total_costo_muestras\']').value = this.value">
+                                oninput="document.querySelector('input[name=\'total_costo_muestras\']').value = this.value; calcularTotalFinal();">
                         </td>
                         <td></td>
                         <td>
@@ -2691,7 +3478,7 @@ $esCorridaPiloto = false;
                         <td>
                             <input type="number" step="0.01" name="costo_placa_fijacion" value="{{old('costo_placa_fijacion', $costeoRequisicion->costo_placa_fijacion)}}"
                                 class="w-full border rounded px-1 py-1 text-right"
-                                placeholder="Costo placa fijación" oninput="document.querySelector('input[name=\'total_costo_placa_fijacion\']').value = this.value">
+                                placeholder="Costo placa fijación" oninput="document.querySelector('input[name=\'total_costo_placa_fijacion\']').value = this.value; calcularTotalFinal();">
                         </td>
                         <td></td>
                         <td>
@@ -2705,8 +3492,13 @@ $esCorridaPiloto = false;
                                 <button type="button" onclick="toggleCostoMaderaCampana()" class="font-medium px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 text-center" title="Ocultar/Mostrar los campos para calcular el costo de madera campana (Dividendo ÷ Divisor)">
                                     MADERA CAMPANA
                                 </button>
-                                <div class="grid grid-cols-2 gap-1 hidden" id="inputs-madera-campana">
+                                
+                                <div class="grid grid-cols-3 gap-1 hidden" id="inputs-madera-campana">
                                     <input type="number" name="dividendo" id="input-dividendo" placeholder="Ingrese número" class="w-full border rounded px-1 py-1 text-right" value="{{ old('dividendo', $costeoRequisicion->dividendo) }}" oninput="calcularCostoMaderaCampana()">
+                                    <select id="tipo_operacion_madera" class="w-full border rounded px-2 py-1 text-sm" onchange="calcularCostoMaderaCampana()">
+                                        <option value="division">÷</option>
+                                        <option value="multiplicacion">×</option>
+                                    </select>
                                     <input type="number" name="divisor" id="input-divisor" placeholder="Ingrese divisor" class="w-full border rounded px-1 py-1 text-right" value="{{ old('divisor', $costeoRequisicion->divisor) }}" oninput="calcularCostoMaderaCampana()">
                                 </div>
                             </div>
@@ -2718,11 +3510,9 @@ $esCorridaPiloto = false;
                                     const isHidden = inputsMaderaCampana.classList.contains('hidden');
                                     
                                     if (isHidden) {
-                                        // Mostrar inputs
                                         inputsMaderaCampana.classList.remove('hidden');
                                         gridMaderaCampana.classList.add('grid-cols-2');
                                     } else {
-                                        // Ocultar inputs
                                         inputsMaderaCampana.classList.add('hidden');
                                         gridMaderaCampana.classList.remove('grid-cols-2');
                                     }
@@ -2732,12 +3522,11 @@ $esCorridaPiloto = false;
                         <td>
                             <input type="number" step="0.01" name="costo_madera_campana" value="{{old('costo_madera_campana', $costeoRequisicion->costo_madera_campana)}}"
                                 class="w-full border rounded px-1 py-1 text-right"
-                                placeholder="Costo madera campana" oninput="copiarCostosATotales()"
-                                oninput="document.querySelector('input[name=\'total_costo_madera_campana\']').value = this.value">
+                                placeholder="Costo madera campana" oninput="document.querySelector('input[name=\'total_costo_madera_campana\']').value = this.value; calcularTotalFinal();">
                         </td>
                         <td></td>
                         <td>
-                            <input type="number" name="total_costo_madera_campana" class="w-full border rounded px-1 py-1 text-right" readonly placeholder="Total madera campana" oninput="calcularTotalFinal()">
+                            <input type="number" name="total_costo_madera_campana" class="w-full border rounded px-1 py-1 text-right cursor-not-allowed" readonly placeholder="Total madera campana" oninput="calcularTotalFinal()">
                         </td>
                     </tr>
 
@@ -2750,8 +3539,7 @@ $esCorridaPiloto = false;
                         <td>
                             <input type="number" step="0.01" name="costo_prototipo" value="{{old('costo_prototipo', $costeoRequisicion->costo_prototipo)}}"
                                 class="w-full border rounded px-1 py-1 text-right"
-                                placeholder="Costo prototipo" oninput="copiarCostosATotales()"
-                                oninput="document.querySelector('input[name=\'total_costo_prototipo\']').value = this.value">
+                                placeholder="Costo prototipo" oninput="document.querySelector('input[name=\'total_costo_prototipo\']').value = this.value; calcularTotalFinal();">
                         </td>
                         <td></td>
                         <td>
@@ -2768,8 +3556,7 @@ $esCorridaPiloto = false;
                         <td>
                             <input type="number" step="0.01" name="costo_tornilleria" value="{{old('costo_tornilleria', $costeoRequisicion->costo_tornilleria)}}"
                                 class="w-full border rounded px-1 py-1 text-right"
-                                placeholder="Costo tornillería" oninput="copiarCostosATotales()"
-                                oninput="document.querySelector('input[name=\'total_costo_tornilleria\']').value = this.value">
+                                placeholder="Costo tornillería" oninput="document.querySelector('input[name=\'total_costo_tornilleria\']').value = this.value; calcularTotalFinal();">
                         </td>
                         <td></td>
                         <td>
@@ -2786,8 +3573,7 @@ $esCorridaPiloto = false;
                         <td>
                             <input type="number" step="0.01" name="costo_pedimento_herramental" value="{{old('costo_pedimento_herramental', $costeoRequisicion->costo_pedimento_herramental)}}"
                                 class="w-full border rounded px-1 py-1 text-right"
-                                placeholder="Costo pedimento" oninput="copiarCostosATotales()"
-                                oninput="document.querySelector('input[name=\'total_costo_pedimento_herramental\']').value = this.value">
+                                placeholder="Costo pedimento" oninput="document.querySelector('input[name=\'total_costo_pedimento_herramental\']').value = this.value; calcularTotalFinal();">
                         </td>
                         <td></td>
                         <td>
@@ -2805,22 +3591,29 @@ $esCorridaPiloto = false;
                         }
 
                         function calcularCostoMaderaCampana() {
-                            const dividendo = parseFloat(document.querySelector('input[name="dividendo"]').value) || 0;
-                            const divisor = parseFloat(document.querySelector('input[name="divisor"]').value) || 1;
-                            const resultado = (dividendo / divisor);
+                            const valor1 = parseFloat(document.querySelector('input[name="dividendo"]').value) || 0;
+                            const valor2 = parseFloat(document.querySelector('input[name="divisor"]').value) || 1;
+                            const tipo = document.getElementById('tipo_operacion_madera').value;
+
+                            let resultado = 0;
+
+                            if (tipo === "division") {
+                                resultado = valor2 !== 0 ? (valor1 / valor2) : 0;
+                            } else if (tipo === "multiplicacion") {
+                                resultado = valor1 * valor2;
+                            }
+
                             document.querySelector('input[name="costo_madera_campana"]').value = resultado.toFixed(2);
                             document.querySelector('input[name="total_costo_madera_campana"]').value = resultado.toFixed(2);
-                        }
+                            calcularTotalFinal();}
 
                         function calcularTotalVentas() {
                             const totalFinal = parseFloat(document.querySelector('input[name="TOTAL_FINAL"]').value) || 0;
-                            //const resultado = totalFinal * 1.5;
                             const resultado = totalFinal * 1;
                             document.querySelector('input[name="TOTAL_VENTAS"]').value = resultado.toFixed(2);
                         }
                     </script>
 
-                    <!-- FILAS DE TOTALES -->
                     <tr class="border-2 border-gray-500 bg-gray-50 font-semibold">
                         <td colspan="3" class="text-right text-gray-700 px-2 ">TOTAL</td>
                         <td class="text-center p-2">
@@ -2837,13 +3630,11 @@ $esCorridaPiloto = false;
                     </tr>
                 </tbody>
             </table>
+            </div>
         </fieldset>
-
-        <!-- SECCIÓN: RESUMEN COSTOS DE PROCESOS ADICIONALES -->
-        <fieldset>
-            <legend>Resumen Costos de Procesos Adicionales</legend>
-
-            <table class="w-full text-center border-collapse border border-gray-400">
+        <fieldset class="w-full text-sm text-center bg-white border border-gray-400 rounded-lg overflow-hidden">
+            <legend>- Resumen Procesos Adicionales -</legend>
+            <table class="w-full border border-gray-200 text-sm text-center rounded-lg overflow-hidden">
                 <thead class="bg-[#848484] text-white">
                     <tr>
                         <th class="border border-gray-300 p-2">Concepto</th>
@@ -2853,7 +3644,6 @@ $esCorridaPiloto = false;
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Inocuidad -->
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Inocuidad</td>
                         <td class="border border-gray-300 p-2">
@@ -2869,11 +3659,9 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.0001" name="resumen_costo_unit_inocuidad" readonly
                                 value="{{ old('resumen_costo_unit_inocuidad', $costeoRequisicion->resumen_costo_unit_inocuidad) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
-
-                    <!-- Polipropileno -->
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Polipropileno</td>
                         <td class="border border-gray-300 p-2">
@@ -2889,11 +3677,9 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.0001" name="resumen_costo_unit_polipropileno" readonly
                                 value="{{ old('resumen_costo_unit_polipropileno', $costeoRequisicion->resumen_costo_unit_polipropileno) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
-
-                    <!-- Estaticidad -->
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Estaticidad</td>
                         <td class="border border-gray-300 p-2">
@@ -2909,11 +3695,9 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.0001" name="resumen_costo_unit_estaticidad" readonly
                                 value="{{ old('resumen_costo_unit_estaticidad', $costeoRequisicion->resumen_costo_unit_estaticidad) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
-
-                    <!-- Maquila -->
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Maquila</td>
                         <td class="border border-gray-300 p-2">
@@ -2929,12 +3713,11 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.0001" name="resumen_costo_unit_maquila" readonly
                                 value="{{ old('resumen_costo_unit_maquila', $costeoRequisicion->resumen_costo_unit_maquila) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
-                    <!-- Etiqueta -->
                     <tr>
-                        <td class="font-bold border border-gray-300 p-2">Etiqueta</td>
+                        <td class="font-bold border border-gray-300 p-2">Otros</td>
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.01" name="resumen_costo_etiqueta"
                                 value="{{ old('resumen_costo_etiqueta', $costeoRequisicion->resumen_costo_etiqueta) }}"
@@ -2948,12 +3731,11 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.0001" name="resumen_costo_unit_etiqueta" readonly
                                 value="{{ old('resumen_costo_unit_etiqueta', $costeoRequisicion->resumen_costo_unit_etiqueta) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
                 </tbody>
                 <tfoot>
-                    <!-- TOTAL Procesos Adicionales -->
                     <tr class="bg-gray-50 font-bold text-center">
                         <td class="p-2">TOTAL</td>
                         <td class="p-2">
@@ -2984,14 +3766,14 @@ $esCorridaPiloto = false;
         @endif
 
         <!-- SECCIÓN: RESUMEN DE COSTOS (Como en Excel) -->
-        <fieldset>
+        <fieldset class="w-full text-sm text-center bg-white border border-gray-400 rounded-lg overflow-hidden">
             @if($esCorridaPiloto)
             <legend>Resumen de Costos Corrida Piloto</legend>
             @else
-            <legend>Resumen de Costos</legend>
+            <legend>- Resumen de Costos -</legend>
             @endif
 
-            <table class="w-full text-center border-collapse border border-gray-400">
+            <table class="w-full text-sm text-center border border-gray-400 rounded-lg overflow-hidden">
                 <thead class="bg-[#848484] text-white">
                     <tr>
                         <th class="border border-gray-300 p-2">Concepto</th>
@@ -3017,7 +3799,7 @@ $esCorridaPiloto = false;
                         <td class=" border border-gray-300 p-2">
                             <input type="number" step="0.0001" name="resumen_costo_unit_procesos" readonly
                                 value="{{ old('resumen_costo_unit_procesos', $costeoRequisicion->resumen_costo_unit_procesos) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 text-center">
                         </td>
                     </tr>
 
@@ -3037,7 +3819,7 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.0001" name="resumen_costo_unit_empaque" readonly
                                 value="{{ old('resumen_costo_unit_empaque', $costeoRequisicion->resumen_costo_unit_empaque) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 text-center">
                         </td>
                     </tr>
 
@@ -3057,7 +3839,7 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.0001" name="resumen_costo_unit_flete" readonly
                                 value="{{ old('resumen_costo_unit_flete', $costeoRequisicion->resumen_costo_unit_flete) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 text-center">
                         </td>
                     </tr>
                     <!-- Pedimento -->
@@ -3081,21 +3863,21 @@ $esCorridaPiloto = false;
                     </tr>
 
                     <!-- Total Procesos Adicionales (desde tabla anterior) -->
-                    <tr class="bg-gray-100 text-center font-bold">
+                    <tr class="bg-gray-200 text-center font-bold">
                         <td class="font-bold border border-gray-300 p-2">Total Procesos Adicionales</td>
                         <td class="border border-gray-300 p-2">
                             <input step="0.0001" name="resumen_costo_adicionales_en_resumen" readonly
                                 value="{{ old('resumen_total_costo_adicionales', $costeoRequisicion->resumen_total_costo_adicionales ?? '') }}"
-                                class="w-full bg-gray-100 p-2 text-center">
+                                class="w-full bg-gray-200 p-2 text-center">
                         </td>
                         <td class="border border-gray-300 p-2">
                             <input name="resumen_piezas_adicionales_en_resumen" readonly value="1"
-                                class="w-full bg-gray-100 p-2 text-center">
+                                class="w-full bg-gray-200 p-2 text-center">
                         </td>
                         <td class="border border-gray-300 p-2">
                             <input step="0.0001" name="resumen_costo_unit_adicionales_en_resumen" readonly
                                 value="{{ old('resumen_total_costo_unit_adicionales', $costeoRequisicion->resumen_total_costo_unit_adicionales ?? '') }}"
-                                class="w-full bg-gray-100 p-2 text-center">
+                                class="w-full bg-gray-200 p-2 text-center">
                         </td>
                     </tr>
                 </tbody>
@@ -3140,14 +3922,17 @@ $esCorridaPiloto = false;
                                 sumaCostoUnitAdicionales += costoUnit;
                             });
 
-                                document.querySelector('input[name="resumen_total_costo_adicionales"]').value = sumaCostosAdicionales.toFixed(2);
-                                document.querySelector('input[name="resumen_total_costo_unit_adicionales"]').value = sumaCostoUnitAdicionales.toFixed(2);
-                                document.querySelector('input[name="resumen_costo_adicionales_en_resumen"]').value = sumaCostosAdicionales.toFixed(2);
-                                document.querySelector('input[name="resumen_costo_unit_adicionales_en_resumen"]').value = sumaCostoUnitAdicionales.toFixed(2);
+                                const totalCostosRedondeado = Math.round(sumaCostosAdicionales * 100) / 100;
+                                const totalCostoUnitRedondeado = Math.round(sumaCostoUnitAdicionales * 100) / 100;
+
+                                document.querySelector('input[name="resumen_total_costo_adicionales"]').value = totalCostosRedondeado.toFixed(2);
+                                document.querySelector('input[name="resumen_total_costo_unit_adicionales"]').value = totalCostoUnitRedondeado.toFixed(2);
+                                document.querySelector('input[name="resumen_costo_adicionales_en_resumen"]').value = totalCostosRedondeado.toFixed(2);
+                                document.querySelector('input[name="resumen_costo_unit_adicionales_en_resumen"]').value = totalCostoUnitRedondeado.toFixed(2);
 
                             return {
-                                totalCosto: sumaCostosAdicionales,
-                                totalUnitario: sumaCostoUnitAdicionales
+                                totalCosto: totalCostosRedondeado,
+                                totalUnitario: totalCostoUnitRedondeado
                             };
                     }
 
@@ -3175,23 +3960,20 @@ $esCorridaPiloto = false;
                             const piezas = parseFloat(piezasInput.value) || 1;
 
                             const costoUnit = piezas !== 0
-                                ? Math.round((costoTotal / piezas) * 10000) / 10000
+                                ? Math.round((costoTotal / piezas) * 100) / 100
                                 : 0;
 
-                            unitInput.value = costoUnit.toFixed(4);
+                            unitInput.value = costoUnit.toFixed(2);
                             sumaTotales += costoUnit;
                         });
 
-                        const margenInput = document.querySelector('input[name="resumen_margen_administrativo"]');
-                        const margen = parseFloat(margenInput.value) || 0;
+                        const margen = calcularMargenAdministrativo(sumaTotales);
 
-                        const totalFinal =
-                            Math.round((sumaTotales + margen) * 10000) / 10000;
+                        const totalFinal = Math.round((sumaTotales + margen) * 100) / 100;
 
                         document.querySelector('input[name="resumen_total_costo_unit"]').value =
                             totalFinal.toFixed(2);
 
-                        calcularMargenAdministrativo();
                         calcularCostoTotalResumen();
                     }
 
@@ -3200,8 +3982,8 @@ $esCorridaPiloto = false;
                         calcularResumenCostos();
                     }
                     
-                    function calcularMargenAdministrativo(){
-                        const conceptosMargen = [        
+                    function calcularMargenAdministrativo(baseManual = null){
+                        const conceptosMargen = [
                             'procesos',
                             'empaque',
                             'flete',
@@ -3209,25 +3991,31 @@ $esCorridaPiloto = false;
                             'inocuidad',
                             'polipropileno',
                             'estaticidad',
-                            'maquila'
+                            'maquila',
+                            'etiqueta'
                         ];
-                        let baseMargen = 0;
+                        let baseMargen = baseManual;
 
-                        conceptosMargen.forEach(concepto => {
+                        if (baseMargen === null || Number.isNaN(baseMargen)) {
+                            baseMargen = 0;
 
-                            const input = document.querySelector(
-                                `input[name="resumen_costo_unit_${concepto}"]`
-                            );
+                            conceptosMargen.forEach(concepto => {
 
-                            if (!input) return;
+                                const input = document.querySelector(
+                                    `input[name="resumen_costo_unit_${concepto}"]`
+                                );
 
-                            const valor = parseFloat(input.value) || 0;
-                            baseMargen += valor;
-                        });
+                                if (!input) return;
 
-                            const margen = Math.round((baseMargen * 0.05) * 100) / 100;
+                                const valor = parseFloat(input.value) || 0;
+                                baseMargen += valor;
+                            });
+                        }
+
+                        const margen = Math.round((baseMargen * 0.05) * 100) / 100;
 
                         document.querySelector('input[name="resumen_margen_administrativo"]').value = margen.toFixed(2);
+                        return margen;
                     }
                     
                      function calcularCostoTotalResumen() {
@@ -3235,7 +4023,8 @@ $esCorridaPiloto = false;
                         const lote_compra = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
                         const coeficiente_merma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
                         let totalCosto = resumen_total_costo_unit * (lote_compra + (lote_compra * (coeficiente_merma / 100)));
-                        document.querySelector('input[name="costo_total"]').value = totalCosto.toFixed(2);
+                        const totalRedondeado = Math.round(totalCosto * 100) / 100;
+                        document.querySelector('input[name="costo_total"]').value = totalRedondeado.toFixed(2);
                     }
                     </script>
                 <tfoot>
@@ -3252,53 +4041,42 @@ $esCorridaPiloto = false;
         </fieldset>
 
         <!-- Sección: Costeo -->
-        <fieldset>
-            <legend>Cálculo de Costo Total</legend>
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+            <legend>Costo Total</legend>
+            <div class="mb-6 border border-gray-200 rounded-xl p-5 bg-white shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border border-gray-200 rounded-xl p-6 bg-white shadow-sm items-center">
+                    <div>
+                        <h3 class="text-xl font-bold text-red-800 mb-2"> Calcular Total</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">
+                            El sistema necesita calcular el total mediante el botón 
+                            <span class="font-semibold text-gray-700">“Costo Total”</span>. 
+                            Si no se ejecuta este cálculo, el campo de costo total no se actualizará con el valor correcto.
+                        </p>
+                    </div>
+                    <div class="flex flex-col items-center justify-center">
+                        <label class="text-xs text-gray-400 mb-2">Acción requerida</label>
+                        <button type="button"
+                    class="mt-1 block font-bold w-full rounded-md border-gray-500 shadow-sm bg-gray-300 hover:bg-gray-400 text-gray-800 py-2"
+                    onclick="costototal()">Costo Total
+                </button>
+                            <input type="number" step="0.01" name="costo_total" id="costo_total" class="mt-1 block font-bold w-full rounded-md border-gray-300 shadow-sm" value="{{ old('costo_total', $costeoRequisicion->costo_total) }}" readonly>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                <div>
-                    <label for="costo_total" class="font-bold block mb-2">Costo Total:</label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        name="costo_total"
-                        id="costo_total"
-                        class="w-full border-gray-300 border rounded-md p-2 bg-gray-50"
-                        value="{{ old('costo_total', $costeoRequisicion->costo_total) }}"
-                        readonly>
-                </div>
-
-                <div>
-                    <button
-                        type="button"
-                        onclick="calcularCostoTotal()"
-                        class="font-bold block px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
-                        title="Calcular costo total">
-                        Calcular costo
-                    </button>
+                    </div>
                 </div>
             </div>
+            <script>
+                function costototal() {
+                    const resumen_total_costo_unit = parseFloat(document.querySelector('input[name="resumen_total_costo_unit"]').value) || 0;
+                    const lote_compra = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
+                    let totalCosto = resumen_total_costo_unit * lote_compra;
+                    const totalRedondeado = Math.round(totalCosto * 100) / 100;
+                    document.getElementById('costo_total').value = totalRedondeado.toFixed(2);
+                }
+            </script>
         </fieldset>
 
-<script>
-function calcularCostoTotal() {
-
-    const resumenTotalCostoUnit = parseFloat(
-        document.querySelector('input[name="resumen_total_costo_unit"]')?.value
-    ) || 0;
-
-    const loteCompra = parseFloat(
-        document.querySelector('input[name="lote_compra"]')?.value
-    ) || 0;
-
-    const totalCosto = resumenTotalCostoUnit * loteCompra;
-
-    document.getElementById('costo_total').value = totalCosto.toFixed(2);
-}
-</script>
-
         <!-- Sección: Tiempos de entrega -->
-        <fieldset>
+        <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
             <legend>Tiempos de Entrega</legend>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
@@ -3410,13 +4188,17 @@ function calcularCostoTotal() {
 </div>
 <script>
     //funcion para enviar a ventas
+    const enviarAVentasUrlTemplate = @json(route('cotizaciones.enviarAVentas', ['cotizacion' => '__ID__']));
+
     function enviarAVentas(id) {
         showConfirmModal(
             '¿Enviar cotización a Ventas?',
             '¿Estás seguro de enviar esta cotización al área de Ventas?',
             function() {
+                const endpoint = enviarAVentasUrlTemplate.replace('__ID__', id);
+
                 // Ejecutar el envío si se confirma
-                fetch(`/cotizaciones/${id}/enviar-a-ventas`, {
+                fetch(endpoint, {
                         method: 'PATCH',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -3444,7 +4226,61 @@ function calcularCostoTotal() {
 </script>
 
 <script>
-   
+    // ============ FUNCIONES GLOBALES PARA LOADING MODAL ============
+    function bloquearBotonGuardar(form, submitter = null) {
+        if (typeof activateLoadingForForm === 'function') {
+            activateLoadingForForm(form, submitter, {
+                title: 'Generando requisicion...',
+                message: 'Generando requisicion, por favor espera...',
+                buttonText: 'Generando requisicion, por favor espera...'
+            });
+
+            return {
+                submitButtons: Array.from(form.querySelectorAll('button[type="submit"]')),
+                submitter: submitter || form.querySelector('button[type="submit"]')
+            };
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        if (!submitBtn) {
+            return null;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.dataset.originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Generando requisicion, por favor espera...';
+
+        if (typeof showLoadingRequisicionModal === 'function') {
+            showLoadingRequisicionModal({
+                title: 'Generando requisicion...',
+                message: 'Generando requisicion, por favor espera...'
+            });
+        }
+
+        return submitBtn;
+    }
+
+    function restaurarBotonGuardar(form, submitBtn) {
+        if (typeof resetLoadingForForm === 'function') {
+            resetLoadingForForm(form);
+            return;
+        }
+
+        if (!submitBtn) {
+            return;
+        }
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = submitBtn.dataset.originalText || 'Guardar Costeo';
+
+        // Ocultar modal de loading
+        if (typeof hideLoadingRequisicionModal === 'function') {
+            hideLoadingRequisicionModal();
+        }
+    }
+
+
 
     function asignarLoteCompraEnResumenPiezas() {
         const loteCompra = document.querySelector('input[name="lote_compra"]')?.value || '';
@@ -3518,61 +4354,179 @@ function calcularCostoTotal() {
         calcularResumenCostos(); //este si o si al cargar pagina
     }
 
+    function normalizarFormularioAntesDeGuardar(form) {
+        document.querySelectorAll('#lista-procesos-adicionales tr.proceso-fila').forEach(fila => {
+            const inputs = Array.from(fila.querySelectorAll('input'));
+            const tieneDatos = inputs.some(input => String(input.value || '').trim() !== '');
+
+            if (!tieneDatos) {
+                fila.remove();
+                return;
+            }
+
+            const procesoId = fila.id.replace('proceso-', '');
+            if (procesoId !== '') {
+                calcularProcesoDinamico(procesoId);
+            }
+        });
+
+        recalcularTodo();
+        calcularCostoEnergiaE2();
+        calcularCostoMP();
+        calcularCostoTotal();
+                calcularCostoTotalResumen();
+
+        form.querySelectorAll('input[type="number"]').forEach(input => {
+            if (input.value === '') {
+                input.value = 0;
+            }
+        });
+    }
+
+    function mostrarLoadingOverlay() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (!overlay) {
+            console.warn('loadingOverlay no encontrado');
+            return;
+        }
+
+        overlay.style.display = 'flex';
+        overlay.style.visibility = 'visible';
+        setTimeout(() => {
+            overlay.style.opacity = '1';
+        }, 10);
+
+        const progressBar = document.getElementById('progressBar');
+        let progress = 10;
+        const interval = setInterval(() => {
+            progress += Math.random() * 30;
+            if (progress > 90) progress = 90;
+            if (progressBar) progressBar.style.width = progress + '%';
+        }, 500);
+        overlay.dataset.progressInterval = interval;
+
+        const messages = [
+            'Procesando archivo...',
+            'Validando datos...',
+            'Calculando pesos...',
+            'Generando requisición...',
+            'Casi listo...'
+        ];
+
+        let messageIndex = 0;
+        const messageElement = document.getElementById('loadingMessage');
+        const messageInterval = setInterval(() => {
+            messageIndex = (messageIndex + 1) % messages.length;
+            if (messageElement) {
+                messageElement.style.opacity = '0';
+                setTimeout(() => {
+                    if (messageElement) {
+                        messageElement.textContent = messages[messageIndex];
+                        messageElement.style.opacity = '1';
+                    }
+                }, 100);
+            }
+        }, 2000);
+
+        overlay.dataset.messageInterval = messageInterval;
+    }
+
+    function ocultarLoadingOverlay() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            if (overlay.dataset.progressInterval) {
+                clearInterval(overlay.dataset.progressInterval);
+            }
+            if (overlay.dataset.messageInterval) {
+                clearInterval(overlay.dataset.messageInterval);
+            }
+
+            const progressBar = document.getElementById('progressBar');
+            if (progressBar) {
+                progressBar.style.width = '100%';
+            }
+
+            overlay.style.opacity = '0';
+
+            setTimeout(() => {
+                
+                overlay.style.display = 'none';
+                overlay.style.visibility = 'hidden';
+
+                if (progressBar) {
+                    progressBar.style.width = '0%';
+                }
+
+                const internalProgress = document.getElementById('internalProgress');
+                if (internalProgress) {
+                    internalProgress.style.width = '0%';
+                }
+            }, 300);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         cargarDatos();
 
-        @if($esCorridaPiloto)
-        // Manejar el submit del formulario para corrida piloto
         const form = document.getElementById('costeoForm');
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Mostrar indicador de carga
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.readonly = true;
-            submitBtn.textContent = 'Guardando...';
-            
-            // Enviar datos por AJAX
-            const formData = new FormData(form);
-            
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Abrir PDF en nueva ventana
-                    window.open(data.pdfUrl, '_blank');
-                    
-                    // Mostrar mensaje de éxito
-                    alert(data.message);
-                    
-                    // Opcional: redirigir al índice después de un momento
-                    setTimeout(() => {
-                        window.location.href = '{{ route("cotizaciones.index") }}';
-                    }, 1000);
-                } else {
-                    alert('Error: ' + data.message);
-                    submitBtn.readonly = false;
-                    submitBtn.textContent = originalText;
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al guardar la corrida piloto');
-                submitBtn.readonly = false;
-                submitBtn.textContent = originalText;
-            });
-        });
-        @endif
-    });
+        if (!form) {
+            return;
+        }
 
+        const esCorridaPiloto = {{ json_encode($esCorridaPiloto) }};
+
+        form.addEventListener('submit', function(e) {
+            if (!medidasCalculadas) {
+                e.preventDefault();
+                alert('Debe calcular las medidas antes de continuar.');
+                console.warn('[Herramentales] Bloqueo de guardado: medidas no calculadas.');
+                actualizarEstadoGuardadoHerramentales();
+                return;
+            }
+
+            normalizarFormularioAntesDeGuardar(form);
+
+            if (esCorridaPiloto) {
+
+                e.preventDefault();
+
+                const submitBtn = bloquearBotonGuardar(form, e.submitter || null);
+                const formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+
+                        window.open(data.pdfUrl, '_blank');
+
+                        alert(data.message);
+
+                        setTimeout(() => {
+                            window.location.href = '{{ route("cotizaciones.index") }}';
+                        }, 1000);
+                    } else {
+                        alert('Error: ' + data.message);
+                        restaurarBotonGuardar(form, submitBtn);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al guardar la corrida piloto');
+                    restaurarBotonGuardar(form, submitBtn);
+                });
+            } else {
+                bloquearBotonGuardar(form, e.submitter || null);
+            }
+        });
+    });
 document.addEventListener('DOMContentLoaded', () => {
     const avance = document.querySelector('input[name="hoja_avance"]');
     const ancho  = document.querySelector('input[name="hoja_ancho"]');
@@ -3601,7 +4555,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // cálculo inicial
     recalcularTodo();
 });
 
@@ -3643,7 +4596,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    toggleMaquila(); // estado inicial
+    toggleMaquila();
 });
 </script>
 
@@ -3653,28 +4606,24 @@ document.addEventListener('keydown', function (e) {
 
         const target = e.target;
 
-        // No romper textareas
         if (target.tagName === 'TEXTAREA') return;
+            if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+                e.preventDefault();
 
-        // Solo inputs y selects
-        if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
-            e.preventDefault();
+                const form = target.form;
+                if (!form) return;
 
-            const form = target.form;
-            if (!form) return;
+                    const focusable = Array.from(
+                        form.querySelectorAll('input, select, textarea')
+                    ).filter(el => !el.disabled && el.type !== 'hidden');
 
-            const focusable = Array.from(
-                form.querySelectorAll('input, select, textarea')
-            ).filter(el => !el.disabled && el.type !== 'hidden');
-
-            const index = focusable.indexOf(target);
-            if (index > -1 && index + 1 < focusable.length) {
-                focusable[index + 1].focus();
+                    const index = focusable.indexOf(target);
+                        if (index > -1 && index + 1 < focusable.length) {
+                            focusable[index + 1].focus();
+                    }
             }
         }
-    }
-});
+    });
 </script>
-
 
 @endsection

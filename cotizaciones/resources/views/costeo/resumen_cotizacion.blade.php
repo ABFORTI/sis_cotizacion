@@ -5,26 +5,26 @@ use Illuminate\Support\Str;
 @endphp
 @php
 $placas = [
-1 => "320 x 420 mm",
-2 => "350 x 560 mm",
-3 => "355 x 590 mm",
-4 => "420 x 420 mm",
-5 => "420 x 700 mm",
-6 => "455 x 480 mm",
-7 => "455 x 610 mm",
-8 => "450 x 620 mm",
-9 => "460 x 520 mm",
-10 => "480 x 630 mm",
-11 => "490 x 600 mm",
-12 => "520 x 455 mm",
-13 => "520 x 1000 mm",
-14 => "600 x 650 mm",
-15 => "650 x 592 mm",
-16 => "700 x 1200 mm",
-17 => "800 x 940 mm",
-18 => "1175 x 1390 mm",
-19 => "1450 x 1630 mm",
-20 => "1450 x 3000 mm"
+    1 => "320 x 420 mm",
+    2 => "350 x 560 mm",
+    3 => "355 x 590 mm",
+    4 => "420 x 420 mm",
+    5 => "420 x 700 mm",
+    6 => "455 x 480 mm",
+    7 => "455 x 610 mm",
+    8 => "450 x 620 mm",
+    9 => "460 x 520 mm",
+    10 => "480 x 630 mm",
+    11 => "490 x 600 mm",
+    12 => "520 x 455 mm",
+    13 => "520 x 1000 mm",
+    14 => "600 x 650 mm",
+    15 => "650 x 592 mm",
+    16 => "700 x 1200 mm",
+    17 => "800 x 940 mm",
+    18 => "1175 x 1390 mm",
+    19 => "1450 x 1630 mm",
+    20 => "1450 x 3000 mm"
 ];
 
 $indicePlaca = optional(optional($cotizacion)->costeoRequisicion)->placa_de_enfriamiento ?? '';
@@ -32,52 +32,45 @@ $valorPlaca = $placas[$indicePlaca] ?? "No aplica";
 @endphp
 @php
 $grabadosMap = [
-'numero_parte' => 'Número de parte',
-'tipo_material' => 'Tipo de material',
-'logo_cliente' => 'Logo cliente',
-'logo_innovet' => 'Logo Innovet',
+    'numero_parte' => 'Número de parte',
+    'tipo_material' => 'Tipo de material',
+    'logo_cliente' => 'Logo cliente',
+    'logo_innovet' => 'Logo Innovet',
 ];
 
 $req = $cotizacion->requisicionCotizacion;
 
-// Construimos una lista con los que valen 1
 $grabadosSeleccionados = [];
 
 foreach ($grabadosMap as $campo => $etiqueta) {
-if (!empty($req->$campo) && $req->$campo == 1) {
-$grabadosSeleccionados[] = $etiqueta;
-}
+    if (!empty($req->$campo) && $req->$campo == 1) {
+        $grabadosSeleccionados[] = $etiqueta;
+    }
 }
 
-// Si "sin_grabado" es 1 y no hay otros
 if (!empty($req->sin_grabado) && $req->sin_grabado == 1 && empty($grabadosSeleccionados)) {
-$grabadoFinal = "Sin grabado";
+    $grabadoFinal = "Sin grabado";
 } else {
-$grabadoFinal = !empty($grabadosSeleccionados)
-? implode(', ', $grabadosSeleccionados)
-: "Sin grabado";
+    $grabadoFinal = !empty($grabadosSeleccionados) ? implode(', ', $grabadosSeleccionados) : "Sin grabado";
 }
 @endphp
 @php
-// 1. Verificamos si hay medidas en cajaCliente
+
 $largo = $cotizacion->cajaCliente->caja_largo ?? '';
 $ancho = $cotizacion->cajaCliente->caja_ancho ?? '';
 $alto = $cotizacion->cajaCliente->caja_alto ?? '';
 
-// Esta variable nos dice si existen medidas (para no mostrar " x x ")
 $tieneMedidas = !empty($largo) || !empty($ancho) || !empty($alto);
 
-// 2. Definimos el valor por defecto para "Medidas de contenedor"
 $defaultMedidas = '';
-if ($tieneMedidas) {
-$defaultMedidas = $largo . ' x ' . $ancho . ' x ' . $alto;
-}
+    if ($tieneMedidas) {
+        $defaultMedidas = $largo . ' x ' . $ancho . ' x ' . $alto;
+    }
 
-// 3. Definimos el valor por defecto para "Contenedor del cliente"
 $defaultContenedor = $tieneMedidas ? 'Si' : 'No';
 @endphp
 @php
-// 1. Definimos el "mapa" de los checkboxes
+
 $proporcionaMap = [
 'pieza_mejorar' => 'Pieza a mejorar',
 'pieza_fisica_proteger' => 'Pieza física a proteger',
@@ -90,27 +83,22 @@ $proporcionaMap = [
 'na' => 'NA',
 ];
 
-// 2. Apuntamos al objeto CORRECTO
 $infoTermoformado = $cotizacion->termoformado;
 $clienteProporcionaItems = [];
 
-// 3. Verificamos que el objeto exista
 if ($infoTermoformado) {
-
-// 4. Recorremos el mapa
-foreach ($proporcionaMap as $campo => $etiqueta) {
-if (!empty($infoTermoformado->$campo) && $infoTermoformado->$campo == 1) {
-$clienteProporcionaItems[] = $etiqueta;
-}
-}
-
-// 5. Añadimos el campo "Otro"
-if (!empty($infoTermoformado->termoformado_otro_checkbox) && $infoTermoformado->termoformado_otro_checkbox == 1 && !empty($infoTermoformado->termoformado_otro_info)) {
-$clienteProporcionaItems[] = $infoTermoformado->termoformado_otro_info;
-}
+    foreach ($proporcionaMap as $campo => $etiqueta) {
+        if (!empty($infoTermoformado->$campo) && $infoTermoformado->$campo == 1) {
+            $clienteProporcionaItems[] = $etiqueta;
+        }
+    }
+    if (!empty($infoTermoformado->termoformado_otro_checkbox) 
+        && $infoTermoformado->termoformado_otro_checkbox == 1 
+        && !empty($infoTermoformado->termoformado_otro_info)) {
+            $clienteProporcionaItems[] = $infoTermoformado->termoformado_otro_info;
+        }
 }
 
-// 6. Creamos el string final
 $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
 @endphp
 
@@ -122,13 +110,13 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                 class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-1 px-2 rounded text-xs transition duration-150 ease-in-out shadow-md">
                 <span class="text-base">←</span>
             </a>
-            {{-- Header con Logo --}}
             <div class="flex justify-between items-start mb-6">
                 <div class="flex-shrink-0">
                     <img src="{{ asset('images/innovet-logo.png') }}" alt="Innovet" style="max-width: 220px; width: 100%; height: auto;">
                 </div>
                 <div class="flex-1 text-center">
                     <h1 class="text-xl font-semibold text-white mb-4800">RESUMEN</h1>
+                    <h2 class="text-2xl font-semibold text-gray-500">{{ $cotizacion->nombre_del_proyecto }}</h2>
                 </div>
                 <div class="flex-shrink-0 flex flex-col space-y-2">
                     <div class="mt-2 flex justify-end gap-2 font-bold btn-container-mobile">
@@ -206,21 +194,14 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                             {{ $espec->pieza_alto ?? '' }} mm
                             @endif
                         </td>
-
-                        <td class="p-1 border border-black bg-gray-100 font-bold"># Cavidades</td>
-                        <td colspan="3" class="p-1 border border-black bg-white">
-                            • {{ optional(optional($cotizacion)->cotizacionAdicional)->componentes_por_charola ?? '' }}
-                        </td>
                     </tr>
-
-
                     <tr>
                         <td class="p-1 border border-black bg-gray-200 font-bold">Fabricación de prototipo:</td>
                         <td colspan="3" class="p-1 border border-black bg-white">{{ $cotizacion->cotizacionAdicional-> prototipo ?? '' }}</td>
                         <td rowspan="4" class="p-1 border border-black bg-gray-100 font-bold align-top">Otra Información</td>
                         <td colspan="3" rowspan="4" class="p-0 border border-black bg-white align-top">
                             <textarea
-                                id="datos_criticos_input" {{-- Le damos un ID --}}
+                                id="datos_criticos_input" 
                                 name="datos_criticos_adicionales"
                                 class="w-full h-full border-none p-1 focus:ring-0 resize-none"
                                 rows="4">• {{ $cotizacion->especificacionEmpaque->datos_criticos ?? '' }}</textarea>
@@ -229,7 +210,7 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
 
                     <tr>
                         <td class="p-1 border border-black bg-gray-100 font-bold">Especificación de material:</td>
-                        <td colspan="3" class="p-1 border border-black bg-white">{{ $cotizacion->especificacionProyecto->material_mostrado ?? '' }}</td>
+                        <td colspan="3" class="p-1 border border-black bg-white">{{ $cotizacion->especificacionProyecto->material ?? '' }}</td>
                     </tr>
 
                     <tr>
@@ -313,7 +294,11 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                             {{ $grabadoFinal }}
                         </td>
                     </tr>
-                    <form action="{{ route('costeo.updateField') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('costeo.updateField') }}" method="POST" enctype="multipart/form-data"
+                        data-loading="true"
+                        data-loading-title="Guardando cambios..."
+                        data-loading-message="Guardando informacion del resumen, por favor espera"
+                        data-loading-button-text="Guardando cambios, por favor espera...">
                         @csrf
                         <input type="hidden" name="cotizacion_id" value="{{ $cotizacion->id }}">
 
@@ -332,7 +317,7 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                                     class="form-control">
                                     {{--
               Verificamos el valor actual. 
-              Si no hay valor (es nuevo), seleccionamos 'No' por defecto.
+              Si no hay valor (es nuevo), seleccionamos 'No' por defecto
             --}}
                                     @php
                                     $currentValue = $resumen->poka_yoke ?? 'No';
@@ -477,9 +462,9 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                             @endif
 
                             <a
-                                href="{{ asset('storage/' . $archivo->path) }}"
+                                href="{{ route('resumen.archivo.download', $archivo->id) }}"
                                 class="btn btn-download"
-                                download>
+                                download="{{ $archivo->nombre_original ?? basename($archivo->path) }}">
                                 Descargar
                             </a>
 
@@ -555,7 +540,7 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                         @endif
                     </div>
                     <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                        <a href="{{ asset('storage/' . $archivo->path) }}"
+                        <a href="{{ route('archivos.download', $archivo->id) }}"
                             class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors flex items-center gap-1"
                             download="{{ $nombreMostrar }}">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,5 +1,4 @@
 <?php
-// Helper para obtener la última cotización de un cliente
 use App\Models\Cotizacion;
 
 if (!function_exists('ultimaCotizacionPorCliente')) {

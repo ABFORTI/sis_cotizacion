@@ -2,13 +2,13 @@
 @section('content')
 
 @php
-// SECCIÓN: INFORMACIÓN DE LA REQUISICIÓN NO EDITABLE
+
 $requisicion = optional($cotizacion);
 $no_proyecto = oldValue('no_proyecto', $requisicion);
 $tipo_de_empaque = oldValue('tipo_de_empaque', $requisicion);
 $nombre_del_proyecto = oldValue('nombre_del_proyecto', $requisicion);
 
-//RELACION ESPECIFICACIONPROYECTO
+
 $especificacion_proyecto = optional($requisicion->especificacionProyecto);
 $frecuencia_compra = oldValue('frecuencia_compra', $especificacion_proyecto);
 $lote_compra = oldValue('lote_compra', $especificacion_proyecto);
@@ -33,20 +33,9 @@ $bolsa_plastico = oldValue('bolsa_plastico', $especificacionEmpaque);
 $esquineros = oldValue('esquineros', $especificacionEmpaque);
 $liner = oldValue('liner', $especificacionEmpaque);
 
-//RELACIONES
-//especificacionProyecto
-//especificacionEmpaque
-//cotizacionAdicional
-//requisicionCotizacion
-//termoformado
-//usoCliente
-//cajaCliente
-//archivosAdjuntos
-//costeo
 
 $pedimento_virtual = oldValue('pedimento_virtual', optional($requisicion->cotizacionAdicional));
 
-//RELACION CON LA TABLA COSTEOREQUISICIONES
 $costeoRequisicion = optional($requisicion->costeoRequisicion);
 $insertos = oldValue('insertos', $costeoRequisicion);
 $calibre_costeo = oldValue('calibre_costeo', $costeoRequisicion);
@@ -136,7 +125,6 @@ $total_piezas_turno_suaje = oldValue('total_piezas_turno_suaje', $costeoRequisic
 $total_dias_turnos_suaje = oldValue('total_dias_turnos_suaje', $costeoRequisicion);
 $costo_suaje = oldValue('costo_suaje', $costeoRequisicion);
 
-// procesos existentes
 $procesos = $costeoRequisicion->procesos ?? collect([]);
 @endphp
 
@@ -150,7 +138,6 @@ $esCorridaPiloto = false;
 @endphp
 @endif
 
-
 <div class="container mx-auto p-4">
     @if($esCorridaPiloto)
     <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Corrida Piloto</h1>
@@ -159,8 +146,6 @@ $esCorridaPiloto = false;
     @endif
     <form action="{{ route('costeo.store', $cotizacion->id) }}" method="POST" id="costeoForm">
         @csrf
-
-        <!-- SECCIÓN: INFORMACIÓN DE LA REQUISICIÓN no editable excepto moq y calibre-->
         <div class="mb-8 p-6 border-2 border-blue-200 bg-blue-50 rounded-lg">
             <h2 class="text-2xl font-bold text-blue-800 mb-4">Información de la Requisición</h2>
 
@@ -881,7 +866,9 @@ $esCorridaPiloto = false;
                     HDPE: 1.02,
                     PP: 0.93,
                     "PET ESD": 1.35,
-                    "PET-POLIPROPILENO": 1.3
+                    "PET-POLIPROPILENO": 1.3,
+                    "GRADO ALIMENTICIO": 1.35,
+                    Otros:1.35
                 };
 
                 const materialInput = document.querySelector('input[name="material"]');
@@ -1041,13 +1028,12 @@ $esCorridaPiloto = false;
                 } else {
                     auxDivisor.classList.add('hidden');
                     auxSumador.classList.add('hidden');
-                    // Cambiar a grid de 1 columna (ocupa todo el espacio)
+
                     gridPrm.classList.remove('grid-cols-3');
                 }
             }
         </script>
 
-        <!-- SECCIÓN: COSTOS DE MATERIAL PRIMA -->
         <div class="mb-8 p-6 border-2 border-gray-800 rounded-lg">
             <h2 class="text-2xl font-bold border-b-2 border-gray-800 mb-4">Costos de Material Prima</h2>
 
@@ -1419,7 +1405,7 @@ $esCorridaPiloto = false;
                         </tr>
 
                         <tr class="font-bold">
-                            <td class="border border-gray-400 p-2 text-left font-bold">Costo Total</td>
+                            <td class="border border-gray-400 p-2 text-left font-bold">Costo sTotal</td>
                             <td colspan="2" class="border border-gray-400 p-2">
                                 <input type="number" step="0.0001" name="costo_total_procesos"
                                     value="{{ old('costo_total_procesos', $costeoRequisicion->costo_total_procesos) }}" placeholder="calcular costo total"
@@ -2665,7 +2651,6 @@ $esCorridaPiloto = false;
                                 class="w-full bg-gray-100 border-gray-300 border rounded-md p-1">
                         </td>
                     </tr>
-                    <!-- Etiqueta -->
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Etiqueta</td>
                         <td class="border border-gray-300 p-2">
@@ -2686,7 +2671,6 @@ $esCorridaPiloto = false;
                     </tr>
                 </tbody>
                 <tfoot>
-                    <!-- TOTAL Procesos Adicionales -->
                     <tr class="bg-yellow-100 font-bold">
                         <td class="border border-gray-300 p-2">TOTAL</td>
                         <td class="border border-gray-300 p-2">
@@ -2716,7 +2700,6 @@ $esCorridaPiloto = false;
         <br>
         @endif
 
-        <!-- SECCIÓN: RESUMEN DE COSTOS (Como en Excel) -->
         <div class="mb-8 p-6 border-2 border-gray-800 rounded-lg">
             @if($esCorridaPiloto)
             <h2 class="text-2xl font-bold border-b-2 border-gray-800 mb-4">Resumen de Costos Corrida Piloto</h2>
@@ -2734,7 +2717,6 @@ $esCorridaPiloto = false;
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Procesos -->
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Procesos de Maquinaria</td>
                         <td class="border border-gray-300 p-2">
@@ -2753,8 +2735,6 @@ $esCorridaPiloto = false;
                                 class="w-full bg-gray-100 border-gray-300 border rounded-md p-1">
                         </td>
                     </tr>
-
-                    <!-- Empaque -->
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Empaque</td>
                         <td class="border border-gray-300 p-2">
@@ -2774,7 +2754,6 @@ $esCorridaPiloto = false;
                         </td>
                     </tr>
 
-                    <!-- Flete -->
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Flete</td>
                         <td class="border border-gray-300 p-2">
@@ -2793,7 +2772,6 @@ $esCorridaPiloto = false;
                                 class="w-full bg-gray-100 border-gray-300 border rounded-md p-1">
                         </td>
                     </tr>
-                    <!-- Pedimento -->
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Pedimento</td>
                         <td class="border border-gray-300 p-2">
@@ -2813,7 +2791,6 @@ $esCorridaPiloto = false;
                         </td>
                     </tr>
 
-                    <!-- Total Procesos Adicionales (desde tabla anterior) -->
                     <tr class="bg-yellow-100">
                         <td class="font-bold border border-gray-300 p-2">Total Procesos Adicionales</td>
                         <td class="border border-gray-300 p-2">
@@ -2845,7 +2822,7 @@ $esCorridaPiloto = false;
                 <script>
                     function calcularCostosUnit() {
                         console.log('=== INICIANDO CÁLCULO DE COSTOS UNITARIOS ===');
-                        // Primero calcular totales de procesos adicionales
+
                         const conceptosAdicionales = ['inocuidad', 'polipropileno', 'estaticidad', 'maquila', 'etiqueta'];
                         let sumaCostosAdicionales = 0;
                         let sumaCostoUnitAdicionales = 0;
@@ -2867,17 +2844,14 @@ $esCorridaPiloto = false;
                             }
                         });
 
-                        // Actualizar totales de procesos adicionales
                         document.querySelector('input[name="resumen_total_costo_adicionales"]').value = sumaCostosAdicionales.toFixed(4);
                         document.querySelector('input[name="resumen_total_costo_unit_adicionales"]').value = sumaCostoUnitAdicionales.toFixed(4);
 
-                        // Copiar valores a la segunda tabla
                         document.querySelector('input[name="resumen_costo_adicionales_en_resumen"]').value = sumaCostosAdicionales.toFixed(4);
                         document.querySelector('input[name="resumen_costo_unit_adicionales_en_resumen"]').value = sumaCostoUnitAdicionales.toFixed(4);
 
-                        // Ahora calcular conceptos principales
                         const conceptos = ['procesos', 'empaque', 'flete', 'pedimento'];
-                        let sumaTotales = sumaCostoUnitAdicionales; // Incluir adicionales en el total
+                        let sumaTotales = sumaCostoUnitAdicionales; 
 
                         conceptos.forEach(concepto => {
                             let costoInput, piezasInput, unitInput;
@@ -2899,14 +2873,11 @@ $esCorridaPiloto = false;
                             }
                         });
 
-                        // Asignar la suma al campo resumen_total_costo_unit
                         const totalInput = document.querySelector('input[name="resumen_total_costo_unit"]');
                         if (totalInput) {
                             totalInput.value = sumaTotales.toFixed(4);
                         }
-                        // Calcular margen administrativo
                         calcularMargenAdministrativo();
-                        // Calcular costo total
                         calcularCostoTotalResumen();
                     }
                     
@@ -2936,13 +2907,11 @@ $esCorridaPiloto = false;
             </table>
         </div>
 
-        <!-- Sección: Costeo -->
         <div class="mb-4">
             <label for="costo_total" class="block text-sm font-bold text-gray-700" >Costo total</label>
             <input type="number" step="0.01" name="costo_total" id="costo_total" class="mt-1 block font-bold w-full rounded-md border-gray-300 shadow-sm" value="{{ old('costo_total', $costeoRequisicion->costo_total) }}" disabled>
         </div>
 
-        <!-- Sección: Tiempos de entrega -->
         <h3 class="text-lg font-bold text-gray-800 mb-3 mt-6">Tiempos de entrega</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
@@ -2964,13 +2933,11 @@ $esCorridaPiloto = false;
             </div>
         </div>
 
-        <!-- Sección: Comentarios -->
         <div class="mt-4">
             <label for="comentarios" class="block text-sm font-medium text-gray-700">Comentarios de costeo</label>
             <textarea name="comentarios" id="comentarios" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" placeholder="Observaciones, notas técnicas, etc.">{{ old('comentarios', $costeoRequisicion->comentarios) }}</textarea>
         </div>
 
-        <!-- BOTONES MEJORADOS -->
         <div class="flex justify-between items-center mt-6 space-x-4">
             <div id="boton-enviar">
                 @if(!$cotizacion->enviado_a_ventas)
@@ -3032,8 +2999,6 @@ $esCorridaPiloto = false;
 </script>
 
 <script>
-   
-
     function asignarLoteCompraEnResumenPiezas() {
         const loteCompra = document.querySelector('input[name="lote_compra"]')?.value || '';
         const names = [
@@ -3052,10 +3017,7 @@ $esCorridaPiloto = false;
         document.querySelector('input[name="resumen_piezas_estaticidad"]').value = 1;
     }
 
-    //////////////////RESUMEN DE VENTAS
-
     function copiarCostosATotales() {
-        // Define los pares de campos: [costo, total]
         const campos = [
             ['costo_suaje_base', 'total_suaje_base'],
             ['costo_muestras', 'total_costo_muestras'],
@@ -3093,16 +3055,16 @@ $esCorridaPiloto = false;
     }
 
     function cargarDatos() {
-        calcularPesoEspecifico(); //este si o si al cargar pagina o que se implemente el crud de materiales lo mejor
-        asignarBolsa(); //este si o si, para que se cargue la bolsa al iniciar
-        asignarCajasPorTarima(); //este si o si, para que se cargue el corrugado al iniciar 
-        asignarTarima(); //este si o si, para que se cargue la tarima al iniciar dependiendo del liner o esquinero 
-        calcularAcomodoAncho(); //calcula en automatico los totales de molde 
-        calcularAcomodoAvance(); //calcula en automatico los totales de molde
-        calcularPedimentoHerramental(); //calcula en automatico los totales de pedimento herramental
-        copiarCostosATotales(); //calcula en automatico los totales finales
-        asignarLoteCompraEnResumenPiezas(); //asigna el lote de compra en las piezas del resumen de costos
-        calcularCostosUnit(); //este si o si al cargar pagina
+        calcularPesoEspecifico();
+        asignarBolsa();
+        asignarCajasPorTarima(); 
+        asignarTarima();
+        calcularAcomodoAncho(); 
+        calcularAcomodoAvance();
+        calcularPedimentoHerramental();
+        copiarCostosATotales();
+        asignarLoteCompraEnResumenPiezas();
+        calcularCostosUnit();
     }
 
     document.addEventListener('DOMContentLoaded', function() {

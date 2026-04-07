@@ -7,6 +7,7 @@ namespace App\Support;
  * 
  * Contiene constantes de colores, estilos y configuración general
  * para la generación de Excel y PDF
+ * Esta es la version
  */
 class CotizacionConfig
 {

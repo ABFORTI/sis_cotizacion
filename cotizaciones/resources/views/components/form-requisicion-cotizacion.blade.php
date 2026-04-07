@@ -153,6 +153,7 @@ $dedales = oldValue('dedales', $aux);
                     <option value="NA" {{ $tipo_flujo_carga == 'NA' ? 'selected' : '' }}>"Sin especificar"</option>
                     <option value="Entre componentes" {{ $tipo_flujo_carga == 'Entre componentes' ? 'selected' : '' }}>Entre componentes</option>
                     <option value="Sobre charola" {{ $tipo_flujo_carga == 'Sobre charola' ? 'selected' : '' }}>Sobre charola</option>
+                    <option value="Entre companentes y sobre charola"{{ $tipo_flujo_carga == 'Entre companentes y sobre charola"' ? 'selected' : '' }}>Entre companentes y sobre charola"</option>
                 </select>
             </div>
             <div id="pared_apartado">

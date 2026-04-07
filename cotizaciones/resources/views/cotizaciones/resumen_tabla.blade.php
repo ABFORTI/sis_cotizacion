@@ -45,7 +45,11 @@
             </div>
         @endif
 
-        <form action="{{ route('cotizacion.resumen.store', $cotizacion->id) }}" method="POST" id="resumen-save-form">
+        <form action="{{ route('cotizacion.resumen.store', $cotizacion->id) }}" method="POST" id="resumen-save-form"
+            data-loading="true"
+            data-loading-title="Guardando resumen..."
+            data-loading-message="Actualizando resumen de costos, por favor espera"
+            data-loading-button-text="Guardando resumen, por favor espera...">
             @csrf
             <fieldset>
 
@@ -388,22 +392,6 @@
                 </tfoot>
             </table>
 
-            <!-- Inputs adicionales para cálculo final 
-            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium">Lote de compra</label>
-                    <input type="number" name="lote_compra" step="1" class="form-input mt-1 w-full" value="{{ old('lote_compra', $ventasResumen->lote_compra ?? optional($cotizacion->especificacionProyecto)->lote_compra ?? '') }}">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Coef. Merma (%)</label>
-                    <input type="number" name="coeficiente_merma" step="0.0001" class="form-input mt-1 w-full" value="{{ old('coeficiente_merma', $ventasResumen->coeficiente_merma ?? $costeoRequisicion->coeficiente_merma ?? '') }}">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium">Costo total (MXN)</label>
-                    <input type="number" name="costo_total" step="0.01" readonly class="form-input mt-1 w-full bg-gray-100" value="{{ old('costo_total', $ventasResumen->costo_total ?? '') }}">
-                </div>
-            </div>
- -->
             <div class="mt-4 flex items-center justify-end gap-3 border-t border-gray-300 pt-4">
                 <span class="text-base font-bold text-blue-900">Total Final de la Cotización (MXN):</span>
                 <input type="number" name="precio_venta_final" step="0.01" readonly

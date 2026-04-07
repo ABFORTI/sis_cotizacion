@@ -103,7 +103,7 @@ Route::middleware(['auth', 'rol.costeos'])
 | Rutas para COSTEOS
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'rol.costeos'])->group(function () {
+Route::middleware(['auth', 'rol.todos'])->group(function () {
     Route::get('/requisicion/{id}/costeo', [CosteoRequisicionController::class, 'create'])
         ->name('costeo.create');
 
@@ -115,6 +115,8 @@ Route::middleware(['auth', 'rol.costeos'])->group(function () {
 
         Route::delete('/resumen/archivo/{id}', [ResumenController::class, 'eliminarArchivo'])
      ->name('resumen.archivo.eliminar');
+     Route::middleware('auth')->get('/resumen/archivo/{id}/download', [ResumenController::class, 'downloadArchivo'])
+     ->name('resumen.archivo.download');
      Route::patch('/cotizaciones/{cotizacion}/ocultar-costeos',[CotizacionController::class, 'ocultarParaCosteos'])
      ->name('cotizaciones.ocultarCosteos');
 
@@ -204,6 +206,9 @@ Route::post('/archivos', [ArchivoAdjuntoController::class, 'store'])
 
 Route::delete('/archivos/{archivo}', [ArchivoAdjuntoController::class, 'destroy'])
     ->name('archivos.destroy');
+
+Route::middleware('auth')->get('/archivos/{id}/download', [ArchivoAdjuntoController::class, 'download'])
+    ->name('archivos.download');
 
 //rutas protegidas de cotizaciones    
 // Ruta CREATE para ambos roles

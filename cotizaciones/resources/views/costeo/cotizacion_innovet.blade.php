@@ -5,8 +5,6 @@
     use Illuminate\Support\Facades\Storage;
 @endphp
 
-
-<!-- Styles plantilla de cotización -->
 <style>
     .cotizacion-header {
         background-color: #2b2b2b;
@@ -293,7 +291,6 @@
         </div>
     </div>
 
-    <!-- Información del Cliente -->
     <div class="mb-8">
         <div class="text-center mb-4">
             <h2 class="text-3xl md:text-4xl font-bold text-neutral-900 client-name-mobile mb-2">
@@ -311,7 +308,6 @@
     <div class=" from-neutral-50 to-neutral-100 rounded-xl p-6 border border-neutral-50 shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 justify-items-center">
 
-            <!-- Puesto -->
             <div class="flex flex-col items-center md:items-start text-center md:text-left">
                 <div class="flex items-center gap-2 mb-2">
                     <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,7 +317,6 @@
                 </div>
                 <p class="text-lg font-bold text-neutral-900">{{ $cotizacion->puesto }}</p>
             </div>
-            <!-- Email -->
             <div class="flex flex-col items-center md:items-start text-center md:text-left">
                 <div class="flex items-center gap-2 mb-2">
                     <svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -348,8 +343,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Tabla principal -->
     <div class="shadow-sm border border-gray-200 table-wrapper">
         <table class="w-full border-collapse cotizacion-table" style="min-width: 650px;">
             <thead>
@@ -361,7 +354,6 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Row 1: Charola 15 cavidades -->
                 <tr class="border-t border-gray-200">
                     <td class="celdasGrisesclaritas align-top p-4 text-center text-gray-700 font-semibold">1</td>
                     <td style="padding: 0; margin: 0; border: none;">
@@ -383,7 +375,7 @@
                                     <tr>
                                         <td class="spec-col-dim center font-semibold">{{ $cotizacion->especificacionProyecto->pieza_largo }} x {{ $cotizacion->especificacionProyecto->pieza_ancho }} x {{ $cotizacion->especificacionProyecto->pieza_alto }} mm</td>
                                         <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->frecuencia_compra }}</td>
-                                        <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->material_mostrado ?? '' }}</td>
+                                        <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->material }}</td>
                                         <td class="spec-col-small center font-semibold">{{ $cotizacion->especificacionProyecto->calibre }}</td>
                                         <td class="spec-col-small center font-semibold">{{$cotizacion->especificacionProyecto->color}}</td>
                                     </tr>
@@ -405,7 +397,6 @@
             </tbody>
         </table>
     </div>
-    <!-- Segunda tabla -->
     <div class="shadow-sm border border-gray-200 mt-10 table-wrapper">
         <table class="w-full border-collapse cotizacion-table" style="min-width: 650px;">
             <thead>
@@ -417,7 +408,6 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Row 2: Desarrollo de Herramientas -->
                 <tr class="border-t border-gray-200">
                     <td class="celdasGrisesclaritas align-top p-4 text-center font-semibold">2</td>
                     <td class="cotizacion-title-red" style="padding: 0; margin: 0;">
@@ -444,7 +434,6 @@
             </tbody>
         </table>
     </div>
-    <!-- Imagen ilustrativa espacio -->
     <form action="{{ route('archivos.store') }}"
         method="POST"
         enctype="multipart/form-data"
@@ -493,7 +482,6 @@
             </div>
             <div class="px-6 py-4 bg-white border-t border-neutral-100">
                 <div class="flex items-center justify-between flex-wrap gap-4">
-                <!-- Información del archivo -->
                 <div class="flex-1 min-w-0">
                     <h3 class="text-sm font-semibold text-neutral-900 truncate">
                         {{ $imagen->nombre ?? 'Documento' }}
@@ -502,9 +490,7 @@
                         Subido el {{ $imagen->created_at ? $imagen->created_at->format('d/m/Y') : 'N/A' }}
                     </p>
                 </div>
-                <!-- Acciones -->
                 <div class="flex items-center gap-2">
-                    <!-- Vista previa -->
                     <a href="{{ Storage::url($imagen->path) }}"
                        target="_blank"
                        rel="noopener noreferrer"
@@ -521,7 +507,6 @@
                         </svg>
                         <span class="hidden sm:inline">Abrir</span>
                     </a>
-                    <!-- Descargar -->
                     <a href="{{ Storage::url($imagen->path) }}"
                        download="{{ $imagen->nombre ?? 'imagen' }}"
                        class="inline-flex items-center gap-2 px-4 py-2
@@ -596,7 +581,6 @@
 
     </div>
 
-    <!-- Nota legal discreta -->
     <p class="text-center text-xs text-neutral-400 mt-3">
         Imagen con fines ilustrativos
     </p>
@@ -606,15 +590,12 @@
 <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
 @endpush
 @endif
-
-    <!-- SECCION DE LINEAMIENTOS -->
         @if (session('success'))
             <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
                 {{ session('success') }}
             </div>
         @endif
 
-        <!-- Encabezado -->
         <div class="flex items-start justify-between mb-4 header-mobile">
             <div>
                 <img src="{{ asset('images/innovet-logo.png') }}" alt="Innovet" style="max-width: 220px; width: 100%; height: auto;">
@@ -759,7 +740,6 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
-        // Función para generar el documento
         function generarDocumento(tipo) {
             var nombre = document.getElementById('nombre_contacto_input').value;
             var puesto = document.getElementById('puesto_contacto_input').value;
@@ -828,17 +808,10 @@ document.addEventListener('click', function (e) {
 });
 
 </script>
-
-    <!-- Footer address -->
-        <div class=" mt-8 pt-4 border-t border-gray-300 text-center text-sm text-gray-600">
-            <p>Av Del Marqués lote 7. Parque industrial Bernardo Quintana. El Marqués, Querétaro, C.P 76246</p>
-            <p class="mt-2">ACF06 | Fecha de efectividad: 28-Mayo-2024 | Revisión: 05</p>
-        </div>
-
+    <div class=" mt-8 pt-4 border-t border-gray-300 text-center text-sm text-gray-600">
+        <p>Av Del Marqués lote 7. Parque industrial Bernardo Quintana. El Marqués, Querétaro, C.P 76246</p>
+        <p class="mt-2">ACF06 | Fecha de efectividad: 28-Mayo-2024 | Revisión: 05</p>
+    </div>
 </div>    
 </div>
-
-<!-- Revisar si agregamos lo del correo -->
-
-
 @endsection

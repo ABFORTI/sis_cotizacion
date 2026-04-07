@@ -16,11 +16,9 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 
 
-class ExcelController extends Controller
-{
+class ExcelController extends Controller {
 
-    public function generarCotizacionExcel($id)
-    {
+    public function generarCotizacionExcel($id) {
         try {
             $cotizacion = Cotizacion::with([
                 'especificacionProyecto',
@@ -44,11 +42,8 @@ class ExcelController extends Controller
         }
     }
 
-    /**
-     * Generar cotización en formato PDF
-     */
-    public function generarCotizacionPdf($id)
-    {
+    //Generar cotización en formato PDF
+    public function generarCotizacionPdf($id){
         try {
             $cotizacion = Cotizacion::with([
                 'especificacionProyecto',
@@ -72,11 +67,8 @@ class ExcelController extends Controller
         }
     }
 
-    /**
-     * Generar lineamientos en formato Excel
-     */
-    public function generarLineamientosExcel(Request $request, $id)
-    {
+    //Generar lineamientos en formato Excel
+    public function generarLineamientosExcel(Request $request, $id) {
         try {
             $cotizacion = Cotizacion::with([
                 'especificacionProyecto',
@@ -98,9 +90,6 @@ class ExcelController extends Controller
         }
     }
 
-    /**
-     * Generar lineamientos en formato PDF
-     */
     public function generarLineamientosPdf(Request $request, $id)
     {
         try {
@@ -124,9 +113,7 @@ class ExcelController extends Controller
         }
     }
 
-    /**
-     * Generar resumen de costeo en formato Excel
-     */
+
     public function generarCosteoResumenExcel(Request $request, $id)
     {
         try {
@@ -157,11 +144,8 @@ class ExcelController extends Controller
         }
     }
 
-    /**
-     * Generar resumen de costeo en formato PDF
-     */
-    public function generarCosteoResumenPdf(Request $request, $id)
-    {
+    //Generar resumen de costeo en formato PDF
+    public function generarCosteoResumenPdf(Request $request, $id) {
         try {
             $cotizacion = Cotizacion::with([
                 'requisicionCotizacion',
@@ -189,11 +173,7 @@ class ExcelController extends Controller
         }
     }
 
-    /**
-     * Generar Excel combinado: Cotización + Lineamientos
-     */
-    public function generarCotizacionLineamientosExcel(Request $request, $id)
-    {
+    public function generarCotizacionLineamientosExcel(Request $request, $id) {
         try {
             $cotizacion = Cotizacion::with([
                 'especificacionProyecto',
@@ -204,15 +184,12 @@ class ExcelController extends Controller
 
             $service = new ExcelReportService($cotizacion);
             
-            // Llenar primera hoja: Cotización
             $this->llenarCotizacionExcel($service);
             $service->getSheet()->setTitle('Cotización');
             
-            // Crear segunda hoja: Lineamientos
             $sheet2 = $service->getSpreadsheet()->createSheet();
             $sheet2->setTitle('Lineamientos');
             
-            // Establecer la segunda hoja como activa en el servicio
             $service->setSheet($sheet2);
             
             $this->llenarLineamientosExcel($service, $request);
@@ -229,11 +206,7 @@ class ExcelController extends Controller
         }
     }
 
-    /**
-     * Generar PDF combinado: Cotización + Lineamientos
-     */
-    public function generarCotizacionLineamientosPdf(Request $request, $id)
-    {
+    public function generarCotizacionLineamientosPdf(Request $request, $id) {
         try {
             $cotizacion = Cotizacion::with([
                 'especificacionProyecto',
@@ -244,7 +217,6 @@ class ExcelController extends Controller
 
             $service = new PdfReportService($cotizacion);
             
-            // Encabezado y cotización
             $service->agregarEncabezado();
             $service->agregarInfoCliente();
             
@@ -256,7 +228,6 @@ class ExcelController extends Controller
             
             $service->agregarImagenIlustrativa();
             
-            // Lineamientos
             $html = $this->generarSeccionLineamientosPdf($service);
             $service->agregarHTML('<div style="page-break-before: always;"></div>' . $html);
             
@@ -277,18 +248,12 @@ class ExcelController extends Controller
     /**
      * ========== MÉTODOS PRIVADOS PARA LLENAR REPORTES ==========
      */
-
-    /**
-     * Llenar Excel de cotización con diseño profesional
-     */
-    private function llenarCotizacionExcel(ExcelReportService $service): void
-    {
+    private function llenarCotizacionExcel(ExcelReportService $service): void {
         try {
             $cotizacion = $service->getCotizacion();
             $especificacion = $service->getEspecificacionProyecto();
             $sheet = $service->getSheet();
 
-            // Configurar ancho de columnas - SIN MERGES
             $service->setColumnWidths([
                 'A' => 35,
                 'B' => 30,
@@ -300,16 +265,13 @@ class ExcelController extends Controller
                 'H' => 19,
             ]);
 
-            // ===== ENCABEZADO CON LOGO =====
             $service->agregarLogo('A1');
             
-            // Aumentar altura de filas para que se vea el logo (altura total ~120)
             $sheet->getRowDimension(1)->setRowHeight(40);
             $sheet->getRowDimension(2)->setRowHeight(40);
             $sheet->getRowDimension(3)->setRowHeight(20);
             $sheet->getRowDimension(4)->setRowHeight(20);
             
-            // Folio y Fecha
             $sheet->setCellValue('F1', 'Folio:');
             $sheet->getStyle('F1')->applyFromArray(ExcelStyleFactory::custom(['bold' => true, 'fontSize' => 11]));
             $sheet->setCellValue('G1', $cotizacion->no_proyecto);
@@ -321,14 +283,12 @@ class ExcelController extends Controller
             // ===== INFORMACIÓN DEL CLIENTE =====
             $row = 4;
             
-            // Encabezado CLIENTE
             for ($col = 'A'; $col <= 'H'; $col++) {
                 $sheet->getStyle($col . $row)->applyFromArray(ExcelStyleFactory::headerStyle());
             }
             $sheet->setCellValue('A' . $row, 'CLIENTE');
             $sheet->getRowDimension($row)->setRowHeight(18);
             
-            // Nombre del cliente
             $row++;
             $sheet->setCellValue('A' . $row, htmlspecialchars($cotizacion->cliente ?? 'N/A'));
             $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom(['bold' => true, 'fontSize' => 13]));
@@ -337,19 +297,16 @@ class ExcelController extends Controller
             }
             $sheet->getRowDimension($row)->setRowHeight(22);
 
-            // Puesto
             $row++;
             $sheet->setCellValue('A' . $row, 'Puesto:');
             $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom(['bold' => true, 'fontSize' => 10]));
             $sheet->setCellValue('B' . $row, htmlspecialchars($cotizacion->puesto ?? 'N/A'));
             
-            // Correo
             $sheet->setCellValue('G' . $row, 'Email:');
             $sheet->getStyle('G' . $row)->applyFromArray(ExcelStyleFactory::custom(['bold' => true, 'fontSize' => 10]));
             $sheet->setCellValue('H' . $row, htmlspecialchars($cotizacion->correo ?? 'N/A'));
             $sheet->getStyle('H' . $row)->applyFromArray(ExcelStyleFactory::custom(['color' => 'B50B0B', 'fontSize' => 10]));
 
-            // Teléfono
             $sheet->setCellValue('D' . $row, 'Teléfono:');
             $sheet->getStyle('D' . $row)->applyFromArray(ExcelStyleFactory::custom(['bold' => true, 'fontSize' => 10]));
             $sheet->setCellValue('E' . $row, htmlspecialchars($cotizacion->telefono ?? 'N/A'));
@@ -358,7 +315,6 @@ class ExcelController extends Controller
             // ===== TABLA DE PRODUCTOS (Formato similar al PDF) =====
             $row += 2;
             
-            // ROW 1: Encabezado principal
             $sheet->setCellValue('A' . $row, '#');
             $sheet->setCellValue('B' . $row, 'Descripción del Proyecto');
             $sheet->setCellValue('C' . $row, 'Dimensiones');
@@ -373,7 +329,6 @@ class ExcelController extends Controller
             }
             $sheet->getRowDimension($row)->setRowHeight(18);
 
-            // ROW 2: Datos principales
             $row++;
             $sheet->setCellValue('A' . $row, '1');
             $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom(['bold' => true, 'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER]]));
@@ -392,7 +347,6 @@ class ExcelController extends Controller
             $sheet->setCellValue('H' . $row, '$ ' . number_format($precioUnitario, 2));
             $sheet->getStyle('H' . $row)->applyFromArray(ExcelStyleFactory::greenPriceStyle());
 
-            // Aplicar bordes y estilos a todas las celdas de esta fila
             for ($col = 'A'; $col <= 'H'; $col++) {
                 if ($col !== 'H') {
                     $sheet->getStyle($col . $row)->applyFromArray(ExcelStyleFactory::normalStyle());
@@ -401,7 +355,6 @@ class ExcelController extends Controller
             }
             $sheet->getRowDimension($row)->setRowHeight(18);
 
-            // ROW 3: Etiquetas de especificaciones (hidden conceptually, for reference)
             $row++;
             $sheet->setCellValue('A' . $row, '');
             $sheet->setCellValue('B' . $row, 'Color');
@@ -422,7 +375,6 @@ class ExcelController extends Controller
             }
             $sheet->getRowDimension($row)->setRowHeight(14);
 
-            // ROW 4: Valores de especificaciones
             $row++;
             $sheet->setCellValue('A' . $row, '');
             $sheet->setCellValue('B' . $row, htmlspecialchars($especificacion['color'] ?? 'N/C'));
@@ -437,7 +389,6 @@ class ExcelController extends Controller
             // ===== TABLA DE HERRAMENTALES =====
             $row += 2;
             
-            // Encabezado herramentales
             $sheet->setCellValue('A' . $row, '#');
             $sheet->setCellValue('B' . $row, 'Descripción');
             $sheet->setCellValue('C' . $row, 'Detalles');
@@ -448,7 +399,6 @@ class ExcelController extends Controller
             }
             $sheet->getRowDimension($row)->setRowHeight(18);
 
-            // Datos herramentales
             $row++;
             $sheet->setCellValue('A' . $row, '2');
             $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom(['bold' => true, 'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER]]));
@@ -459,7 +409,6 @@ class ExcelController extends Controller
             $sheet->setCellValue('C' . $row, 'Incluye 3 muestras para liberación');
             $sheet->getStyle('C' . $row)->getAlignment()->setWrapText(true);
             
-            // Celdas vacías
             for ($col = 'D'; $col <= 'G'; $col++) {
                 $sheet->setCellValue($col . $row, '');  
             }
@@ -468,7 +417,6 @@ class ExcelController extends Controller
             $sheet->setCellValue('H' . $row, '$ ' . number_format($precioHerramentales, 2));
             $sheet->getStyle('H' . $row)->applyFromArray(ExcelStyleFactory::greenPriceStyle());
 
-            // Bordes
             for ($col = 'A'; $col <= 'H'; $col++) {
                 $sheet->getStyle($col . $row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             }
@@ -493,11 +441,7 @@ class ExcelController extends Controller
         }
     }
 
-    /**
-     * Llenar PDF de cotización
-     */
-    private function llenarCotizacionPdf(PdfReportService $service): void
-    {
+    private function llenarCotizacionPdf(PdfReportService $service): void {
         $service->agregarEncabezado();
         $service->agregarInfoCliente();
 
@@ -515,30 +459,22 @@ class ExcelController extends Controller
         $service->agregarFooter();
     }
 
-    /**
-     * Llenar Excel de lineamientos
-     */
-    private function llenarLineamientosExcel(ExcelReportService $service, Request $request): void
-    {
+    private function llenarLineamientosExcel(ExcelReportService $service, Request $request): void {
         try {
             $cotizacion = $service->getCotizacion();
             $lineamientos = $service->getLineamientos();
             $contacto = $service->getDatosContacto(Auth::user()?->name);
             $sheet = $service->getSheet();
 
-            // Configurar columnas - SIN MERGES
             $service->setColumnWidths(['A' => 34, 'B' => 80]);
 
-            // ===== ENCABEZADO =====
             $service->agregarLogo('A1');
             
-            // Aumentar altura de filas para que se vea el logo
             $sheet->getRowDimension(1)->setRowHeight(40);
             $sheet->getRowDimension(2)->setRowHeight(40);
             $sheet->getRowDimension(3)->setRowHeight(5);
             $sheet->getRowDimension(4)->setRowHeight(34);
             
-            // Folio y Fecha
             $sheet->setCellValue('F1', 'Folio:');
             $sheet->getStyle('F1')->applyFromArray(ExcelStyleFactory::custom(['bold' => true]));
             $sheet->setCellValue('G1', $cotizacion->no_proyecto);
@@ -567,7 +503,6 @@ class ExcelController extends Controller
             // ===== LINEAMIENTOS EN TABLA =====
             $row += 2;
 
-            // Encabezado de tabla
             $sheet->setCellValue('A' . $row, '#');
             $sheet->setCellValue('B' . $row, 'Lineamiento');
 
@@ -576,20 +511,18 @@ class ExcelController extends Controller
             }
             $sheet->getRowDimension($row)->setRowHeight(18);
 
-            // Lineamientos
             $row++;
             $itemNum = 1;
             foreach ($lineamientos as $lineamiento) {
                 $sheet->setCellValue('A' . $row, $itemNum);
                 $sheet->setCellValue('B' . $row, htmlspecialchars($lineamiento));
 
-                // Aplicar estilos
                 $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom(['bold' => true]));
                 $sheet->getStyle('A' . $row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
                 $sheet->getStyle('B' . $row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
                 $sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true);
 
-                $sheet->getRowDimension($row)->setRowHeight(-1); // Auto height
+                $sheet->getRowDimension($row)->setRowHeight(-1);
                 $row++;
                 $itemNum++;
             }
@@ -625,11 +558,7 @@ class ExcelController extends Controller
         }
     }
 
-    /**
-     * Llenar PDF de lineamientos
-     */
-    private function llenarLineamientosPdf(PdfReportService $service, Request $request): void
-    {
+    private function llenarLineamientosPdf(PdfReportService $service, Request $request): void {
         $service->agregarEncabezado();
 
         $html = $this->generarSeccionLineamientosPdf($service);
@@ -648,17 +577,12 @@ class ExcelController extends Controller
         $service->agregarFooter();
     }
 
-    /**
-     * Llenar Excel de costeo
-     */
-    private function llenarCosteoExcel(ExcelReportService $service, Request $request): void
-    {
+    private function llenarCosteoExcel(ExcelReportService $service, Request $request): void {
         try {
             $cotizacion = $service->getCotizacion();
             $contacto = $service->getDatosContacto(Auth::user()?->name);
             $sheet = $service->getSheet();
 
-            // Configurar columnas - SIN MERGES
             $service->setColumnWidths([
                 'A' => 50,
                 'B' => 35,
@@ -670,7 +594,6 @@ class ExcelController extends Controller
             // ===== ENCABEZADO =====
             $service->agregarLogo('A1');
             
-            // Aumentar altura de filas para que se vea el logo
             $sheet->getRowDimension(1)->setRowHeight(40);
             $sheet->getRowDimension(2)->setRowHeight(40);
             $sheet->getRowDimension(3)->setRowHeight(40);
@@ -701,7 +624,6 @@ class ExcelController extends Controller
             }
             $sheet->getRowDimension($row)->setRowHeight(25);
 
-            // Obtener costeos
             $costeos = \App\Models\CosteoRequisicion::where('cotizaciones', $cotizacion->id)->get();
 
             if ($costeos->isEmpty()) {
@@ -713,7 +635,6 @@ class ExcelController extends Controller
             // ===== TABLA DE PROCESOS =====
             $row += 2;
 
-            // Encabezados
             $sheet->setCellValue('A' . $row, '#');
             $sheet->setCellValue('B' . $row, 'Concepto');
             $sheet->setCellValue('C' . $row, 'Cantidad');
@@ -798,14 +719,22 @@ class ExcelController extends Controller
         }
     }
 
-    
+    /**
+     * Llenar PDF de costeo (stub para implementación futura)
+     */
     private function llenarCostoePdf(PdfReportService $service, Request $request): void
     {
         // Implementar lógica de costeo aquí
         // Por ahora es un placeholder
     }
 
+    /**
+     * ========== MÉTODOS AUXILIARES PRIVADOS ==========
+     */
 
+    /**
+     * Agregar encabezado de tabla de cotización
+     */
     private function agregarEncabezadoCotizacion(ExcelReportService $service, int $row): void
     {
         $headers = ['', 'Descripción del proyecto', '', '', '', '', 'Piezas (MOQ)', 'Precio Unitario (MXN)'];
@@ -889,6 +818,9 @@ class ExcelController extends Controller
         $service->setRowHeight($row, CotizacionConfig::ROW_HEIGHT_TEXT);
     }
 
+    /**
+     * Generar tabla de producto en PDF
+     */
     private function generarTablaProductoPdf(PdfReportService $service): string
     {
         $cotizacion = $service->getCotizacion();

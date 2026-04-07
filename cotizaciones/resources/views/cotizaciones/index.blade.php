@@ -10,7 +10,7 @@
             @yield('title')
         </h1>
     </div>
-    <div class="bg-slate-200 rounded-xl shadow-xl p-6">
+    <div class="bg-[var(--color-back)] rounded-xl shadow-xl p-8">
         <div class="mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <form action="{{ route('cotizaciones.index') }}"
@@ -98,11 +98,15 @@
                                 </div>
                                 @endif
                                     @if(!$cotizacion->enviado_a_costeos)
-                                        <form action="{{ route('cotizaciones.enviar', $cotizacion) }}" method="POST" id="enviar-form-{{ $cotizacion->id }}">
+                                        <form action="{{ route('cotizaciones.enviar', $cotizacion) }}" method="POST" id="enviar-form-{{ $cotizacion->id }}"
+                                            data-loading="true"
+                                            data-loading-title="Enviando cotizacion..."
+                                            data-loading-message="Enviando a Costeos, por favor espera"
+                                            data-loading-button-text="Enviando, por favor espera...">
                                             @csrf
                                             @method('PATCH')
                                             <div class="flex justify-center">
-                                                <button type="button" onclick="showConfirmModal('¿Enviar cotización?', '¿Estás seguro de enviar la cotización {{ $cotizacion->no_proyecto }} a Costeos?', function() { document.getElementById('enviar-form-{{ $cotizacion->id }}').submit(); })" class="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-700 font-semibold hover:bg-yellow-200 transition">
+                                                <button type="button" onclick="showConfirmModal('¿Enviar cotización?', '¿Estás seguro de enviar la cotización {{ $cotizacion->no_proyecto }} a Costeos?', function() { submitManagedForm('enviar-form-{{ $cotizacion->id }}'); })" class="px-3 py-1 text-sm rounded-full bg-yellow-100 text-yellow-700 font-semibold hover:bg-yellow-200 transition">
                                                     ⬈ Enviar
                                                 </button>
                                             </div>
@@ -226,14 +230,14 @@
                                                 Ver Resumen de Cotización
                                             </a>
                                             <a 
-                                                href="{{ route('costeo.create', $cotizacion->requisicionCotizacion->id) }}" 
+                                                href="{{ route('costeo.create', $cotizacion->id) }}" 
                                                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                                             >
                                                 Calcular Costeo
                                             </a>
                                             @if(isset($cotizacion->cotizacionAdicional) && ($cotizacion->cotizacionAdicional->corrida_piloto == 1 || $cotizacion->cotizacionAdicional->corrida_piloto === '1'))
                                                 <a 
-                                                    href="{{ route('costeo.create', ['id' => $cotizacion->requisicionCotizacion->id, 'btn_corrida_piloto' => 'corrida_piloto']) }}" 
+                                                    href="{{ route('costeo.create', ['id' => $cotizacion->id, 'btn_corrida_piloto' => 'corrida_piloto']) }}" 
                                                     class="block px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 transition-colors font-medium"
                                                 >
                                                     Calcular Corrida Piloto
@@ -259,11 +263,15 @@
                                             </a>
                                             <form id="delete-form-{{ $cotizacion->id }}"
                                                     action="{{ route('cotizaciones.destroy', $cotizacion) }}"
-                                                    method="POST">
+                                                    method="POST"
+                                                    data-loading="true"
+                                                    data-loading-title="Eliminando cotizacion..."
+                                                    data-loading-message="Eliminando la cotizacion, por favor espera"
+                                                    data-loading-button-text="Eliminando, por favor espera...">
                                                 @csrf
                                                 @method('DELETE')
                                                     <button type="button"
-                                                        onclick="showConfirmModal('¿Eliminar cotización?', 'Esta acción no se puede deshacer.', function() { document.getElementById('delete-form-{{ $cotizacion->id }}').submit(); })"
+                                                        onclick="showConfirmModal('¿Eliminar cotización?', 'Esta acción no se puede deshacer.', function() { submitManagedForm('delete-form-{{ $cotizacion->id }}'); })"
                                                         class="inline-flex items-center justify-center
                                                             w-10 h-10 rounded-base
                                                             bg-red-500 text-white
@@ -276,12 +284,16 @@
                                             <span></span>
                                             <span></span>
                                         @endif
-                                        <form id="clone-form-{{ $cotizacion->id }}"
+                                                                                <form id="clone-form-{{ $cotizacion->id }}"
                                               action="{{ route('cotizaciones.clone', $cotizacion) }}"
-                                              method="POST">
+                                                                                            method="POST"
+                                                                                            data-loading="true"
+                                                                                            data-loading-title="Clonando requisicion..."
+                                                                                            data-loading-message="Creando una copia de la requisicion, por favor espera"
+                                                                                            data-loading-button-text="Clonando, por favor espera...">
                                             @csrf
                                             <button type="button"
-                                                onclick="showConfirmModal('¿Clonar requisición?', 'Se creará una copia de la requisición con fecha actual. Podrás modificar los valores antes de enviarla.', function() { document.getElementById('clone-form-{{ $cotizacion->id }}').submit(); })"
+                                                                                                onclick="showConfirmModal('¿Clonar requisición?', 'Se creará una copia de la requisición con fecha actual. Podrás modificar los valores antes de enviarla.', function() { submitManagedForm('clone-form-{{ $cotizacion->id }}'); })"
                                                 class="inline-flex items-center justify-center
                                                     w-10 h-10 rounded-base
                                                     bg-blue-500 text-white
@@ -292,11 +304,15 @@
                                             </button>
                                         </form>
                                         @if($cotizacion->oculta_para_costeos)
-                                            <form id="delete-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.destroy', $cotizacion) }}" method="POST" class="w-full col-span-3">
+                                            <form id="delete-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.destroy', $cotizacion) }}" method="POST" class="w-full col-span-3"
+                                                data-loading="true"
+                                                data-loading-title="Eliminando cotizacion..."
+                                                data-loading-message="Eliminando la cotizacion, por favor espera"
+                                                data-loading-button-text="Eliminando, por favor espera...">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="button"
-                                                    onclick="showConfirmModal('¿Eliminar cotización?', 'Esta acción no se puede deshacer.', function() { document.getElementById('delete-form-{{ $cotizacion->id }}').submit(); })"
+                                                    onclick="showConfirmModal('¿Eliminar cotización?', 'Esta acción no se puede deshacer.', function() { submitManagedForm('delete-form-{{ $cotizacion->id }}'); })"
                                                     class="btn-submit w-full">
                                                     Eliminar
                                                 </button>
@@ -314,7 +330,11 @@
                                         {{-- OCULTAR (NO BORRAR) --}}
                                             <form id="ocultar-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.ocultarCosteos', $cotizacion->id) }}"
                                                 method="POST"
-                                                class="w-full">
+                                                class="w-full"
+                                                data-loading="true"
+                                                data-loading-title="Ocultando cotizacion..."
+                                                data-loading-message="Ocultando la cotizacion para Costeos, por favor espera"
+                                                data-loading-button-text="Ocultando, por favor espera...">
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="button"
@@ -322,7 +342,7 @@
                                                         '¿Eliminar cotización?',
                                                         'Esta acción no se puede deshacer.',
                                                         function() { 
-                                                            document.getElementById('ocultar-form-{{ $cotizacion->id }}').submit();
+                                                            submitManagedForm('ocultar-form-{{ $cotizacion->id }}');
                                                             }
                                                         )"
                                                     class="inline-flex items-center justify-center
@@ -393,7 +413,7 @@
 }
 
     .dropdown-menu a:hover {
-        background-color: #f3f4f6;
+        background-color: #f3f6f6;
     }
 
         /* Asegura que la tabla no corte el dropdown */

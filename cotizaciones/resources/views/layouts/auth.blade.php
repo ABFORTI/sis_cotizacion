@@ -11,6 +11,30 @@
 </head>
 
 <body class="bg-slate-100 flex flex-col min-h-screen">
+    <style>
+        #confirmModal img {
+            width: auto !important;
+            height: auto !important;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        #loadingRequisicionModal .loader-ring {
+            width: 4rem;
+            height: 4rem;
+            aspect-ratio: 1 / 1;
+            flex-shrink: 0;
+        }
+
+        #loadingRequisicionModal .loader-ring svg {
+            width: 2rem;
+            height: 2rem;
+            flex-shrink: 0;
+        }
+    </style>
+
     <main class="flex-grow">
         @yield('content')
     </main>
@@ -48,7 +72,244 @@
         </div>
     </div>
 
+    <div id="loadingRequisicionModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+        <div class="relative mx-auto p-8 border w-full max-w-md shadow-2xl rounded-xl bg-white">
+            <div class="text-center">
+                <div class="flex justify-center mb-6">
+                    <div class="relative inline-flex items-center justify-center loader-ring">
+                        <div class="inline-flex rounded-full w-full h-full bg-gradient-to-tr from-blue-500 to-green-500 p-0.5">
+                            <div class="flex items-center justify-center rounded-full w-full h-full bg-white">
+                                <svg class="w-8 h-8 text-blue-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold text-gray-900 mb-2" id="loadingRequisicionTitle">
+                    Procesando solicitud...
+                </h3>
+
+                <p class="text-sm text-gray-600 mb-6 min-h-[3rem] leading-snug px-2 break-words" id="loadingRequisicionMessage">
+                    Por favor espera mientras se completa el proceso.
+                </p>
+
+                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-500 to-green-500 h-full rounded-full w-0 transition-all duration-500" id="loadingRequisicionProgress"></div>
+                </div>
+
+                <p class="text-xs text-gray-500 mt-4">
+                    Este proceso puede tomar algunos segundos. No recargues la página.
+                </p>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function showLoadingRequisicionModal(config = {}) {
+            const modal = document.getElementById('loadingRequisicionModal');
+            const titleEl = document.getElementById('loadingRequisicionTitle');
+            const messageEl = document.getElementById('loadingRequisicionMessage');
+            const progressBar = document.getElementById('loadingRequisicionProgress');
+
+            if (!modal || !messageEl || !progressBar) {
+                return;
+            }
+
+            const messages = Array.isArray(config.messages) && config.messages.length
+                ? config.messages
+                : [
+                    'Validando informacion...',
+                    'Preparando solicitud...',
+                    'Guardando datos...',
+                    'Casi listo...'
+                ];
+
+            if (titleEl) {
+                titleEl.textContent = config.title || 'Procesando solicitud...';
+            }
+
+            messageEl.textContent = config.message || 'Por favor espera mientras se completa el proceso.';
+            modal.classList.remove('hidden');
+            progressBar.style.width = '10%'; 
+
+            let messageIndex = 0;
+            let progressValue = 10;
+
+            const progressInterval = setInterval(() => {
+                progressValue += Math.random() * 25;
+                if (progressValue > 90) progressValue = 90;
+                progressBar.style.width = progressValue + '%';
+            }, 600);
+
+            const messageInterval = setInterval(() => {
+                messageIndex = (messageIndex + 1) % messages.length;
+                messageEl.style.opacity = '0';
+                setTimeout(() => {
+                    messageEl.textContent = messages[messageIndex];
+                    messageEl.style.opacity = '1';
+                    messageEl.style.transition = 'opacity 0.3s ease';
+                }, 150);
+            }, 2000);
+
+            modal.dataset.progressInterval = progressInterval;
+            modal.dataset.messageInterval = messageInterval;
+        }
+
+        function hideLoadingRequisicionModal() {
+            const modal = document.getElementById('loadingRequisicionModal');
+            const titleEl = document.getElementById('loadingRequisicionTitle');
+            const messageEl = document.getElementById('loadingRequisicionMessage');
+            const progressBar = document.getElementById('loadingRequisicionProgress');
+
+            if (!modal || !progressBar) {
+                return;
+            }
+
+            if (modal.dataset.progressInterval) {
+                clearInterval(modal.dataset.progressInterval);
+            }
+
+            if (modal.dataset.messageInterval) {
+                clearInterval(modal.dataset.messageInterval);
+            }
+
+            progressBar.style.width = '100%';
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                progressBar.style.width = '0%';
+
+                if (titleEl) {
+                    titleEl.textContent = 'Procesando solicitud...';
+                }
+
+                if (messageEl) {
+                    messageEl.textContent = 'Por favor espera mientras se completa el proceso.';
+                    messageEl.style.opacity = '1';
+                }
+            }, 500);
+        }
+
+        function getLoadingConfigFromForm(form) {
+            return {
+                title: form.dataset.loadingTitle || 'Procesando solicitud...',
+                message: form.dataset.loadingMessage || 'Por favor espera mientras se completa el proceso.',
+                buttonText: form.dataset.loadingButtonText || 'Procesando, por favor espera...',
+            };
+        }
+
+        function activateLoadingForForm(form, submitter = null, customConfig = {}) {
+            if (!form || form.dataset.isLoading === 'true') {
+                return false;
+            }
+
+            const config = {
+                ...getLoadingConfigFromForm(form),
+                ...customConfig,
+            };
+
+            const submitButtons = Array.from(form.querySelectorAll('button[type="submit"]'));
+
+            form.dataset.isLoading = 'true';
+            form.setAttribute('aria-busy', 'true');
+            form.classList.add('pointer-events-none');
+
+            submitButtons.forEach((button) => {
+                if (!button.dataset.originalText) {
+                    button.dataset.originalText = button.textContent.trim();
+                }
+
+                button.disabled = true;
+                button.classList.add('opacity-60', 'cursor-not-allowed');
+            });
+
+            const activeButton = submitter || submitButtons[0];
+            if (activeButton) {
+                activeButton.textContent = config.buttonText;
+            }
+
+            showLoadingRequisicionModal({
+                title: config.title,
+                message: config.message,
+            });
+
+            return true;
+        }
+
+        function resetLoadingForForm(form) {
+            if (!form) {
+                return;
+            }
+
+            const submitButtons = Array.from(form.querySelectorAll('button[type="submit"]'));
+
+            form.dataset.isLoading = 'false';
+            form.removeAttribute('aria-busy');
+            form.classList.remove('pointer-events-none');
+
+            submitButtons.forEach((button) => {
+                button.disabled = false;
+                button.classList.remove('opacity-60', 'cursor-not-allowed');
+                button.textContent = button.dataset.originalText || button.textContent;
+            });
+
+            hideLoadingRequisicionModal();
+        }
+
+        function bindLoadingToForm(form) {
+            if (!form || form.dataset.loadingBound === 'true') {
+                return;
+            }
+
+            form.dataset.loadingBound = 'true';
+            form.dataset.isLoading = form.dataset.isLoading || 'false';
+
+            form.addEventListener('submit', function(event) {
+                if (event.defaultPrevented) {
+                    return;
+                }
+
+                if (form.dataset.isLoading === 'true') {
+                    event.preventDefault();
+                    return;
+                }
+
+                activateLoadingForForm(form, event.submitter || null);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('form[data-loading="true"]').forEach(bindLoadingToForm);
+        });
+
+        window.addEventListener('pageshow', function() {
+            document.querySelectorAll('form[data-loading="true"]').forEach(resetLoadingForForm);
+        });
+
+        window.activateLoadingForForm = activateLoadingForForm;
+        window.resetLoadingForForm = resetLoadingForForm;
+        window.submitManagedForm = function(formId) {
+            const form = document.getElementById(formId);
+
+            if (!form) {
+                return;
+            }
+
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+                return;
+            }
+
+            if (form.dataset.loading === 'true') {
+                activateLoadingForForm(form);
+            }
+
+            form.submit();
+        };
+
         // Función para mostrar el modal de confirmación personalizado
         function showConfirmModal(title, message, onConfirm) {
             const modal = document.getElementById('confirmModal');

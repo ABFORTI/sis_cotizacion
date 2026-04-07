@@ -6,19 +6,12 @@ use App\Models\Cotizacion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Models\ArchivoAdjunto;
 
 class CotizacionController extends Controller
 {
-    /**
-     * Validate if a project number already exists.
-     * Validaciones AJAX
-     */
-
-    /**
-     * Eliminar un archivo adjunto de una cotización.
-     */
     public function eliminarArchivo(Request $request, $cotizacionId)
     {
         $request->validate([
@@ -36,26 +29,21 @@ class CotizacionController extends Controller
             ], 404);
         }
 
-        // Eliminar del almacenamiento físico
         Storage::disk('public')->delete($archivo->path);
 
-        // Eliminar el registro de la base de datos
         $archivo->delete();
 
         return response()->json(['success' => true]);
     }
-public function ocultarParaCosteos(\App\Models\Cotizacion $cotizacion)
-{
-    // Actualizar de forma atómica
-    $cotizacion->update(['oculta_para_costeos' => true]);
+    public function ocultarParaCosteos(\App\Models\Cotizacion $cotizacion) {
+        $cotizacion->update(['oculta_para_costeos' => true]);
 
-    // Redirigir de vuelta para mantener filtros y paginación
-    return redirect()->back()->with('success', 'Cotización ocultada correctamente para Costeos.');
-}
+        return redirect()->back()->with(
+            'success', 
+            'Cotización ocultada correctamente para Costeos.');
+    }
 
-
-    public function index(Request $request)
-{
+    public function index(Request $request) {
     // Admin
     if (auth()->user()->role === 'admin') {
         return redirect()->route('administrador.admin.index');
@@ -67,18 +55,15 @@ public function ocultarParaCosteos(\App\Models\Cotizacion $cotizacion)
         'requisicionCotizacion'
     ]);
 
-    // Ventas: solo sus cotizaciones
     if (auth()->user()->role === 'ventas') {
         $query->where('user_id', auth()->id());
     }
 
-    // Costeos: solo enviadas y NO ocultas
     if (auth()->user()->role === 'costeos') {
         $query->where('enviado_a_costeos', 1)
-              ->where('oculta_para_costeos', false); // 🔥 AQUÍ ESTÁ LA MAGIA
+              ->where('oculta_para_costeos', false);
     }
 
-    // Búsqueda
     if ($search = $request->search) {
         $query->where(function ($q) use ($search) {
             $q->where('cliente', 'like', "%{$search}%")
@@ -87,7 +72,6 @@ public function ocultarParaCosteos(\App\Models\Cotizacion $cotizacion)
         });
     }
 
-    // Filtros por estado
     if ($estado = $request->estado_filter) {
         if (auth()->user()->role === 'ventas') {
             if ($estado === 'pendiente') {
@@ -115,127 +99,134 @@ public function ocultarParaCosteos(\App\Models\Cotizacion $cotizacion)
         ->withQueryString();
 
     return view('cotizaciones.index', compact('cotizaciones'));
-}
+    }
 
-
-
-    public function verMatrizRiesgos($id)
-{
+    public function verMatrizRiesgos($id){
     $cotizacion = Cotizacion::findOrFail($id);
     return view('cotizaciones.matriz-riesgos', compact('cotizacion'));
-}
-public function actualizarEstado(Request $request, Cotizacion $cotizacion)
-{
-    $request->validate([
-        'estado' => 'required|in:aceptada,rechazada,pendiente',
-    ]);
+    }
+    public function actualizarEstado(Request $request, Cotizacion $cotizacion){
+        $estado = strtolower(trim((string) $request->input('estado', '')));
 
-    $cotizacion->estado = $request->estado;
-    $cotizacion->save();
+        $validated = validator(
+            ['estado' => $estado],
+            ['estado' => 'required|in:aceptada,rechazada,pendiente']
+        )->validate();
 
-    $mensaje = match($request->estado) {
-        'aceptada' => '✅ Proyecto ACEPTADO correctamente.',
-        'rechazada' => '❌ Proyecto RECHAZADO correctamente.',
-        'pendiente' => '🔄 Proyecto marcado como PENDIENTE.',
-    };
+        try {
+            $cotizacion->estado = $validated['estado'];
+            $cotizacion->save();
 
-    return redirect()->route('cotizaciones.matrizRiesgos', $cotizacion->id)
-                     ->with('success', $mensaje);
-}
+            $mensaje = match($validated['estado']) {
+                'aceptada' => '✅ Proyecto ACEPTADO correctamente.',
+                'rechazada' => '❌ Proyecto RECHAZADO correctamente.',
+                'pendiente' => '🔄 Proyecto marcado como PENDIENTE.',
+                default => 'Estado del proyecto actualizado correctamente.',
+            };
 
-public function actualizarMitigacion(Request $request, Cotizacion $cotizacion)
-{
-    $validated = $request->validate([
-        'riesgos' => 'nullable|array',
-        'riesgos.*.riesgo' => 'required|string',
-        'riesgos.*.severidad' => 'required|string',
-        'riesgos.*.probabilidad' => 'required|string',
-    ]);
+            return redirect()->route('cotizaciones.matrizRiesgos', $cotizacion->id)
+                            ->with('success', $mensaje);
+        } catch (\Throwable $e) {
+            Log::error('Error al actualizar estado de cotizacion', [
+                'cotizacion_id' => $cotizacion->id,
+                'estado_recibido' => $request->input('estado'),
+                'estado_normalizado' => $estado,
+                'user_id' => Auth::id(),
+                'exception' => $e->getMessage(),
+            ]);
 
-    // Eliminar riesgos existentes
-    $cotizacion->matrizRiesgos()->delete();
-
-    // Si no hay riesgos, simplemente retornar
-    if (empty($validated['riesgos'])) {
-        return redirect()->route('cotizaciones.matrizRiesgos', $cotizacion->id)
-                         ->with('success', '💾 Matriz de riesgos actualizada correctamente. (Sin riesgos registrados)');
+            return redirect()->route('cotizaciones.matrizRiesgos', $cotizacion->id)
+                            ->with('error', 'No se pudo actualizar el estado. Revisa logs del servidor.');
+        }
     }
 
-    // Mapeo de valores de severidad
-    $severidadValores = [
-        'Mínima' => 1,
-        'Moderada' => 2,
-        'Media' => 3,
-        'Alta' => 4,
-        'Inaceptable' => 5,
-    ];
+    public function actualizarMitigacion(Request $request, Cotizacion $cotizacion){
+        $validated = $request->validate([
+            'riesgos' => 'nullable|array',
+            'riesgos.*.riesgo' => 'required|string',
+            'riesgos.*.severidad' => 'required|string',
+            'riesgos.*.probabilidad' => 'required|string',
+        ]);
 
-    // Mapeo de valores de probabilidad
-    $probabilidadValores = [
-        'Improbable' => 1,
-        'Poco probable' => 2,
-        'Probable' => 3,
-        'Moderada' => 4,
-        'Constante' => 5,
-    ];
+        // Eliminar riesgos existentes
+        $cotizacion->matrizRiesgos()->delete();
 
-    // Crear nuevos riesgos
-    foreach ($validated['riesgos'] as $riesgoData) {
-        // Calcular valores numéricos
-        $severidadValor = $severidadValores[$riesgoData['severidad']] ?? 0;
-        $probabilidadValor = $probabilidadValores[$riesgoData['probabilidad']] ?? 0;
-        $nivelRiesgoValor = $severidadValor * $probabilidadValor;
-
-        // Determinar nivel de riesgo
-        if ($nivelRiesgoValor <= 4) {
-            $nivelRiesgo = 'Riesgo aceptable';
-        } elseif ($nivelRiesgoValor <= 9) {
-            $nivelRiesgo = 'Riesgo tolerable';
-        } elseif ($nivelRiesgoValor <= 14) {
-            $nivelRiesgo = 'Riesgo alto';
-        } else {
-            $nivelRiesgo = 'Riesgo extremo';
+        // Si no hay riesgos, simplemente retornar
+        if (empty($validated['riesgos'])) {
+            return redirect()->route('cotizaciones.matrizRiesgos', $cotizacion->id)
+                            ->with('success', '💾 Matriz de riesgos actualizada correctamente. (Sin riesgos registrados)');
         }
 
-        $cotizacion->matrizRiesgos()->create([
-            'riesgo' => $riesgoData['riesgo'],
-            'severidad' => $riesgoData['severidad'],
-            'severidad_valor' => $severidadValor,
-            'probabilidad' => $riesgoData['probabilidad'],
-            'probabilidad_valor' => $probabilidadValor,
-            'nivel_riesgo' => $nivelRiesgo,
-            'nivel_riesgo_valor' => $nivelRiesgoValor,
-        ]);
+        // Mapeo de valores de severidad
+        $severidadValores = [
+            'Mínima' => 1,
+            'Moderada' => 2,
+            'Media' => 3,
+            'Alta' => 4,
+            'Inaceptable' => 5,
+        ];
+
+        // Mapeo de valores de probabilidad
+        $probabilidadValores = [
+            'Improbable' => 1,
+            'Poco probable' => 2,
+            'Probable' => 3,
+            'Moderada' => 4,
+            'Constante' => 5,
+        ];
+
+        // Crear nuevos riesgos
+        foreach ($validated['riesgos'] as $riesgoData) {
+            // Calcular valores numéricos
+            $severidadValor = $severidadValores[$riesgoData['severidad']] ?? 0;
+            $probabilidadValor = $probabilidadValores[$riesgoData['probabilidad']] ?? 0;
+            $nivelRiesgoValor = $severidadValor * $probabilidadValor;
+
+            // Determinar nivel de riesgo
+            if ($nivelRiesgoValor <= 4) {
+                $nivelRiesgo = 'Riesgo aceptable';
+            } elseif ($nivelRiesgoValor <= 9) {
+                $nivelRiesgo = 'Riesgo tolerable';
+            } elseif ($nivelRiesgoValor <= 14) {
+                $nivelRiesgo = 'Riesgo alto';
+            } else {
+                $nivelRiesgo = 'Riesgo extremo';
+            }
+
+            $cotizacion->matrizRiesgos()->create([
+                'riesgo' => $riesgoData['riesgo'],
+                'severidad' => $riesgoData['severidad'],
+                'severidad_valor' => $severidadValor,
+                'probabilidad' => $riesgoData['probabilidad'],
+                'probabilidad_valor' => $probabilidadValor,
+                'nivel_riesgo' => $nivelRiesgo,
+                'nivel_riesgo_valor' => $nivelRiesgoValor,
+            ]);
+        }
+
+        return redirect()->route('cotizaciones.matrizRiesgos', $cotizacion->id)
+                        ->with('success', '💾 Matriz de riesgos actualizada correctamente.');
     }
 
-    return redirect()->route('cotizaciones.matrizRiesgos', $cotizacion->id)
-                     ->with('success', '💾 Matriz de riesgos actualizada correctamente.');
-}
+    public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotizacion){
+        $request->validate([
+            'plan_mitigacion_titulo' => 'required|string|max:255',
+            'plan_mitigacion_descripcion' => 'required|string|max:1000',
+        ]);
 
-public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotizacion)
-{
-    $request->validate([
-        'plan_mitigacion_titulo' => 'required|string|max:255',
-        'plan_mitigacion_descripcion' => 'required|string|max:1000',
-    ]);
+        $cotizacion->update([
+            'plan_mitigacion_titulo' => $request->plan_mitigacion_titulo,
+            'plan_mitigacion_descripcion' => $request->plan_mitigacion_descripcion,
+        ]);
 
-    $cotizacion->update([
-        'plan_mitigacion_titulo' => $request->plan_mitigacion_titulo,
-        'plan_mitigacion_descripcion' => $request->plan_mitigacion_descripcion,
-    ]);
+        return redirect()->route('cotizaciones.matrizRiesgos', $cotizacion->id)
+                        ->with('success', '💾 Plan de mitigación general actualizado correctamente.');
+    }
 
-    return redirect()->route('cotizaciones.matrizRiesgos', $cotizacion->id)
-                     ->with('success', '💾 Plan de mitigación general actualizado correctamente.');
-}
-
-    /**
-     * Display admin view of all cotizaciones with advanced filtering and full information.
-     */
     public function adminIndex(Request $request)
     {
         $query = Cotizacion::with(['enviadoPorVentas', 'enviadoPorCosteos', 'requisicionCotizacion', 'user']);
 
-        // 🔍 Búsqueda avanzada
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('nombre_del_proyecto', 'like', "%{$search}%")
@@ -248,14 +239,12 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
             });
         }
 
-        // 🔍 Filtro por rol del usuario
         if ($roleFilter = $request->input('role_filter')) {
             $query->whereHas('user', function ($userQuery) use ($roleFilter) {
                 $userQuery->where('role', $roleFilter);
             });
         }
 
-        // 🔍 Filtro por estado
         if ($statusFilter = $request->input('status_filter')) {
             switch ($statusFilter) {
                 case 'pendiente':
@@ -273,96 +262,80 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
 
         $cotizaciones = $query->orderBy('id', 'desc')->paginate(5);
 
-        // 📊 Estadísticas para el dashboard
         $estadisticas = [
             'total' => Cotizacion::count(),
             'pendientes' => Cotizacion::where('enviado_a_costeos', false)->count(),
-            'en_costeos' => Cotizacion::where('enviado_a_costeos', true)
-                                    ->where('enviado_a_ventas', false)->count(),
+            'en_costeos' => Cotizacion::where('enviado_a_costeos', true)->where('enviado_a_ventas', false)->count(),
             'completadas' => Cotizacion::where('enviado_a_ventas', true)->count(),
         ];
 
         return view('administrador.admin-index', compact('cotizaciones', 'estadisticas'));
     }
 
-    // Relacionar cotización como enviada a Costeos
-    public function marcarEnviado(Cotizacion $cotizacion)
-    {
-        if (!$cotizacion->enviado_a_costeos) {
-            $cotizacion->update([
+    public function marcarEnviado(Cotizacion $cotizacion) {
+        $updated = Cotizacion::whereKey($cotizacion->id)
+            ->where('enviado_a_costeos', false)
+            ->update([
                 'enviado_a_costeos' => true,
-                'enviado_por_ventas' => Auth::id(), // ID del usuario de ventas que envía
-                'fecha_envio_ventas' => now() // Fecha y hora actual del envío desde ventas
+                'enviado_por_ventas' => Auth::id(),
+                'fecha_envio_ventas' => now(),
             ]);
 
+        if ($updated) {
             return redirect()->route('cotizaciones.index')
-                ->with('success', 'Cotización enviada a Costeos correctamente.');
+                ->with('success', 
+                'Cotización enviada a Costeos correctamente.'
+                );
         }
 
         return redirect()->route('cotizaciones.index')
             ->with('error', 'Esta cotización ya fue enviada a Costeos.');
     }
 
-    // Relacionar cotización como enviada a Ventas
-    public function enviarACosteos(Cotizacion $cotizacion)
-    {
+    public function enviarACosteos(Cotizacion $cotizacion) {
         $usuario = Auth::user();
 
-        // Solo ventas y admin pueden enviar
         if (!in_array($usuario->role, ['ventas', 'admin'])) {
             abort(403, 'No tienes permiso para realizar esta acción.');
         }
 
-        // Actualizar campos de envío
         $cotizacion->update([
             'enviado_a_costeos' => true,
-            'enviado_por' => $usuario->id, // Guardar el ID del remitente
-            'fecha_envio_a_costeos' => now(),
+            'enviado_por_ventas' => $usuario->id,
+            'fecha_envio_ventas' => now(),
         ]);
 
         return redirect()->back()
             ->with('success', 'Cotización enviada al área de Costeos correctamente.');
     }
 
-    public function enviarAVentas($id)
-    {
-        $cotizacion = Cotizacion::findOrFail($id);
+    public function enviarAVentas($id) {
+        $updated = Cotizacion::whereKey($id)
+            ->where('enviado_a_ventas', false)
+            ->update([
+                'enviado_a_ventas' => true,
+                'enviado_por_costeos' => Auth::id(),
+                'fecha_envio_costeos' => now(),
+            ]);
 
-        if ($cotizacion->enviado_a_ventas) {
+        if (!$updated) {
             return response()->json(['warning' => 'Esta cotización ya fue enviada a Ventas.']);
         }
-
-        $cotizacion->update([
-            'enviado_a_ventas' => true,
-            'enviado_por_costeos' => Auth::id(), // ID del usuario de costeos que envía
-            'fecha_envio_costeos' => now() // Fecha y hora actual del envío desde costeos
-        ]);
 
         return response()->json(['success' => 'La cotización fue enviada correctamente a Ventas.']);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(Request $request)
-    {
+    public function create(Request $request) {
         return view('cotizaciones.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        // 1. Validación básica
+    public function store(Request $request) {
         $validatedData = $request->validate([
             'fecha' => 'required|date',
             'no_proyecto' => 'required|string|max:255',
             'correo' => 'nullable|email'
-            //'fecha_de_efectividad' => 'required|date', se quita porque ya no se va a guardar en db
         ]);
 
-        // 2. Crear cotización principal
         $cotizacion = Cotizacion::create(array_merge(
             $request->only([
                 'fecha',
@@ -376,12 +349,10 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
                 'correo',
                 'nombre_del_proyecto',
                 'tipo_de_empaque'
-                //'fecha_de_efectividad' ya no se va a guardar en db
             ]),
-            ['user_id' => auth()->id()] // ✅ Guarda el ID del usuario autenticado
+            ['user_id' => auth()->id()]
         ));
 
-        // 3. Crear especificaciones proyecto
         $cotizacion->especificacionProyecto()->create($request->only([
             'frecuencia_compra',
             'lote_compra',
@@ -396,7 +367,6 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
             'franja_color'
         ]));
 
-        // 4. Crear especificaciones empaque
         $cotizacion->especificacionEmpaque()->create($request->only([
             'cajas_corrugado',
             'bolsa_plastico',
@@ -406,7 +376,6 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
             'datos_criticos'
         ]));
 
-        // 5. Crear cotización adicional
         $cotizacion->cotizacionAdicional()->create($request->only([
             'ppap',
             'ppap_descripcion',
@@ -430,7 +399,6 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
             'informacion_adicional_otro'
         ]));
 
-        // 6.Requisicion de cotizacion
         $cotizacion->requisicionCotizacion()->create($request->only([
             'tipo_estiba',
             'numero_parte',
@@ -491,7 +459,7 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
         // . Archivos
         if ($request->hasFile('archivos')) {
             $request->validate([
-                'archivos.*' => 'file|mimes:jpg,jpeg,png,gif,pdf,dwg,dxf,zip|max:25600',
+                'archivos.*' => 'file|extensions:jpg,jpeg,png,gif,pdf,dwg,dxf,zip,step,stp|max:61440',
             ]);
 
             $registros = [];
@@ -517,36 +485,23 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
     /**
      * Display the specified resource.
      */
-    public function showForm(Cotizacion $cotizacion)
-{
-    $usuario = auth()->user();
+    public function showForm(Cotizacion $cotizacion) {
+        $usuario = auth()->user();
 
-    // Buscar resumen asociado a la cotización
-    $resumen = \App\Models\Resumen::where('cotizacion_id', $cotizacion->id)->first();
+        $resumen = \App\Models\Resumen::where('cotizacion_id', $cotizacion->id)->first();
 
-    if ($usuario->role === 'costeos') {
-        return view('costeo.resumen_cotizacion', compact('cotizacion', 'resumen'));
+        if ($usuario->role === 'costeos') {
+            return view('costeo.resumen_cotizacion', compact('cotizacion', 'resumen'));
+        }
+
+        return view('costeo.cotizacion_innovet', compact('cotizacion', 'resumen'));
     }
 
-    return view('costeo.cotizacion_innovet', compact('cotizacion', 'resumen'));
-}
-
-
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Cotizacion $cotizacion, Request $request)
-    {
+    public function edit(Cotizacion $cotizacion, Request $request) {
         return view('cotizaciones.edit', compact('cotizacion'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Cotizacion $cotizacion)
-    {
-        // 1. Actualizar cotización principal
+    public function update(Request $request, Cotizacion $cotizacion){
         $cotizacion->update($request->only([
             'fecha',
             'no_proyecto',
@@ -559,10 +514,8 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
             'correo',
             'nombre_del_proyecto',
             'tipo_de_empaque'
-            //'fecha_de_efectividad'// ya no se va a guardar en db
         ]));
 
-        // 2. Actualizar hijos (si existen)
         $cotizacion->especificacionProyecto()
             ->updateOrCreate([], $request->only([
                 'frecuencia_compra',
@@ -677,7 +630,7 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
         // 3. Manejo de archivos
         if ($request->hasFile('archivos')) {
             $request->validate([
-                'archivos.*' => 'file|mimes:jpg,jpeg,png,gif,pdf,dwg,dxf,zip|max:25600',
+                'archivos.*' => 'file|extensions:jpg,jpeg,png,gif,pdf,dwg,dxf,zip,step,stp|max:61440',
             ]);
 
             $registros = [];
@@ -699,12 +652,7 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
             ->with('success', 'Cotización actualizada con éxito.');
     }
 
-
-    /**
-     * Mostrar la vista de lineamientos del proyecto.
-     */
-    public function mostrarLineamientos($id)
-    {
+    public function mostrarLineamientos($id) {
         $cotizacion = Cotizacion::with([
             'especificacionProyecto',
             'costeoRequisicion'
@@ -713,13 +661,7 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
         return view('costeo.cotizacion_innovet', compact('cotizacion'));
     }
 
-
-
-    /**
-     * Guardar los lineamientos de la cotización.
-     */
-    public function guardarLineamientos(Request $request, $id)
-    {
+    public function guardarLineamientos(Request $request, $id) {
         $request->validate([
             'lineamiento_1' => 'nullable|string',
             'lineamiento_2' => 'nullable|string',
@@ -756,12 +698,7 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
             ->with('success', 'Lineamientos guardados correctamente.');
     }
 
-    /**
-     * Clonar una requisición de cotización existente.
-     * Crea un nuevo registro copiando todos los datos, reseteando el flujo de trabajo.
-     */
-    public function clone(Cotizacion $cotizacion)
-    {
+    public function clone(Cotizacion $cotizacion) {
         $usuario = Auth::user();
 
         if (!in_array($usuario->role, ['ventas', 'admin'])) {
@@ -812,9 +749,6 @@ public function actualizarMitigacionGeneral(Request $request, Cotizacion $cotiza
             ->with('success', 'Requisición clonada exitosamente. Modifica los valores necesarios y guarda.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Cotizacion $cotizacion)
     {
         $cotizacion->delete();

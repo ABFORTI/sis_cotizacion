@@ -17,7 +17,7 @@ class CosteoRequisicionController extends Controller
         $cotizacion = Cotizacion::with([
             'especificacionProyecto',
             'requisicionCotizacion',
-            'costeoRequisicion' // .procesosCosteo - COMENTADO POR PROCESOS DINAMICOS NO USADOS
+            'costeoRequisicion'
         ])->findOrFail($cotizacionId);
 
         return view('costeo.create', compact('cotizacion'));
@@ -26,44 +26,66 @@ class CosteoRequisicionController extends Controller
     public function store(Request $request, $cotizacionId)
     {
         $cotizacion = Cotizacion::findOrFail($cotizacionId);
+        $numberOrZero = static function ($value) {
+            return ($value === null || $value === '' || !is_numeric($value)) ? 0 : $value;
+        };
+
+        $textOrEmpty = static function ($value) {
+            return trim((string) ($value ?? ''));
+        };
 
         DB::beginTransaction();
 
         try {
-            // Validación básica
             $validated = $request->validate([
                 'insertos' => 'nullable|numeric|min:0',
-                // Agrega aquí más campos según necesites
             ]);
-
-            // Detectar si es corrida piloto
             $esCorridaPiloto = $request->has('btn_corrida_piloto') && $request->btn_corrida_piloto == 'corrida_piloto';
 
-            // Preparar datos comunes
+            $tablaPesos = [
+                'ABS' => 1.02,
+                'PS' => 1.08,
+                'PET' => 1.35,
+                'HDPE' => 1.02,
+                'PP' => 0.93,
+                'PET ESD' => 1.35,
+                'PET-POLIPROPILENO' => 1.3,
+                'PET-GRADO-ALIMENTICIO' => 1.35,
+                'Otros' => 1.35
+            ];
+            $material = $request->material;
+            $peso_especifico = $tablaPesos[$material] ?? null;
+
+
+            // Intercambiar valores solo si el usuario hizo clic en el botón
+            if ($request->input('intercambio_medidas_avance') == '1') {
+                $ancho1 = $request->acomodo_avance_cantidad_1;
+                $avance1 = $request->acomodo_ancho_cantidad_1;
+            } else {
+                $ancho1 = $request->acomodo_ancho_cantidad_1;
+                $avance1 = $request->acomodo_avance_cantidad_1;
+            }
+
             $datos = [
                 'usuario_id' => Auth::id(),
                 'calibre_costeo' => $request->calibre_costeo,
                 'insertos' => $request->insertos,
-                    // Acomodo Ancho
-                    'acomodo_ancho_medida_cantidad' => $request->acomodo_ancho_cantidad_1,
-                    'acomodo_ancho_medida_total' => $request->acomodo_ancho_total_1,
-                    'acomodo_ancho_orillas_mm' => $request->acomodo_ancho_medida_2,
-                    'acomodo_ancho_orillas_cantidad' => $request->acomodo_ancho_cantidad_2,
-                    'acomodo_ancho_orillas_total' => $request->acomodo_ancho_total_2,
-                    'acomodo_ancho_medianiles_mm' => $request->acomodo_ancho_medida_3,
-                    'acomodo_ancho_medianiles_cantidad' => $request->acomodo_ancho_cantidad_3,
-                    'acomodo_ancho_medianiles_total' => $request->acomodo_ancho_total_3,
-                    // Acomodo Avance
-                    'acomodo_avance_medida_cantidad' => $request->acomodo_avance_cantidad_1,
-                    'acomodo_avance_medida_total' => $request->acomodo_avance_total_1,
+                'acomodo_ancho_medida_cantidad' => $avance1,
+                'acomodo_ancho_medida_total' => $request->acomodo_ancho_total_1,
+                'acomodo_ancho_orillas_mm' => $request->acomodo_ancho_medida_2,
+                'acomodo_ancho_orillas_cantidad' => $request->acomodo_ancho_cantidad_2,
+                'acomodo_ancho_orillas_total' => $request->acomodo_ancho_total_2,
+                'acomodo_ancho_medianiles_mm' => $request->acomodo_ancho_medida_3,
+                'acomodo_ancho_medianiles_cantidad' => $request->acomodo_ancho_cantidad_3,
+                'acomodo_ancho_medianiles_total' => $request->acomodo_ancho_total_3,
+                'acomodo_avance_medida_cantidad' => $ancho1,
+                'acomodo_avance_medida_total' => $request->acomodo_avance_total_1,
                     'acomodo_avance_orillas_mm' => $request->acomodo_avance_medida_2,
                     'acomodo_avance_orillas_cantidad' => $request->acomodo_avance_cantidad_2,
                     'acomodo_avance_orillas_total' => $request->acomodo_avance_total_2,
                     'acomodo_avance_medianiles_mm' => $request->acomodo_avance_medida_3,
                     'acomodo_avance_medianiles_cantidad' => $request->acomodo_avance_cantidad_3,
                     'acomodo_avance_medianiles_total' => $request->acomodo_avance_total_3,
-
-                    // Molde y Hoja
                     'molde_ancho' => $request->molde_ancho,
                     'molde_avance' => $request->molde_avance,
                     'hoja_ancho' => $request->hoja_ancho,
@@ -71,9 +93,8 @@ class CosteoRequisicionController extends Controller
                     'hoja_avance' => $request->hoja_avance,
                     'aux_hoja_avance' => $request->aux_hoja_avance,
                     'placa_de_enfriamiento' => $request->placa_de_enfriamiento,
-
-                    // Material Prima placa_de_enfriamiento 
-                    'peso_especifico' => $request->peso_especifico,
+                    // Sobrescribe el valor recibido y usa el calculado
+                    'peso_especifico' => $peso_especifico,
                     'area_formado_hoja' => $request->area_formado_hoja,
                     'cantidad_hojas' => $request->cantidad_hojas,
                     'peso_pieza' => $request->peso_pieza,
@@ -87,28 +108,22 @@ class CosteoRequisicionController extends Controller
                     'divisor_prm' => $request->divisor_prm,
                     'sumador_prm' => $request->sumador_prm,
                     'PZRM' => $request->PZRM,
-                    // Costos MP
-                    'costo_kilo' => $request->costo_kilo,
-                    'TC' => $request->TC,
-                    'costo_flete' => $request->costo_flete,
-                    'precio_kg' => $request->precio_kg,
-                    'costo_lamina' => $request->costo_lamina,
-                    'TC_lamina' => $request->TC_lamina,
-                    'costo_flete_lamina' => $request->costo_flete_lamina,
-                    'precio_lamina' => $request->precio_lamina,
+                    'costo_kilo' => $request->input('mp_base.costo_kilo', $request->costo_kilo),
+                    'TC' => $request->input('mp_base.TC', $request->TC),
+                    'costo_flete' => $request->input('mp_base.costo_flete', $request->costo_flete),
+                    'precio_kg' => $request->input('mp_base.precio_kg', $request->precio_kg),
+                    'costo_lamina' => $request->input('mp_base.costo_lamina', $request->costo_lamina),
+                    'TC_lamina' => $request->input('mp_base.TC_lamina', $request->TC_lamina),
+                    'costo_flete_lamina' => $request->input('mp_base.costo_flete_lamina', $request->costo_flete_lamina),
+                    'precio_lamina' => $request->input('mp_base.precio_lamina', $request->precio_lamina),
                     'sugerencia_costos_mp' => $request->sugerencia_costos_mp,
-                    // Costos de Procesos
                     'hojas_del_pedido' => $request->hojas_del_pedido,
-
-                    // Campos de Termoformado (directos en la tabla)
                     'nombre_maquina_termoformado' => $request->nombre_maquina_termoformado,
                     'no_personas_termoformado' => $request->no_personas_termoformado,
                     'bajadas_por_minuto_termoformado' => $request->bajadas_por_minuto_termoformado,
                     'total_hojas_turno_termoformado' => $request->total_hojas_turno_termoformado,
                     'total_dias_turnos_termoformado' => $request->total_dias_turnos_termoformado,
                     'costo_termoformado' => $request->costo_termoformado,
-
-                    // Campos de Suaje (directos en la tabla)
                     'nombre_maquina_suaje' => $request->nombre_maquina_suaje,
                     'no_personas_suaje' => $request->no_personas_suaje,
                     'bajadas_por_minuto_suaje' => $request->bajadas_por_minuto_suaje,
@@ -207,50 +222,40 @@ class CosteoRequisicionController extends Controller
                     'resumen_costo_empaque' => $request->resumen_costo_empaque,
                     'resumen_piezas_empaque' => $request->resumen_piezas_empaque,
                     'resumen_costo_unit_empaque' => $request->resumen_costo_unit_empaque,
-                    //'resumen_margen_empaque' => $request->resumen_margen_empaque,
-                    //'resumen_precio_venta_empaque' => $request->resumen_precio_venta_empaque,
-                    // Flete
+                    
                     'resumen_costo_flete_total' => $request->resumen_costo_flete_total,
                     'resumen_piezas_flete' => $request->resumen_piezas_flete,
                     'resumen_costo_unit_flete' => $request->resumen_costo_unit_flete,
-                    //'resumen_margen_flete' => $request->resumen_margen_flete,
-                    //'resumen_precio_venta_flete' => $request->resumen_precio_venta_flete,
-                    // Pedimento
+                    
                     'resumen_costo_pedimento' => $request->resumen_costo_pedimento,
                     'resumen_piezas_pedimento' => $request->resumen_piezas_pedimento,
                     'resumen_costo_unit_pedimento' => $request->resumen_costo_unit_pedimento,
-                    //'resumen_margen_pedimento' => $request->resumen_margen_pedimento,
-                    //'resumen_precio_venta_pedimento' => $request->resumen_precio_venta_pedimento,
+                    
                     // Inocuidad
                     'resumen_costo_inocuidad' => $request->resumen_costo_inocuidad,
                     'resumen_piezas_inocuidad' => $request->resumen_piezas_inocuidad,
                     'resumen_costo_unit_inocuidad' => $request->resumen_costo_unit_inocuidad,
-                    //'resumen_margen_inocuidad' => $request->resumen_margen_inocuidad,
-                    //'resumen_precio_venta_inocuidad' => $request->resumen_precio_venta_inocuidad,
+                    
                     // Polipropileno
                     'resumen_costo_polipropileno' => $request->resumen_costo_polipropileno,
                     'resumen_piezas_polipropileno' => $request->resumen_piezas_polipropileno,
                     'resumen_costo_unit_polipropileno' => $request->resumen_costo_unit_polipropileno,
-                    //'resumen_margen_polipropileno' => $request->resumen_margen_polipropileno,
-                    //'resumen_precio_venta_polipropileno' => $request->resumen_precio_venta_polipropileno,
+                    
                     // Estaticidad
                     'resumen_costo_estaticidad' => $request->resumen_costo_estaticidad,
                     'resumen_piezas_estaticidad' => $request->resumen_piezas_estaticidad,
                     'resumen_costo_unit_estaticidad' => $request->resumen_costo_unit_estaticidad,
-                    //'resumen_margen_estaticidad' => $request->resumen_margen_estaticidad,
-                    //'resumen_precio_venta_estaticidad' => $request->resumen_precio_venta_estaticidad,
+                    
                     // Maquila
                     'resumen_costo_maquila' => $request->resumen_costo_maquila,
                     'resumen_piezas_maquila' => $request->resumen_piezas_maquila,
                     'resumen_costo_unit_maquila' => $request->resumen_costo_unit_maquila,
-                    //'resumen_margen_maquila' => $request->resumen_margen_maquila,
-                    //'resumen_precio_venta_maquila' => $request->resumen_precio_venta_maquila,
+                    
                     // Etiqueta
                     'resumen_costo_etiqueta' => $request->resumen_costo_etiqueta,
                     'resumen_piezas_etiqueta' => $request->resumen_piezas_etiqueta,
                     'resumen_costo_unit_etiqueta' => $request->resumen_costo_unit_etiqueta,
-                    //'resumen_margen_etiqueta' => $request->resumen_margen_etiqueta,
-                    //'resumen_precio_venta_etiqueta' => $request->resumen_precio_venta_etiqueta,
+                    
                     // Totales costos fila Adicionales
                     'resumen_total_costo_adicionales' => $request->resumen_total_costo_adicionales,
                     'resumen_total_piezas_adicionales' => $request->resumen_total_piezas_adicionales,
@@ -258,34 +263,74 @@ class CosteoRequisicionController extends Controller
                     // Totales del resumen
                     'resumen_margen_administrativo' => $request->resumen_margen_administrativo,
                     'resumen_total_costo_unit' => $request->resumen_total_costo_unit,
-                    //'resumen_total_precio_venta' => $request->resumen_total_precio_venta,
-                    //'comision_margen' => $request->comision_margen,
-                    //'resumen_total_comision' => $request->resumen_total_comision,
-
+                    
                     // Nuevos campos
-                    //'venta_total' => $request->venta_total,
                     'costo_total' => $request->costo_total,
-                    //'margen_bruto' => $request->margen_bruto,
-                    //'margen_bruto_porcentaje' => $request->margen_bruto_porcentaje,
+                    
                     'entrega_prototipo' => $request->entrega_prototipo,
                     'tiempo_herramientas' => $request->tiempo_herramientas,
                     'tiempo_pt' => $request->tiempo_pt,
                     'comentarios' => $request->comentarios
             ];
-
-            // Decidir en qué tabla guardar según si es corrida piloto o no
             if ($esCorridaPiloto) {
-                // Guardar en tabla de corrida piloto
                 $costeoRequisicion = CosteoCorridaPiloto::updateOrCreate(
                     ['cotizaciones' => $cotizacionId],
                     $datos
                 );
             } else {
-                // Guardar en tabla normal de costeo
                 $costeoRequisicion = CosteoRequisicion::updateOrCreate(
                     ['cotizaciones' => $cotizacionId],
                     $datos
                 );
+            }
+
+            if ($request->has('mp') && is_array($request->mp)) {
+                $costeoRequisicion->materiaPrimaProces()->delete();
+                foreach ($request->mp as $index => $datosMP) {
+                    $costeoRequisicion->materiaPrimaProces()->create([
+                        'costo_kilo' => $datosMP['costo_kilo'] ?? null,
+                        'TC' => $datosMP['TC'] ?? null,
+                        'costo_flete' => $datosMP['costo_flete'] ?? null,
+                        'precio_kg' => $datosMP['precio_kg'] ?? null,
+                        'costo_lamina' => $datosMP['costo_lamina'] ?? null,
+                        'TC_lamina' => $datosMP['TC_lamina'] ?? null,
+                        'costo_flete_lamina' => $datosMP['costo_flete_lamina'] ?? null,
+                        'precio_lamina' => $datosMP['precio_lamina'] ?? null,
+                        'orden' => $index,
+                    ]);
+                }
+            }
+
+            if ($request->has('procesos_adicionales') && is_array($request->procesos_adicionales)) {
+                $costeoRequisicion->procesosAdicionales()->delete();
+
+                foreach ($request->procesos_adicionales as $index => $datosProceso) {
+                    $procesoVacio =
+                        $textOrEmpty($datosProceso['concepto'] ?? '') === '' &&
+                        $textOrEmpty($datosProceso['descripcion'] ?? '') === '' &&
+                        ($datosProceso['no_personas'] ?? '') === '' &&
+                        ($datosProceso['bajadas_por_minuto'] ?? '') === '' &&
+                        ($datosProceso['total_hojas_turno'] ?? '') === '' &&
+                        ($datosProceso['total_piezas_turno'] ?? '') === '' &&
+                        ($datosProceso['total_dias_turnos'] ?? '') === '' &&
+                        ($datosProceso['costo'] ?? '') === '';
+
+                    if ($procesoVacio) {
+                        continue;
+                    }
+
+                    $costeoRequisicion->procesosAdicionales()->create([
+                        'concepto' => $textOrEmpty($datosProceso['concepto'] ?? ''),
+                        'descripcion' => $textOrEmpty($datosProceso['descripcion'] ?? ''),
+                        'no_personas' => $numberOrZero($datosProceso['no_personas'] ?? null),
+                        'bajadas_por_minuto' => $numberOrZero($datosProceso['bajadas_por_minuto'] ?? null),
+                        'total_hojas_turno' => $numberOrZero($datosProceso['total_hojas_turno'] ?? null),
+                        'total_piezas_turno' => $numberOrZero($datosProceso['total_piezas_turno'] ?? null),
+                        'total_dias_turnos' => $numberOrZero($datosProceso['total_dias_turnos'] ?? null),
+                        'costo' => $numberOrZero($datosProceso['costo'] ?? null),
+                        'orden' => $index,
+                    ]);
+                }
             }
 
             DB::commit();
@@ -304,7 +349,6 @@ class CosteoRequisicionController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            // Si es corrida piloto y hay error, devolver JSON
             if ($esCorridaPiloto) {
                 return response()->json([
                     'success' => false,
@@ -320,7 +364,7 @@ class CosteoRequisicionController extends Controller
 
     public function show($id)
     {
-        $costeo = CosteoRequisicion::with(['procesosCosteo', 'cotizacion'])
+        $costeo = CosteoRequisicion::with(['procesosCosteo', 'cotizacion', 'procesosAdicionales'])
             ->findOrFail($id);
 
         return view('costeo.show', compact('costeo'));
@@ -328,7 +372,7 @@ class CosteoRequisicionController extends Controller
 
     public function edit($id)
     {
-        $costeo = CosteoRequisicion::with(['procesosCosteo', 'cotizacion'])
+        $costeo = CosteoRequisicion::with(['procesosCosteo', 'cotizacion', 'procesosAdicionales'])
             ->findOrFail($id);
 
         return view('costeo.edit', compact('costeo'));
@@ -336,7 +380,6 @@ class CosteoRequisicionController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Similar al store pero para actualizar
         return $this->store($request, $id);
     }
 

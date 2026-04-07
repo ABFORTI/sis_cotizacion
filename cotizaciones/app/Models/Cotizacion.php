@@ -14,7 +14,11 @@ class Cotizacion extends Model
  * Indica si la cotización está oculta para el rol de Costeos
  */
 protected $casts = [
+    'enviado_a_costeos' => 'boolean',
+    'enviado_a_ventas' => 'boolean',
     'oculta_para_costeos' => 'boolean',
+    'fecha_envio_ventas' => 'datetime',
+    'fecha_envio_costeos' => 'datetime',
 ];
 
     public function especificacionProyecto()

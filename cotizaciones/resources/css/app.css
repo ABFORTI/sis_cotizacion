@@ -7,7 +7,7 @@
     
     --color-primary: #242424;
     --color-primary-hover: #848484;
-    --color-surface: #f1f5f9;
+    --color-surface: #e9e8e8;
     --color-surface-secondary: #E4E4E4;
     --color-text-primary: #f1f5f9;
     --color-text-secondary: #848484;
@@ -18,6 +18,7 @@
     --color-footer: #242424;
     --color-pilot: #124c86;
     --color-pilot-hover: #001f3f;
+    --color-back:#ffff;
 
     --color-sucess: #28a745;
     --color-danger: #A41C24;

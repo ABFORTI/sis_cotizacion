@@ -13,7 +13,11 @@
 
         <!-- Formulario -->
         <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
-            <form action="{{ route('usuarios.store') }}" method="POST">
+            <form action="{{ route('usuarios.store') }}" method="POST"
+                data-loading="true"
+                data-loading-title="Creando usuario..."
+                data-loading-message="Guardando el nuevo usuario, por favor espera"
+                data-loading-button-text="Creando usuario, por favor espera...">
                 @csrf
                 
                 <!-- Grid responsivo: 1 columna en móvil, 2 en tablet y desktop -->

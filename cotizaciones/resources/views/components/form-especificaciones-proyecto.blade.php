@@ -72,8 +72,9 @@ $materialOtroActivo = $materialOld === 'Otros';
                     <option value="HDPE" {{ $materialOld == 'HDPE' ? 'selected' : '' }}>HDPE</option>
                     <option value="PP" {{ $materialOld == 'PP' ? 'selected' : '' }}>PP</option>
                     <option value="PET ESD" {{ $materialOld == 'PET ESD' ? 'selected' : '' }}>PET ESD</option>
-                    <option value="PET-POLIPROPILENO" {{ $materialOld == 'PET-POLIPROPILENO' ? 'selected' : '' }}>PET-POLIPROPILENO</option>
-                    <option value="Otros" {{ $materialOld == 'Otros' ? 'selected' : '' }}>Otros</option>
+                    <option value="PET-POLIPROPILENO" {{ $materialOld == 'PET-POLIPROPILENO' ? 'selected' : '' }}>PET POLIPROPILENO</option>
+                    <option value="PET-GRADO-ALIMENTICIO" {{ $materialOld == 'PET-GRADO-ALIMENTICIO' ? 'selected' : '' }}>PET GRADO ALIMENTICIO</option>
+                    <option value="Otros" {{ $materialOld == 'Otros' ? 'selected' : '' }}>OTROS</option>
                 </select>
             </div>
             <div class="form-group {{ $materialOtroActivo ? '' : 'is-hidden' }}" id="material_otro_input">

@@ -15,7 +15,11 @@
 
         <!-- Formulario -->
         <div class="bg-white rounded-lg shadow-lg p-6 md:p-8">
-            <form action="{{ route('usuarios.update', $usuario) }}" method="POST">
+            <form action="{{ route('usuarios.update', $usuario) }}" method="POST"
+                data-loading="true"
+                data-loading-title="Actualizando usuario..."
+                data-loading-message="Guardando cambios del usuario, por favor espera"
+                data-loading-button-text="Actualizando usuario, por favor espera...">
                 @csrf
                 @method('PUT')
 

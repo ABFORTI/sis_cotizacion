@@ -20,6 +20,7 @@ class Resumen extends Model
         'medidas_contenedor',
         'estiba_contenedor',
         'cliente_proporciona',
+        'cavidades',
     ];
 
     public function cotizacion()

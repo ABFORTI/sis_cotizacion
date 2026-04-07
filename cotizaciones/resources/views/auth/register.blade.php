@@ -117,7 +117,11 @@ button[type="submit"]:active {
 <div class="max-w-md mx-auto bg-white p-6 rounded shadow">
     <h2 class="text-xl font-bold mb-4">Crear cuenta</h2>
 
-    <form method="POST" action="{{ route('validar-registro') }}">
+    <form method="POST" action="{{ route('validar-registro') }}"
+        data-loading="true"
+        data-loading-title="Creando cuenta..."
+        data-loading-message="Validando informacion de registro, por favor espera"
+        data-loading-button-text="Creando cuenta, por favor espera...">
         @csrf
 
         <!-- Nombre -->

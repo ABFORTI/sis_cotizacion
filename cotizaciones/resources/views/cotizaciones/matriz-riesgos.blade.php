@@ -4,44 +4,32 @@
 
 @section('content')
 
-<!--
-    SOLUCIÓN DEFINITIVA PARA TAILWIND JIT (Purge):
-    Este div oculto "engaña" a Tailwind para que "vea" las clases generadas dinámicamente
-    en PHP y no las elimine (purgen) del archivo CSS final.
--->
 <div class="hidden">
-    <!-- Todas las combinaciones de colores usadas en la matriz principal (DEBE QUEDAR EXPLICITO) -->
     <span class="bg-green-400 text-gray-900"></span>
     <span class="bg-yellow-500 text-gray-900"></span>
     <span class="bg-orange-500 text-gray-900"></span>
     <span class="bg-red-600 text-white"></span>
-    <!-- Clases usadas en otros bloques (Status, etc.) -->
     <span class="bg-green-500 text-white"></span>
     <span class="bg-red-600 text-white"></span>
 </div>
-
-
 <div class="container mx-auto px-4 py-6">
     <div class="bg-white rounded-lg shadow-lg p-6">
-
-    <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">📊 MATRIZ DE RIESGOS</h1>
-    
-    <!-- INFORMACIÓN DEL PROYECTO -->
-    <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg border border-blue-200 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
-            <div class="flex items-center">
-                <span class="font-bold text-gray-700 mr-2">📁 Proyecto:</span>
-                <span class="text-gray-800">{{ $cotizacion->no_proyecto }}</span>
-            </div>
-            <div class="flex items-center">
-                <span class="font-bold text-gray-700 mr-2">👤 Cliente:</span>
-                <span class="text-gray-800">{{ $cotizacion->cliente ?? 'No especificado' }}</span>
-            </div>
-            <div class="flex items-center">
-                <span class="font-bold text-gray-700 mr-2">📅 Fecha:</span>
-                <span class="text-gray-800">{{ $cotizacion->fecha }}</span>
-            </div>
-            @if($cotizacion->nombre_del_proyecto)
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">📊 MATRIZ DE RIESGOS</h1>
+        <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-6 rounded-lg shadow-lg border border-blue-200 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
+                <div class="flex items-center">
+                    <span class="font-bold text-gray-700 mr-2">📁 Proyecto:</span>
+                    <span class="text-gray-800">{{ $cotizacion->no_proyecto }}</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="font-bold text-gray-700 mr-2">👤 Cliente:</span>
+                    <span class="text-gray-800">{{ $cotizacion->cliente ?? 'No especificado' }}</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="font-bold text-gray-700 mr-2">📅 Fecha:</span>
+                    <span class="text-gray-800">{{ $cotizacion->fecha }}</span>
+                </div>
+                @if($cotizacion->nombre_del_proyecto)
                 <div class="flex items-center">
                     <span class="font-bold text-gray-700 mr-2">🏷️ Nombre del Proyecto:</span>
                     <span class="text-gray-800">{{ $cotizacion->nombre_del_proyecto }}</span>
@@ -51,12 +39,11 @@
     </div>
 
     @php
-        // --- DEFINICIÓN CENTRAL DE COLORES (Usada en la leyenda y otros elementos fijos) ---
         $niveles = [
-            'Riesgo aceptable' => 'bg-green-400 text-gray-900',      // Verde (1-4)
-            'Riesgo tolerable' => 'bg-yellow-500 text-gray-900',     // Amarillo (5-9)
-            'Riesgo alto'      => 'bg-orange-500 text-gray-900',     // Naranja (10-14)
-            'Riesgo extremo'   => 'bg-red-600 text-white',           // Rojo (15-25)
+            'Riesgo aceptable' => 'bg-green-400 text-gray-900',
+            'Riesgo tolerable' => 'bg-yellow-500 text-gray-900',
+            'Riesgo alto'      => 'bg-orange-500 text-gray-900',
+            'Riesgo extremo'   => 'bg-red-600 text-white',
         ];
 
         $consequences = [
@@ -69,7 +56,6 @@
 
         $probability_headers = ['Improbable', 'Poco probable', 'Probable', 'Moderada', 'Constante'];
 
-        // Valores de la matriz para el renderizado
         $matrixValues = [
             [1, 2, 3, 4, 5],    // Mínima
             [2, 4, 6, 8, 10],   // Moderada
@@ -78,11 +64,8 @@
             [5, 10, 15, 20, 25] // Inaceptable
         ];
         
-        // --- DATOS REALES DE LA BASE DE DATOS ---
-        // Obtener el estado real de la cotización desde la base de datos
         $estado_actual = $cotizacion->estado ?? 'pendiente';
 
-        // Determina el texto y las clases del estado basado en la BD
         $estado_info = match($estado_actual) {
             'aceptada' => [
                 'text' => 'PROYECTO ACEPTADO', 
@@ -100,21 +83,14 @@
         
     @endphp
 
-    <!-- PRIMERA SECCIÓN: MATRIZ Y LEYENDA (Flexbox) -->
     <div class="flex flex-col lg:flex-row gap-6 mb-8">
-
-        <!-- MATRIZ PRINCIPAL (Tabla más grande a la izquierda) -->
         <div class="overflow-x-auto flex-grow rounded-lg shadow-xl">
             <table class="w-full text-center border border-gray-400 text-sm">
-                
-                <!-- TÍTULO MATRIZ -->
                 <thead class="bg-gray-700 text-white">
                     <tr>
                         <th colspan="7" class="py-2 text-lg font-extrabold border border-gray-400">MATRIZ DE RIESGOS</th>
                     </tr>
                 </thead>
-
-                <!-- ENCABEZADOS DE PROBABILIDAD Y CONSECUENCIA -->
                 <thead class="bg-gray-600 text-white">
                     <tr>
                         <th colspan="2" rowspan="2" class="border px-2 py-2">Consecuencia</th>
@@ -126,39 +102,31 @@
                         @endforeach
                     </tr>
                 </thead>
-                
-                <!-- CUERPO DE LA MATRIZ CON VALORES Y COLORES (ASIGNACIÓN CON ESTILOS INLINE) -->
                 <tbody>
                     @foreach($consequences as $i => $cons)
                         <tr>
-                            <!-- Consecuencia (Nombre) -->
                             <td class="border w-1/6 font-semibold px-3 py-2 bg-gray-300 text-gray-800 text-left">{{ $cons['text'] }}</td>
-                            <!-- Consecuencia (Valor Numérico) -->
                             <td class="border w-1/12 font-bold px-3 py-2 bg-gray-400 text-gray-800">{{ $cons['value'] }}</td>
-                            
-                            <!-- Valores de Riesgo (Colored Cells) -->
                             @foreach($matrixValues[$i] as $value)
                                 @php
-                                    // ASIGNACIÓN DE COLORES Y CLASES PARA TAILWIND Y ESTILOS INLINE
                                     $tailwindClass = '';
-                                    $hexColor = '#f3f4f6'; // gray-100
-                                    $textColor = '#1f2937'; // gray-800/900
+                                    $hexColor = '#f3f4f6'; 
+                                    $textColor = '#1f2937';
 
                                     if ($value <= 4) {
                                         $tailwindClass = 'bg-green-400 text-gray-900';
-                                        $hexColor = '#48BB78'; // Green 400
+                                        $hexColor = '#48BB78'; 
                                     } elseif ($value <= 9) {
                                         $tailwindClass = 'bg-yellow-500 text-gray-900';
-                                        $hexColor = '#ECC94B'; // Yellow 500
+                                        $hexColor = '#ECC94B'; 
                                     } elseif ($value <= 14) {
                                         $tailwindClass = 'bg-orange-500 text-gray-900';
-                                        $hexColor = '#ED8936'; // Orange 500
+                                        $hexColor = '#ED8936'; 
                                     } else { // 15 to 25
                                         $tailwindClass = 'bg-red-600 text-white';
-                                        $hexColor = '#E53E3E'; // Red 600
+                                        $hexColor = '#E53E3E'; 
                                         $textColor = 'white';
                                     }
-                                    // Forzar el color con estilo inline (mayor prioridad)
                                     $styleAttr = "style='background-color: $hexColor; color: $textColor;'";
                                 @endphp
                                 <td class="border font-bold py-3 {{ $tailwindClass }}" {!! $styleAttr !!}>{{ $value }}</td>
@@ -168,12 +136,10 @@
                 </tbody>
             </table>
         </div>
-
-        <!-- LEYENDA DE NIVELES (Mini tabla compacta) -->
         <div class="lg:w-80 flex-shrink-0 self-start">
             <div class="bg-white rounded-lg shadow-xl border border-gray-300 overflow-hidden">
             <div class="bg-gray-600 text-white text-center py-1">
-                <h4 class="font-bold text-sm">🎯 LEYENDA DE RIESGOS</h4>
+                <h4 class="font-bold text-sm">LEYENDA DE RIESGOS</h4>
             </div>
             <div class="p-4 space-y-3">
                 <div class="flex items-center gap-3">
@@ -196,14 +162,14 @@
             </div>
         </div>
     </div>
-
-    <!-- SEGUNDA SECCIÓN: STATUS Y MITIGACIÓN -->
-    <!-- TABLA DE RIESGOS DETALLADA -->
     <div class="mb-8">
-        <form action="{{ route('cotizaciones.actualizar-mitigacion', $cotizacion->id) }}" method="POST">
+        <form action="{{ route('cotizaciones.actualizar-mitigacion', $cotizacion->id) }}" method="POST"
+            data-loading="true"
+            data-loading-title="Guardando matriz de riesgos..."
+            data-loading-message="Actualizando la matriz de riesgos, por favor espera"
+            data-loading-button-text="Guardando matriz, por favor espera...">
             @csrf
-            @method('PATCH')
-            
+            @method('PATCH') 
             <div class="bg-white rounded-lg shadow-xl overflow-hidden">
                 <div class="bg-gray-700 text-white text-center py-3">
                     <h3 class="text-xl font-bold">📋 IDENTIFICACIÓN Y EVALUACIÓN DE RIESGOS</h3>
@@ -299,11 +265,8 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <!-- COLUMNA 1: STATUS DEL PROYECTO Y BOTONES -->
         <div class="bg-white p-4 rounded-lg shadow-xl border border-gray-200">
             
-            <!-- INDICADOR DE ESTADO DEL PROYECTO -->
             <div class="mb-6 text-center">
                 <h3 class="text-lg font-bold text-gray-800 mb-3">Estado del Proyecto</h3>
                 <span class="inline-block px-6 py-3 rounded-lg text-lg font-bold {{ $estado_info['class'] }}">
@@ -311,25 +274,27 @@
                 </span>
             </div>
 
-            <!-- Botones usando la ruta PATCH de Laravel -->
             <div class="flex flex-col gap-3">
-                
-                {{-- Botón Aceptar Proyecto --}}
-                {{-- La acción se envía al controlador para actualizar el estado a 'aceptada' --}}
-                <form action="{{ route('cotizaciones.actualizar-estado', $cotizacion->id) }}" method="POST">
+                <form action="{{ route('cotizaciones.actualizar-estado', $cotizacion->id) }}" method="POST"
+                    data-loading="true"
+                    data-loading-title="Actualizando estado..."
+                    data-loading-message="Actualizando el estado del proyecto, por favor espera"
+                    data-loading-button-text="Actualizando estado, por favor espera...">
                     @csrf
                     @method('PATCH')
                     <input type="hidden" name="estado" value="aceptada">
-                    
+
                     <button type="submit" 
                             class="w-full bg-green-600 text-white px-4 py-3 rounded-xl shadow-md hover:bg-green-700 transition duration-300 transform hover:scale-[1.01]">
                         ✅ Aceptar Proyecto
                     </button>
                 </form>
 
-                {{-- Botón Rechazar Proyecto --}}
-                {{-- La acción se envía al controlador para actualizar el estado a 'rechazada' --}}
-                <form action="{{ route('cotizaciones.actualizar-estado', $cotizacion->id) }}" method="POST">
+                <form action="{{ route('cotizaciones.actualizar-estado', $cotizacion->id) }}" method="POST"
+                    data-loading="true"
+                    data-loading-title="Actualizando estado..."
+                    data-loading-message="Actualizando el estado del proyecto, por favor espera"
+                    data-loading-button-text="Actualizando estado, por favor espera...">
                     @csrf
                     @method('PATCH')
                     <input type="hidden" name="estado" value="rechazada">
@@ -341,9 +306,12 @@
                 </form>
             </div>
             
-            {{-- Botón Restablecer a Pendiente --}}
             <div class="mt-2 text-center">
-                 <form action="{{ route('cotizaciones.actualizar-estado', $cotizacion->id) }}" method="POST">
+                      <form action="{{ route('cotizaciones.actualizar-estado', $cotizacion->id) }}" method="POST"
+                          data-loading="true"
+                          data-loading-title="Restableciendo estado..."
+                          data-loading-message="Restableciendo el estado del proyecto, por favor espera"
+                          data-loading-button-text="Restableciendo estado, por favor espera...">
                     @csrf
                     @method('PATCH')
                     <input type="hidden" name="estado" value="pendiente">
@@ -353,18 +321,19 @@
                     </button>
                 </form>
             </div>
-
         </div>
 
-        <!-- COLUMNA 2: PLAN DE MITIGACIÓN GENERAL -->
         <div class="bg-white p-4 rounded-lg shadow-xl border border-gray-200">
             <h3 class="font-bold text-lg mb-4 text-gray-800 text-center border-b pb-2">Plan de mitigación de riesgos</h3>
             
-            <form action="{{ route('cotizaciones.actualizar-mitigacion-general', $cotizacion->id) }}" method="POST" class="mt-4">
+            <form action="{{ route('cotizaciones.actualizar-mitigacion-general', $cotizacion->id) }}" method="POST" class="mt-4"
+                data-loading="true"
+                data-loading-title="Guardando plan de mitigacion..."
+                data-loading-message="Actualizando el plan de mitigacion, por favor espera"
+                data-loading-button-text="Guardando plan, por favor espera...">
                 @csrf
                 @method('PATCH')
                 
-                <!-- Campo para el título/estado del plan -->
                 <div class="mb-4">
                     <label for="plan_mitigacion_titulo" class="block text-sm font-medium text-gray-700 mb-2">Estado del Plan:</label>
                     <input type="text" 
@@ -375,7 +344,6 @@
                            placeholder="Estado del plan de mitigación">
                 </div>
                 
-                <!-- Campo para la descripción -->
                 <div class="mb-4">
                     <label for="plan_mitigacion_descripcion" class="block text-sm font-medium text-gray-700 mb-2">Descripción:</label>
                     <textarea id="plan_mitigacion_descripcion" 
@@ -385,7 +353,6 @@
                               placeholder="Descripción del plan de mitigación">{{ $cotizacion->plan_mitigacion_descripcion ?? 'En caso de que el nivel de riesgo sea rojo, se generará un plan de mitigación' }}</textarea>
                 </div>
                 
-                <!-- Botón para guardar -->
                 <div class="text-center">
                     <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300 font-medium">
                         <i class="fa-solid fa-floppy-disk"></i> Guardar Plan de Mitigación
@@ -393,7 +360,6 @@
                 </div>
             </form>
         </div>
-        
     </div>
     </div>
 </div>
@@ -402,7 +368,6 @@
     let filaIndex = {{ count($riesgosExistentes) }};
     
     const riesgosDisponibles = @json($riesgosDisponibles);
-    
     const severidadValores = {
         'Mínima': 1,
         'Moderada': 2,
@@ -410,7 +375,7 @@
         'Alta': 4,
         'Inaceptable': 5
     };
-    
+
     const probabilidadValores = {
         'Improbable': 1,
         'Poco probable': 2,
@@ -510,7 +475,6 @@
         nivelSpan.setAttribute('data-nivel', nivelRiesgo);
     }
     
-    // Aplicar colores a los niveles de riesgo existentes al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.nivel-riesgo').forEach(span => {
             const nivel = span.getAttribute('data-nivel');
@@ -534,12 +498,10 @@
             span.className = `nivel-riesgo px-3 py-1 rounded font-bold text-xs inline-block w-full ${colorClass}`;
         });
 
-        // Mostrar modal de éxito si hay mensaje de sesión
         @if(session('success'))
             showSuccessMessage("{{ session('success') }}");
         @endif
 
-        // Mostrar modal de error si hay mensaje de error
         @if(session('error'))
             showErrorMessage("{{ session('error') }}");
         @endif

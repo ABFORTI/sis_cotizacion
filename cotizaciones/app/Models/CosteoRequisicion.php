@@ -29,13 +29,25 @@ class CosteoRequisicion extends Model
         return $this->hasMany(ProcesosCosteo::class, 'costeo_requisiciones_id');
     }
 
+    // Relación procesos adicionales
+    public function procesosAdicionales()
+    {
+        return $this->hasMany(ProcesoAdicional::class, 'costeo_requisicion_id')->orderBy('orden');
+    }
+
+    // Relación procesos de materia prima
+    public function materiaPrimaProces()
+    {
+        return $this->hasMany(MateriaPrimaProces::class, 'costeo_requisicion_id');
+    }
+
     // Relación 1:1 con ventas_resumen_de_costos
     public function ventasResumen()
     {
         return $this->hasOne(\App\Models\VentasResumenDeCostos::class, 'costeo_requisicion_id');
     }
 
-    // Calcular costo total de procesos calculado
+    // Calcular  de procesos calculado
     public function getCostoTotalProcesosCalculadoAttribute()
     {
         return $this->procesosCosteo->sum('costo');

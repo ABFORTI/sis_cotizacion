@@ -22,6 +22,7 @@ class ResumenController extends Controller
         'medidas_contenedor'   => 'nullable|string',
         'estiba_contenedor'    => 'nullable|string',
         'cliente_proporciona'  => 'nullable|string',
+        'cavidades'            => 'nullable|string',
 
         // 👇 múltiples archivos
         'archivo_adjunto.*'    => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,dwg,dxf,step|max:10240',
@@ -39,6 +40,7 @@ class ResumenController extends Controller
     $resumen->medidas_contenedor  = $request->medidas_contenedor;
     $resumen->estiba_contenedor   = $request->estiba_contenedor;
     $resumen->cliente_proporciona = $request->cliente_proporciona;
+    $resumen->cavidades           = $request->cavidades;
 
     $resumen->save();
 
@@ -53,7 +55,7 @@ class ResumenController extends Controller
                 $path = $file->store('resumen_adjuntos', 'public');
 
                 ResumenArchivo::create([
-                    'resumen_id'      => $resumen->resumen_id,
+                    'resumen_id'      => $resumen->id,
                     'nombre_original' => $originalName,
                     'path'            => $path,
                 ]);
@@ -74,6 +76,54 @@ public function eliminarArchivo($id)
     $archivo->delete();
 
     return response()->json(['success' => true]);
+}
+
+/**
+ * Descargar archivo de resumen con validación de permisos y existencia
+ */
+public function downloadArchivo($id)
+{
+    // Obtener archivo
+    $archivo = ResumenArchivo::findOrFail($id);
+
+    // Validar que el usuario tiene acceso a este resumen/cotización
+    $resumen = $archivo->resumen;
+    if (!$resumen || !auth()->user()->can('view', $resumen->cotizacion)) {
+        return response()->json(['error' => 'No tiene permiso para acceder a este archivo.'], 403);
+    }
+
+    // Validar que el archivo existe en el almacenamiento
+    if (!Storage::disk('public')->exists($archivo->path)) {
+        return response()->json([
+            'error' => 'El archivo no está disponible en el servidor.',
+            'message' => "El archivo '{$archivo->nombre_original}' no fue encontrado en el almacenamiento."
+        ], 404);
+    }
+
+    // Obtener la ruta completa del archivo
+    $fullPath = Storage::disk('public')->path($archivo->path);
+
+    // Validar que el archivo existe físicamente
+    if (!file_exists($fullPath)) {
+        return response()->json([
+            'error' => 'El archivo no está disponible.',
+            'message' => 'El archivo solicitado no existe.'
+        ], 404);
+    }
+
+    // Determinar nombre para descargar
+    $downloadName = $archivo->nombre_original ?? basename($archivo->path);
+
+    // Devolver archivo con headers correctos
+    return response()->download(
+        $fullPath,
+        $downloadName,
+        [
+            'Content-Type' => $this->getMimeType($archivo->path),
+            'Content-Disposition' => 'attachment; filename="' . $downloadName . '"',
+            'Cache-Control' => 'public, max-age=86400',
+        ]
+    );
 }
 
     /**
@@ -221,4 +271,37 @@ public function eliminarArchivo($id)
         }
 
         return back()->with('success', 'Resumen de costos guardado correctamente.');
-    }}
+    }
+
+    /**
+     * Obtener MIME type correcto para el archivo
+     */
+    private function getMimeType($filePath)
+    {
+        $mimeTypes = [
+            'pdf' => 'application/pdf',
+            'doc' => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'ppt' => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'zip' => 'application/zip',
+            'rar' => 'application/x-rar-compressed',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            'svg' => 'image/svg+xml',
+            'dwg' => 'application/vnd.dwg',
+            'dxf' => 'application/vnd.dxf',
+            'step' => 'application/stp',
+            'stp' => 'application/stp',
+            'txt' => 'text/plain',
+        ];
+
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        return $mimeTypes[$ext] ?? 'application/octet-stream';
+    }
+}

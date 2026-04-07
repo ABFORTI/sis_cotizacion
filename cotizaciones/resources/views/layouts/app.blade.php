@@ -10,7 +10,43 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="flex flex-col min-h-screen" style="background-color: #e3e8de;">
+<body class="flex flex-col min-h-screen" style="background-color: #e9e8e8;">
+    <style>
+        #confirmModal img {
+            width: auto !important;
+            height: auto !important;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        #loadingRequisicionModal .loader-ring {
+            width: 2.5rem;
+            height: 2.5rem;
+            aspect-ratio: 1 / 1;
+            flex-shrink: 0;
+        }
+
+        #loadingRequisicionModal .loader-ring svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 640px) {
+            #loadingRequisicionModal .loader-ring {
+                width: 4rem;
+                height: 4rem;
+            }
+
+            #loadingRequisicionModal .loader-ring svg {
+                width: 2rem;
+                height: 2rem;
+            }
+        }
+    </style>
+
     <x-navbar />
     <main class="flex-grow">
         @yield('content')
@@ -48,6 +84,249 @@
             </div>
         </div>
     </div>
+
+    <div id="loadingRequisicionModal"
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden"
+    style="display: none;"
+    aria-hidden="true">
+
+    <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm text-center">
+
+        <div class="flex justify-center mb-4">
+            <div class="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+        </div>
+
+        <h3 id="loadingRequisicionTitle" class="text-lg font-semibold text-gray-800">
+            Generando requisición
+        </h3>
+
+        <p id="loadingRequisicionMessage" class="text-sm text-gray-500 mt-2">
+            Procesando archivo, por favor espera...
+        </p>
+
+        <div class="mt-4 w-full bg-gray-200 rounded-full h-2">
+            <div id="loadingRequisicionProgress" class="bg-blue-500 h-2 rounded-full w-0 transition-all duration-500"></div>
+        </div>
+
+    </div>
+</div>
+
+    <script>
+        // Funciones para el modal de loading de requisición
+        function showLoadingRequisicionModal(config = {}) {
+            const modal = document.getElementById('loadingRequisicionModal');
+            const titleEl = document.getElementById('loadingRequisicionTitle');
+            const messageEl = document.getElementById('loadingRequisicionMessage');
+            const progressBar = document.getElementById('loadingRequisicionProgress');
+
+            if (!modal || !messageEl || !progressBar) {
+                return;
+            }
+
+            const defaultTitle = 'Generando requisicion...';
+            const defaultMessage = 'Procesando archivo, por favor espera';
+            const messages = Array.isArray(config.messages) && config.messages.length
+                ? config.messages
+                : [
+                    'Procesando archivo...',
+                    'Validando datos...',
+                    'Guardando informacion...',
+                    'Generando documento...',
+                    'Casi listo...'
+                ];
+
+            if (titleEl) {
+                titleEl.textContent = config.title || defaultTitle;
+            }
+
+            messageEl.textContent = config.message || defaultMessage;
+
+            // Mostrar el modal
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+
+            // Reset y inicia progreso
+            progressBar.style.width = '10%';
+
+            let messageIndex = 0;
+            let progressValue = 10;
+
+            // Actualizar barra de progreso
+            const progressInterval = setInterval(() => {
+                progressValue += Math.random() * 25;
+                if (progressValue > 90) progressValue = 90;
+                progressBar.style.width = progressValue + '%';
+            }, 600);
+
+            // Actualizar mensajes
+            const messageInterval = setInterval(() => {
+                messageIndex = (messageIndex + 1) % messages.length;
+                messageEl.style.opacity = '0';
+                setTimeout(() => {
+                    messageEl.textContent = messages[messageIndex];
+                    messageEl.style.opacity = '1';
+                    messageEl.style.transition = 'opacity 0.3s ease';
+                }, 150);
+            }, 2000);
+
+            modal.dataset.progressInterval = progressInterval;
+            modal.dataset.messageInterval = messageInterval;
+        }
+
+        function hideLoadingRequisicionModal() {
+            const modal = document.getElementById('loadingRequisicionModal');
+            const titleEl = document.getElementById('loadingRequisicionTitle');
+            const messageEl = document.getElementById('loadingRequisicionMessage');
+            const progressBar = document.getElementById('loadingRequisicionProgress');
+
+            if (!modal || !progressBar) {
+                return;
+            }
+
+            if (modal.dataset.progressInterval) {
+                clearInterval(modal.dataset.progressInterval);
+            }
+            if (modal.dataset.messageInterval) {
+                clearInterval(modal.dataset.messageInterval);
+            }
+
+            progressBar.style.width = '100%';
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+                progressBar.style.width = '0%';
+
+                if (titleEl) {
+                    titleEl.textContent = 'Generando requisicion...';
+                }
+
+                if (messageEl) {
+                    messageEl.textContent = 'Procesando archivo, por favor espera';
+                    messageEl.style.opacity = '1';
+                }
+            }, 500);
+        }
+
+        function getLoadingConfigFromForm(form) {
+            return {
+                title: form.dataset.loadingTitle || 'Procesando solicitud...',
+                message: form.dataset.loadingMessage || 'Por favor espera mientras se completa el proceso.',
+                buttonText: form.dataset.loadingButtonText || 'Procesando, por favor espera...',
+            };
+        }
+
+        function activateLoadingForForm(form, submitter = null, customConfig = {}) {
+            if (!form || form.dataset.isLoading === 'true') {
+                return false;
+            }
+
+            const config = {
+                ...getLoadingConfigFromForm(form),
+                ...customConfig,
+            };
+
+            const submitButtons = Array.from(form.querySelectorAll('button[type="submit"]'));
+
+            form.dataset.isLoading = 'true';
+            form.setAttribute('aria-busy', 'true');
+            form.classList.add('pointer-events-none');
+
+            submitButtons.forEach((button) => {
+                if (!button.dataset.originalText) {
+                    button.dataset.originalText = button.textContent.trim();
+                }
+
+                button.disabled = true;
+                button.classList.add('opacity-60', 'cursor-not-allowed');
+            });
+
+            const activeButton = submitter || submitButtons[0];
+            if (activeButton) {
+                activeButton.textContent = config.buttonText;
+            }
+
+            showLoadingRequisicionModal({
+                title: config.title,
+                message: config.message,
+            });
+
+            return true;
+        }
+
+        function resetLoadingForForm(form) {
+            if (!form) {
+                return;
+            }
+
+            const submitButtons = Array.from(form.querySelectorAll('button[type="submit"]'));
+
+            form.dataset.isLoading = 'false';
+            form.removeAttribute('aria-busy');
+            form.classList.remove('pointer-events-none');
+
+            submitButtons.forEach((button) => {
+                button.disabled = false;
+                button.classList.remove('opacity-60', 'cursor-not-allowed');
+                button.textContent = button.dataset.originalText || button.textContent;
+            });
+
+            hideLoadingRequisicionModal();
+        }
+
+        function bindLoadingToForm(form) {
+            if (!form || form.dataset.loadingBound === 'true') {
+                return;
+            }
+
+            form.dataset.loadingBound = 'true';
+            form.dataset.isLoading = form.dataset.isLoading || 'false';
+
+            form.addEventListener('submit', function(event) {
+                if (event.defaultPrevented) {
+                    return;
+                }
+
+                if (form.dataset.isLoading === 'true') {
+                    event.preventDefault();
+                    return;
+                }
+
+                activateLoadingForForm(form, event.submitter || null);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('form[data-loading="true"]').forEach(bindLoadingToForm);
+        });
+
+        window.addEventListener('pageshow', function() {
+            document.querySelectorAll('form[data-loading="true"]').forEach(resetLoadingForForm);
+        });
+
+        window.activateLoadingForForm = activateLoadingForForm;
+        window.resetLoadingForForm = resetLoadingForForm;
+        window.submitManagedForm = function(formId) {
+            const form = document.getElementById(formId);
+
+            if (!form) {
+                return;
+            }
+
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+                return;
+            }
+
+            if (form.dataset.loading === 'true') {
+                activateLoadingForForm(form);
+            }
+
+            form.submit();
+        };
+    </script>
 
     <script>
         // Función para mostrar el modal de confirmación personalizado
@@ -138,6 +417,58 @@
             };
         }
     </script>
+
+    <!-- Loading Indicator Overlay -->
+    <style>
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @keyframes shimmer {
+            0% { width: 0%; opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { width: 100%; opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+
+    <!-- Loading Overlay Simple -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-99999" style="display: none !important; opacity: 0; transition: opacity 0.3s ease;">
+        <!-- Barra de progreso superior -->
+        <div id="progressBar" style="position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, #a51e24, #6ac043); width: 0%; z-index: 100001;"></div>
+
+        <!-- Modal -->
+        <div style="background: white; border-radius: 24px; padding: 48px; max-width: 450px; width: 90%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: slideUp 0.5s ease-out; z-index: 100000; position: relative;">
+            <!-- Spinner -->
+            <div style="display: flex; justify-content: center; margin-bottom: 32px;">
+                <div style="position: relative; width: 112px; height: 112px;">
+                    <div style="position: absolute; inset: 0; border-radius: 50%; border: 8px solid #f0f0f0;"></div>
+                    <div style="position: absolute; inset: 0; border-radius: 50%; border: 8px solid transparent; border-top: 8px solid #a51e24; border-right: 8px solid #6ac043; animation: spin 2s linear infinite;"></div>
+                    <div style="position: absolute; inset: 0; border-radius: 50%; border: 4px solid #ddd; opacity: 0.3; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
+                </div>
+            </div>
+
+            <!-- Título -->
+            <h2 style="font-size: 28px; font-weight: bold; margin-bottom: 12px; text-align: center; color: #a51e24;">Generando requisición</h2>
+
+            <!-- Mensaje dinámico -->
+            <p id="loadingMessage" style="color: #666; text-align: center; margin-bottom: 24px; height: 24px; font-size: 16; opacity: 1; transition: opacity 0.3s ease;">Procesando archivo...</p>
+
+            <!-- Dots -->
+            <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 24px;">
+                <div style="width: 12px; height: 12px; background: #a51e24; border-radius: 50%; animation: bounce 1.4s infinite; animation-delay: 0s;"></div>
+                <div style="width: 12px; height: 12px; background: #6ac043; border-radius: 50%; animation: bounce 1.4s infinite; animation-delay: 0.2s;"></div>
+                <div style="width: 12px; height: 12px; background: #6f6f71; border-radius: 50%; animation: bounce 1.4s infinite; animation-delay: 0.4s;"></div>
+            </div>
+
+            <!-- Barra interna -->
+            <div style="width: 100%; background: #e5e7eb; height: 3px; border-radius: 10px; overflow: hidden;">
+                <div id="internalProgress" style="background: linear-gradient(90deg, #a51e24, #6ac043); height: 100%; width: 0%; animation: shimmer 1.5s infinite;"></div>
+            </div>
+        </div>
+    </div>
 
     @stack('scripts')
 </body>

@@ -25,7 +25,11 @@
                 Iniciar Sesión
             </h2>
 
-            <form method="POST" action="{{ route('inicia-sesion') }}">
+            <form method="POST" action="{{ route('inicia-sesion') }}"
+                data-loading="true"
+                data-loading-title="Iniciando sesion..."
+                data-loading-message="Validando credenciales, por favor espera"
+                data-loading-button-text="Ingresando, por favor espera...">
                 @csrf
 
                 {{-- Email --}}

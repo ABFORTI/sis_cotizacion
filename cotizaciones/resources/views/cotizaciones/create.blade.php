@@ -7,7 +7,11 @@
     <div class="bg-white rounded-lg shadow-lg p-6">
     <h1 class="font-bold text-center">@yield('title')</h1>
 
-    <form action="{{ route('cotizaciones.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('cotizaciones.store') }}" method="POST" enctype="multipart/form-data" id="cotizacionCreateForm"
+        data-loading="true"
+        data-loading-title="Generando requisicion..."
+        data-loading-message="Procesando archivo, por favor espera"
+        data-loading-button-text="Generando requisicion, por favor espera...">
         @csrf
         @include('cotizaciones._form', ['cotizacion' => null])
         <div class="button-container">
@@ -23,4 +27,5 @@
     </form>
     </div>
 </div>
+
 @endsection

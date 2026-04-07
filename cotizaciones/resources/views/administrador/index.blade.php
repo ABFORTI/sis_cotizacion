@@ -216,11 +216,15 @@
                                        title="Editar usuario">
                                         <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
                                     </a>
-                                    <form id="delete-form-{{ $usuario->id }}" action="{{ route('usuarios.destroy', $usuario) }}" method="POST" class="inline">
+                                    <form id="delete-form-{{ $usuario->id }}" action="{{ route('usuarios.destroy', $usuario) }}" method="POST" class="inline"
+                                        data-loading="true"
+                                        data-loading-title="Eliminando usuario..."
+                                        data-loading-message="Eliminando el usuario, por favor espera"
+                                        data-loading-button-text="Eliminando, por favor espera...">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button"
-                                                onclick="showConfirmModal('¿Eliminar usuario?', '¿Estás seguro de eliminar al usuario {{ $usuario->name }}? Esta acción no se puede deshacer.', function() { document.getElementById('delete-form-{{ $usuario->id }}').submit(); })"
+                                                onclick="showConfirmModal('¿Eliminar usuario?', '¿Estás seguro de eliminar al usuario {{ $usuario->name }}? Esta acción no se puede deshacer.', function() { submitManagedForm('delete-form-{{ $usuario->id }}'); })"
                                                 class="inline-flex items-center px-3 py-2 bg-red-600 text-white text-xs font-semibold rounded-lg shadow hover:bg-red-700 transition duration-200"
                                                 title="Eliminar usuario">
                                             <i class="fa-solid fa-trash mr-1"></i> Eliminar

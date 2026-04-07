@@ -240,7 +240,7 @@
                                 <!-- Calcular costeo (si está disponible) -->
                                 @if($cotizacion->requisicionCotizacion)
                                 <div>
-                                    <a href="{{ route('costeo.create', $cotizacion->requisicionCotizacion->id) }}"
+                                    <a href="{{ route('costeo.create', $cotizacion->id) }}"
                                         class="btn-view text-xs block">Ver Calcular Costeo</a>
                                 </div>
                                 @endif
@@ -251,18 +251,26 @@
 
                                     <!-- Reenviar a costeos (solo si no está enviado) -->
                                     @if(!$cotizacion->enviado_a_costeos)
-                                    <form id="enviar-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.enviar', $cotizacion) }}" method="POST" class="inline w-full">
+                                    <form id="enviar-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.enviar', $cotizacion) }}" method="POST" class="inline w-full"
+                                        data-loading="true"
+                                        data-loading-title="Enviando cotizacion..."
+                                        data-loading-message="Enviando a Costeos, por favor espera"
+                                        data-loading-button-text="Enviando, por favor espera...">
                                         @csrf
                                         @method('PATCH')
-                                        <button type="button" onclick="showConfirmModal('¿Enviar cotización?', '¿Estás seguro de enviar la cotización {{ $cotizacion->no_proyecto }} a Costeos?', function() { document.getElementById('enviar-form-{{ $cotizacion->id }}').submit(); })" class="btn-enviar bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-xs w-full transition duration-200 font-semibold">Enviar</button>
+                                        <button type="button" onclick="showConfirmModal('¿Enviar cotización?', '¿Estás seguro de enviar la cotización {{ $cotizacion->no_proyecto }} a Costeos?', function() { submitManagedForm('enviar-form-{{ $cotizacion->id }}'); })" class="btn-enviar bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-xs w-full transition duration-200 font-semibold">Enviar</button>
                                     </form>
                                     @endif
                                     <!-- Eliminar -->
                                     <div class="flex justify-center">
-                                        <form id="delete-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.destroy', $cotizacion) }}" method="POST" class="inline w-full">
+                                        <form id="delete-form-{{ $cotizacion->id }}" action="{{ route('cotizaciones.destroy', $cotizacion) }}" method="POST" class="inline w-full"
+                                            data-loading="true"
+                                            data-loading-title="Eliminando cotizacion..."
+                                            data-loading-message="Eliminando la cotizacion, por favor espera"
+                                            data-loading-button-text="Eliminando, por favor espera...">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="button" onclick="showConfirmModal('¿Eliminar cotización?', '¿Estás seguro de eliminar la cotización {{ $cotizacion->no_proyecto }}? Esta acción no se puede deshacer.', function() { document.getElementById('delete-form-{{ $cotizacion->id }}').submit(); })" class="btn-danger text-xs w-full">Eliminar</button>
+                                            <button type="button" onclick="showConfirmModal('¿Eliminar cotización?', '¿Estás seguro de eliminar la cotización {{ $cotizacion->no_proyecto }}? Esta acción no se puede deshacer.', function() { submitManagedForm('delete-form-{{ $cotizacion->id }}'); })" class="btn-danger text-xs w-full">Eliminar</button>
                                         </form>
                                     </div>
                                 </div>
