@@ -17,6 +17,7 @@ El sistema permite:
 - Persistencia de información en base de datos relacional.
 - Compilación moderna de assets con Vite.
 
+
 ---
 
 # Stack Tecnológico
