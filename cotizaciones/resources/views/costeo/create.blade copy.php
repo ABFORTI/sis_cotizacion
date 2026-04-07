@@ -241,7 +241,7 @@ $esCorridaPiloto = false;
                 <div>
                     <label class="font-bold block mb-2">Alto (mm):</label>
                     <input type="number" step="0.01" name="alto" value="{{ $pieza_alto }}"
-                        class="w-full border-gray-300 border rounded-md p-2" { disabled>
+                        class="w-full border-gray-300 border rounded-md p-2" disabled>
                 </div>
             </div>
         </div>

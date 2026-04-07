@@ -65,15 +65,32 @@ class ArchivoAdjuntoController extends Controller
             abort(404, 'El archivo no está disponible en el servidor');
         }
 
+        $fullPath = Storage::disk('public')->path($archivo->path);
+
         // Nombre para la descarga
         $downloadName = $archivo->nombre_original ?? basename($archivo->path);
 
-        // Storage::disk('public')->download() maneja automáticamente:
-        // - Content-Type basado en extensión
-        // - Content-Disposition: attachment
-        // - Content-Length
-        // - Sin necesidad de headers personalizados
-        return Storage::disk('public')->download($archivo->path, $downloadName);
+        return response()->download($fullPath, $downloadName);
+    }
+
+    public function preview($id)
+    {
+        $archivo = ArchivoAdjunto::findOrFail($id);
+
+        $this->authorize('view', $archivo);
+
+        if (!Storage::disk('public')->exists($archivo->path)) {
+            abort(404, 'El archivo no está disponible en el servidor');
+        }
+
+        $fullPath = Storage::disk('public')->path($archivo->path);
+        $mimeType = mime_content_type($fullPath) ?: 'application/octet-stream';
+        $fileName = $archivo->nombre_original ?? basename($archivo->path);
+
+        return response()->file($fullPath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+        ]);
     }
 
     /**

@@ -303,6 +303,18 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                         <input type="hidden" name="cotizacion_id" value="{{ $cotizacion->id }}">
 
                         <tr>
+                            <td class="p-1 border border-black bg-gray-200 font-bold">Cavidades:</td>
+                            <td colspan="3" class="p-1 border border-black bg-white">
+                                <input
+                                    type="text"
+                                    name="cavidades"
+                                    value="{{ old('cavidades', optional($cotizacion->especificacionProyecto)->cavidades) }}"
+                                    placeholder="Ingrese campo"
+                                    class="form-control">
+                            </td>
+                        </tr>
+
+                        <tr>
                             <td class="p-1 border border-black bg-gray-200 font-bold">Poka yoke:</td>
                             <td colspan="3" class="p-1 border border-black bg-white">
 
@@ -452,7 +464,7 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
 
                             @if(preg_match('/\.(jpg|jpeg|png|gif)$/i', $archivo->path))
                                 <img
-                                    src="{{ asset('storage/' . $archivo->path) }}"
+                                    src="{{ route('resumen.archivo.preview', $archivo->id) }}"
                                     class="file-thumb mb-2"
                                     alt="Miniatura">
                             @else
@@ -505,7 +517,7 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                 <div class="relative group bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200">
                     <div class="aspect-square bg-gray-50 flex items-center justify-center p-3">
                         @if(in_array($ext, ['jpg', 'jpeg', 'png', 'gif']))
-                            <img src="{{ asset('storage/' . $archivo->path) }}"
+                            <img src="{{ route('archivos.preview', $archivo->id) }}"
                                 class="w-full h-full object-cover rounded"
                                 alt="{{ $nombreMostrar }}">
                         @else
@@ -587,13 +599,19 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
             }
 
             // Asigna la función a los clics de los botones
-            document.getElementById('btn-generar-pdf').addEventListener('click', function() {
-                generarDocumento('pdf');
-            });
+            var btnGenerarPdf = document.getElementById('btn-generar-pdf');
+            if (btnGenerarPdf) {
+                btnGenerarPdf.addEventListener('click', function() {
+                    generarDocumento('pdf');
+                });
+            }
 
-            document.getElementById('btn-generar-excel').addEventListener('click', function() {
-                generarDocumento('excel');
-            });
+            var btnGenerarExcel = document.getElementById('btn-generar-excel');
+            if (btnGenerarExcel) {
+                btnGenerarExcel.addEventListener('click', function() {
+                    generarDocumento('excel');
+                });
+            }
 
         });
     </script>

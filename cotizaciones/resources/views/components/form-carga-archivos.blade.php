@@ -55,7 +55,7 @@ $path = oldValue('path', $aux);
                                     $ext = strtolower($archivo->tipo_archivo ?? pathinfo($archivo->path, PATHINFO_EXTENSION));
                                 @endphp
                                 @if(in_array($ext, ['jpg', 'jpeg', 'png', 'gif']))
-                                    <img src="{{ asset('storage/' . $archivo->path) }}"
+                                    <img src="{{ route('archivos.preview', $archivo->id) }}"
                                         class="w-full h-full object-cover rounded"
                                         alt="Miniatura">
                                 @else
@@ -87,7 +87,7 @@ $path = oldValue('path', $aux);
                                 </p>
                             </div>
                             <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
-                                <a href="{{ asset('storage/' . $archivo->path) }}" 
+                                <a href="{{ route('archivos.download', $archivo->id) }}" 
                                     class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-3 py-2 rounded-lg transition-colors flex items-center gap-1" 
                                     download>
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

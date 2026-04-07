@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Resumen;
 use App\Models\Cotizacion; // --- CAMBIO: Añadido ---
+use App\Models\EspecificacionProyecto;
 use Illuminate\Support\Facades\Storage; // --- CAMBIO: Añadido ---
 use Illuminate\Support\Facades\Log; // Added for debugging logs
 use App\Models\ResumenArchivo;
@@ -15,7 +16,7 @@ class ResumenController extends Controller
    public function updateField(Request $request)
 {
     $request->validate([
-        'cotizacion_id'        => 'required|integer',
+        'cotizacion_id'        => 'required|integer|exists:cotizaciones,id',
         'poka_yoke'            => 'nullable|string',
         'acomodo_pieza'        => 'nullable|string',
         'contenedor_cliente'   => 'nullable|string',
@@ -27,6 +28,8 @@ class ResumenController extends Controller
         // 👇 múltiples archivos
         'archivo_adjunto.*'    => 'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx,dwg,dxf,step|max:10240',
     ]);
+
+    $cotizacion = Cotizacion::findOrFail($request->cotizacion_id);
 
     // 1️⃣ Buscar o crear resumen
     $resumen = Resumen::firstOrNew([
@@ -40,9 +43,17 @@ class ResumenController extends Controller
     $resumen->medidas_contenedor  = $request->medidas_contenedor;
     $resumen->estiba_contenedor   = $request->estiba_contenedor;
     $resumen->cliente_proporciona = $request->cliente_proporciona;
-    $resumen->cavidades           = $request->cavidades;
 
     $resumen->save();
+
+    $especificacionProyecto = $cotizacion->especificacionProyecto ?? new EspecificacionProyecto();
+    $especificacionProyecto->cavidades = $request->cavidades;
+
+    if (!$especificacionProyecto->exists) {
+        $cotizacion->especificacionProyecto()->save($especificacionProyecto);
+    } else {
+        $especificacionProyecto->save();
+    }
 
     // 3️⃣ Guardar múltiples archivos
     if ($request->hasFile('archivo_adjunto')) {
@@ -124,6 +135,29 @@ public function downloadArchivo($id)
             'Cache-Control' => 'public, max-age=86400',
         ]
     );
+}
+
+public function previewArchivo($id)
+{
+    $archivo = ResumenArchivo::findOrFail($id);
+
+    $resumen = $archivo->resumen;
+    if (!$resumen || !auth()->user()->can('view', $resumen->cotizacion)) {
+        return response()->json(['error' => 'No tiene permiso para acceder a este archivo.'], 403);
+    }
+
+    if (!Storage::disk('public')->exists($archivo->path)) {
+        abort(404, 'El archivo no está disponible en el servidor');
+    }
+
+    $fullPath = Storage::disk('public')->path($archivo->path);
+    $mimeType = mime_content_type($fullPath) ?: 'application/octet-stream';
+    $fileName = $archivo->nombre_original ?? basename($archivo->path);
+
+    return response()->file($fullPath, [
+        'Content-Type' => $mimeType,
+        'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+    ]);
 }
 
     /**
