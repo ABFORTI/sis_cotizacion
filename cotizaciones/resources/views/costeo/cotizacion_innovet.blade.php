@@ -465,7 +465,7 @@
             <div class="relative bg-gradient-to-br from-neutral-50 to-neutral-100 p-8 bg-gray-200">
                 <div class="flex items-center justify-center min-h-[300px] max-h-[500px]">
                     <img
-                        src="{{ Storage::url($imagen->path) }}"
+                        src="{{ route('archivos.preview', $imagen->id) }}"
                         alt="Imagen del documento"
                         class="max-w-full max-h-[500px] w-auto h-auto object-contain rounded-lg shadow-md"
                         loading="lazy"
@@ -491,7 +491,7 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="{{ Storage::url($imagen->path) }}"
+                          <a href="{{ route('archivos.preview', $imagen->id) }}"
                        target="_blank"
                        rel="noopener noreferrer"
                        class="inline-flex items-center gap-2 px-4 py-2
@@ -507,8 +507,8 @@
                         </svg>
                         <span class="hidden sm:inline">Abrir</span>
                     </a>
-                    <a href="{{ Storage::url($imagen->path) }}"
-                       download="{{ $imagen->nombre ?? 'imagen' }}"
+                          <a href="{{ route('archivos.download', $imagen->id) }}"
+                              download="{{ $imagen->nombre_original ?? 'imagen' }}"
                        class="inline-flex items-center gap-2 px-4 py-2
                               text-sm font-medium text-white bg-blue-600
                               border border-blue-600 rounded-lg
@@ -715,12 +715,14 @@
     <div class="mt-8 p-4 bg-gray-50 rounded-lg border">
         <h3 class="text-lg font-semibold text-red-600 mb-4">Atentamente</h3>
 
-        <input name="nombre_contacto"
+        <input id="nombre_contacto_input"
+            name="nombre_contacto"
             placeholder="Nombre del contacto"
             value="{{ $cotizacion->nombre_contacto ?? Auth::user()->name }}"
             class="w-full mb-3 border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-600">
 
-        <input name="puesto_contacto"
+        <input id="puesto_contacto_input"
+            name="puesto_contacto"
             placeholder="Puesto"
             value="{{ $cotizacion->puesto_contacto }}"
             class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-red-600">

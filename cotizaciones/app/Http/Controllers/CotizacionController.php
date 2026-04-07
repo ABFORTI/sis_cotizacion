@@ -674,6 +674,7 @@ class CotizacionController extends Controller
             'lineamiento_9' => 'nullable|string',
             'lineamiento_10' => 'nullable|string',
             'tiempo_herramentales' => 'nullable|string',
+            'nombre_contacto' => 'nullable|string',
             'puesto_contacto' => 'nullable|string',
         ]);
 
@@ -691,6 +692,7 @@ class CotizacionController extends Controller
             'lineamiento_9' => $request->lineamiento_9,
             'lineamiento_10' => $request->lineamiento_10,
             'tiempo_herramentales' => $request->tiempo_herramentales,
+            'nombre_contacto' => $request->nombre_contacto,
             'puesto_contacto' => $request->puesto_contacto,
         ]);
 

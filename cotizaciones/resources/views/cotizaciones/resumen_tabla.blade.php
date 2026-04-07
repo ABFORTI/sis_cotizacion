@@ -3,6 +3,41 @@
 @section('title', 'Resumen de Costos')
 
 @section('content')
+@php
+    $ventasResumenPersistido = $cotizacion->ventasResumen;
+    $precioHerramentalesPersistido = $ventasResumenPersistido->herramental_total_ventas ?? null;
+    $precioHerramentalesTexto = is_null($precioHerramentalesPersistido)
+        ? 'N/C'
+        : '$ ' . number_format($precioHerramentalesPersistido, 2);
+    $highlightHerramental = session('success') && !is_null($precioHerramentalesPersistido);
+@endphp
+<style>
+    #resumen-save-form input[type="number"],
+    #herramental-section input[type="number"] {
+        text-align: right;
+    }
+
+    .summary-card {
+        border: 1px solid rgb(226 232 240);
+        border-radius: 1rem;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    }
+
+    .summary-table thead th {
+        letter-spacing: 0.02em;
+    }
+
+    .herramental-kpi-glow {
+        animation: herramentalPulse 1.2s ease-out;
+    }
+
+    @keyframes herramentalPulse {
+        0% { box-shadow: 0 0 0 rgba(16, 185, 129, 0); }
+        35% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0.18); }
+        100% { box-shadow: 0 0 0 rgba(16, 185, 129, 0); }
+    }
+</style>
 <div class="container mx-auto p-4">
     <div class="bg-white rounded-lg shadow-lg p-6">
         <!-- Header: logo left, folio/fecha right -->
@@ -45,17 +80,53 @@
             </div>
         @endif
 
+        <div class="mb-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+            <section class="summary-card p-5">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Resumen Comercial</p>
+                <h2 class="mt-2 text-2xl font-semibold text-slate-900">Costos del proyecto y herramentales</h2>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    Ajusta los importes del resumen, revisa los totales calculados y guarda al final. El valor de herramentales mostrado en el panel lateral siempre refleja el monto persistido en ventas.
+                </p>
+            </section>
+
+            <aside class="summary-card p-5 {{ $highlightHerramental ? 'herramental-kpi-glow border-emerald-300' : '' }}">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">KPI Herramentales</p>
+                        <h3 class="mt-2 text-sm font-medium text-slate-600">Precio de herramentales guardado</h3>
+                    </div>
+                    @if($highlightHerramental)
+                        <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Actualizado</span>
+                    @endif
+                </div>
+                <p class="mt-6 text-4xl font-semibold tracking-tight text-slate-900">{{ $precioHerramentalesTexto }}</p>
+                <p class="mt-3 text-sm text-slate-500">
+                    @if(is_null($precioHerramentalesPersistido))
+                        Aun no existe un valor persistido en ventas para herramentales.
+                    @else
+                        Valor persistido en <span class="font-semibold text-slate-700">ventas_resumen_de_costos</span>.
+                    @endif
+                </p>
+            </aside>
+        </div>
+
         <form action="{{ route('cotizacion.resumen.store', $cotizacion->id) }}" method="POST" id="resumen-save-form"
             data-loading="true"
             data-loading-title="Guardando resumen..."
             data-loading-message="Actualizando resumen de costos, por favor espera"
             data-loading-button-text="Guardando resumen, por favor espera...">
             @csrf
-            <fieldset>
+            <section class="summary-card p-5">
+                <div class="mb-4 flex flex-col gap-2 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Seccion 1</p>
+                        <h2 class="text-2xl font-semibold text-slate-900">Costos del Proyecto</h2>
+                    </div>
+                    <p class="text-sm text-slate-500">Los campos de calculo permanecen en solo lectura y se actualizan automaticamente.</p>
+                </div>
 
-                <legend>Costos de Proyecto</legend>
-
-                <table class="w-full text-center border-collapse border border-gray-400">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+                <table class="summary-table w-full border-collapse text-center border border-gray-400">
                 <thead class="bg-[#848484] text-white">
                     <tr>
                         <th class="border border-gray-300 p-2">Concepto</th>
@@ -391,28 +462,44 @@
                     </tr>
                 </tfoot>
             </table>
+                </div>
 
-            <div class="mt-4 flex items-center justify-end gap-3 border-t border-gray-300 pt-4">
-                <span class="text-base font-bold text-blue-900">Total Final de la Cotización (MXN):</span>
+            <div class="mt-5 flex items-center justify-end gap-3 rounded-2xl bg-slate-900 px-4 py-4 text-white">
+                <span class="text-base font-bold text-white">Total Final de la Cotización (MXN):</span>
                 <input type="number" name="precio_venta_final" step="0.01" readonly
-                    class="form-input w-48 bg-blue-200 text-right font-bold text-lg border-2 border-blue-400 rounded-md p-2"
+                    class="form-input w-48 rounded-md border-2 border-cyan-400 bg-cyan-50 p-2 text-lg font-bold text-slate-900"
                     value="{{ old('precio_venta_final', $ventasResumen->precio_venta_final ?? $costeoRequisicion->resumen_total_precio_venta ?? '') }}">
             </div>
-           
-            <div class="mt-4 flex gap-2 justify-end">
-                <button type="submit" class="btn-submit">Guardar Resumen</button>
-            </div>
-
-            </fieldset>
+            </section>
         </form>
 
 
         {{-- ===== RESUMEN DE HERRAMENTAL ===== --}}
-        @if($costeoRequisicion && ($costeoRequisicion->TOTAL_FINAL || $costeoRequisicion->total_molde))
             <div class="mt-6">
-                <fieldset>
-                    <legend class="text-xl font-bold text-white-800 mb-2">Resumen de Herramental</legend>
-                    <table class="w-full text-center border-collapse border border-gray-400">
+                @php
+                    $herramentales = [
+                        'Molde' => $costeoRequisicion->total_molde,
+                        'Empujador' => $costeoRequisicion->total_empujador,
+                        'Suaje base' => $costeoRequisicion->costo_suaje_base,
+                        'Muestras' => $costeoRequisicion->costo_muestras,
+                        'Placa de fijación' => $costeoRequisicion->costo_placa_fijacion,
+                        'Madera / Campaña' => $costeoRequisicion->costo_madera_campana,
+                        'Prototipo' => $costeoRequisicion->costo_prototipo,
+                        'Tornillería' => $costeoRequisicion->costo_tornilleria,
+                        'Pedimento herramental' => $costeoRequisicion->costo_pedimento_herramental,
+                    ];
+                    $herramentalesActivos = collect($herramentales)->filter(fn ($valor) => !is_null($valor) && (float) $valor !== 0.0);
+                @endphp
+                <section id="herramental-section" class="summary-card p-5">
+                    <div class="mb-4 flex flex-col gap-2 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Seccion 2</p>
+                            <h2 class="text-2xl font-semibold text-slate-900">Resumen de Herramental</h2>
+                        </div>
+                        <p class="text-sm text-slate-500">El total de ventas se calcula en formulario y el KPI superior muestra el valor ya guardado.</p>
+                    </div>
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+                    <table class="summary-table w-full text-center border-collapse border border-gray-400">
                         <thead class="bg-[#848484] text-white">
                             <tr>
                                 <th class="border border-gray-300 p-2">Concepto</th>
@@ -420,27 +507,20 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @php
-                                $herramentales = [
-                                    'Molde'                    => $costeoRequisicion->total_molde,
-                                    'Empujador'                => $costeoRequisicion->total_empujador,
-                                    'Suaje base'               => $costeoRequisicion->costo_suaje_base,
-                                    'Muestras'                 => $costeoRequisicion->costo_muestras,
-                                    'Placa de fijación'        => $costeoRequisicion->costo_placa_fijacion,
-                                    'Madera / Campaña'         => $costeoRequisicion->costo_madera_campana,
-                                    'Prototipo'                => $costeoRequisicion->costo_prototipo,
-                                    'Tornillería'              => $costeoRequisicion->costo_tornilleria,
-                                    'Pedimento herramental'    => $costeoRequisicion->costo_pedimento_herramental,
-                                ];
-                            @endphp
-                            @foreach($herramentales as $concepto => $valor)
-                                @if($valor)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="border border-gray-300 p-2 font-bold">{{ $concepto }}</td>
-                                    <td class="border border-gray-300 p-2 font-semibold text-blue-900">$ {{ number_format($valor, 2) }}</td>
+                            @if($herramentalesActivos->isEmpty())
+                                <tr>
+                                    <td colspan="2" class="border border-gray-300 p-4 text-sm text-slate-500">No hay conceptos con importe distinto de cero.</td>
                                 </tr>
-                                @endif
-                            @endforeach
+                            @else
+                                @foreach($herramentales as $concepto => $valor)
+                                    @if($valor)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="border border-gray-300 p-2 font-bold">{{ $concepto }}</td>
+                                        <td class="border border-gray-300 p-2 font-semibold text-blue-900 text-right">$ {{ number_format($valor, 2) }}</td>
+                                    </tr>
+                                    @endif
+                                @endforeach
+                            @endif
                         </tbody>
                         <tfoot>
                             <tr class="bg-blue-100 font-bold">
@@ -473,21 +553,36 @@
                             @endif
                         </tfoot>
                     </table>
-                </fieldset>
+                    </div>
+                </section>
             </div>
-        @endif
 
         {{-- ===== COMENTARIOS DEL ÁREA DE COSTEOS ===== --}}
         @if($costeoRequisicion && $costeoRequisicion->comentarios)
         <div class="mt-4">
-            <fieldset class="border border-gray-300 rounded p-4">
-                <legend class="text-lg font-bold text-white-800 px-2">Comentarios del Área de Costeos</legend>
+            <section class="summary-card p-5">
+                <div class="mb-4 border-b border-slate-200 pb-4">
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Seccion 3</p>
+                    <h2 class="text-2xl font-semibold text-slate-900">Comentarios del Área de Costeos</h2>
+                </div>
                 <div class="bg-yellow-50 border border-yellow-200 rounded p-3 text-gray-800 whitespace-pre-line leading-relaxed">
                     {{ $costeoRequisicion->comentarios }}
                 </div>
-            </fieldset>
+            </section>
         </div>
         @endif
+
+        <div class="sticky bottom-4 mt-8 flex justify-end">
+            <div class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white/95 px-5 py-4 shadow-xl backdrop-blur">
+                <div class="hidden text-right sm:block">
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Herramentales guardados</p>
+                    <p class="text-lg font-semibold text-slate-900">{{ $precioHerramentalesTexto }}</p>
+                </div>
+                <button type="submit" form="resumen-save-form" class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+                    Guardar Resumen
+                </button>
+            </div>
+        </div>
 
     </div>
 </div>

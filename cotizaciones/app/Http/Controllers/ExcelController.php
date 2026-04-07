@@ -230,6 +230,8 @@ class ExcelController extends Controller {
             
             $html = $this->generarSeccionLineamientosPdf($service);
             $service->agregarHTML('<div style="page-break-before: always;"></div>' . $html);
+
+            $service->agregarHTML($this->generarFirmaContactoPdf($service));
             
             $service->agregarFooter();
 
@@ -564,15 +566,7 @@ class ExcelController extends Controller {
         $html = $this->generarSeccionLineamientosPdf($service);
         $service->agregarHTML($html);
 
-        $contacto = $service->getDatosContacto(Auth::user()?->name);
-        $htmlFirma = '<div style="margin-top: 50px;">
-            <p style="margin: 0;"><strong style="color: #' . CotizacionConfig::COLOR_ACCENT_RED . ';">Atentamente,</strong></p>
-            <p style="margin: 20px 0 0 0; border-top: 1px solid #000; padding-top: 10px;">
-                <strong>' . htmlspecialchars($contacto['nombre']) . '</strong><br>
-                ' . htmlspecialchars($contacto['puesto']) . '
-            </p>
-        </div>';
-        $service->agregarHTML($htmlFirma);
+        $service->agregarHTML($this->generarFirmaContactoPdf($service));
 
         $service->agregarFooter();
     }
@@ -909,5 +903,18 @@ class ExcelController extends Controller {
         $html .= '</ol>';
 
         return $html;
+    }
+
+    private function generarFirmaContactoPdf(PdfReportService $service): string
+    {
+        $contacto = $service->getDatosContacto(Auth::user()?->name);
+
+        return '<div style="margin-top: 50px;">
+            <p style="margin: 0;"><strong style="color: #' . CotizacionConfig::COLOR_ACCENT_RED . ';">Atentamente,</strong></p>
+            <p style="margin: 20px 0 0 0; border-top: 1px solid #000; padding-top: 10px;">
+                <strong>' . htmlspecialchars($contacto['nombre'] ?? 'N/A') . '</strong><br>
+                ' . htmlspecialchars($contacto['puesto'] ?? 'N/A') . '
+            </p>
+        </div>';
     }
 }

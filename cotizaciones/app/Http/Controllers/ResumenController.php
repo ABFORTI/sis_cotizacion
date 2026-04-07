@@ -165,13 +165,11 @@ public function previewArchivo($id)
      */
     public function showPage($id)
     {
-        $cotizacion = Cotizacion::with('costeoRequisicion')->findOrFail($id);
+        $cotizacion = Cotizacion::with(['costeoRequisicion', 'ventasResumen'])->findOrFail($id);
         $costeoRequisicion = $cotizacion->costeoRequisicion ?? new \App\Models\CosteoRequisicion();
 
-        // Si ya existe un resumen guardado, pásalo a la vista para mostrarlo
-        $ventasResumen = $cotizacion->ventasResumen ?? $costeoRequisicion->ventasResumen ?? null;
+        $ventasResumen = $cotizacion->ventasResumen;
 
-        // Para simplicidad, renderizamos directamente la vista `resumen_tabla` con los datos
         return view('cotizaciones.resumen_tabla', compact('cotizacion', 'costeoRequisicion', 'ventasResumen'));
     }
     /**
@@ -304,7 +302,9 @@ public function previewArchivo($id)
             return response()->json(['ok' => true, 'id' => $registro->id]);
         }
 
-        return back()->with('success', 'Resumen de costos guardado correctamente.');
+        return redirect()
+            ->route('cotizacion.resumen.page', $cotizacion->id)
+            ->with('success', 'Resumen de costos guardado correctamente.');
     }
 
     /**
