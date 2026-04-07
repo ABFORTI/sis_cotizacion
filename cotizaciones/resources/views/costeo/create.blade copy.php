@@ -1013,12 +1013,12 @@ $esCorridaPiloto = false;
             }
 
             function togglePRMAuxInputs() {
-                // Obtener los elementos
+
                 const auxDivisor = document.getElementById('aux-divisor-prm');
                 const auxSumador = document.getElementById('aux-sumador-prm');
                 const gridPrm = document.getElementById('grid-prm');
                 
-                // Verificar si están ocultos
+                
                 const isHidden = auxDivisor.classList.contains('hidden');
                 
                 if (isHidden) {
@@ -2821,7 +2821,6 @@ $esCorridaPiloto = false;
                 </tfoot>
                 <script>
                     function calcularCostosUnit() {
-                        console.log('=== INICIANDO CÁLCULO DE COSTOS UNITARIOS ===');
 
                         const conceptosAdicionales = ['inocuidad', 'polipropileno', 'estaticidad', 'maquila', 'etiqueta'];
                         let sumaCostosAdicionales = 0;

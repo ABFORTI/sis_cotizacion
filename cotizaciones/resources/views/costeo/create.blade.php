@@ -439,6 +439,7 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.01" name="acomodo_ancho_medida_2"
                                 value="{{ $acomodo_ancho_orillas_mm }}"
+                                data-manual="false"
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAncho()">
                         </td>
                         <td class="border border-gray-300 p-2">
@@ -480,6 +481,113 @@ $esCorridaPiloto = false;
             </table>
         </fieldset>
         <script>
+            const acomodosAutomaticosConfig = [
+                {
+                    inputName: 'acomodo_ancho_medida_2',
+                    calcular: () => calcularAcomodoAncho()
+                },
+                {
+                    inputName: 'acomodo_avance_medida_2',
+                    calcular: () => calcularAcomodoAvance()
+                }
+            ];
+
+            function obtenerValorAutomaticoAcomodo() {
+                const altoInput = document.querySelector('input[name="alto"]');
+                if (!altoInput) {
+                    return null;
+                }
+
+                const alto = parseFloat(altoInput.value);
+                if (!Number.isFinite(alto)) {
+                    return null;
+                }
+
+                return alto * 0.75;
+            }
+
+            function elValorCoincideConAutomatico(valorActual, valorAutomatico) {
+                const numeroActual = parseFloat(valorActual);
+                if (!Number.isFinite(numeroActual)) {
+                    return false;
+                }
+
+                return Math.abs(numeroActual - valorAutomatico) < 0.005;
+            }
+
+            function sincronizarAcomodosAutomaticos() {
+                const valorAutomatico = obtenerValorAutomaticoAcomodo();
+                if (valorAutomatico === null) {
+                    return;
+                }
+
+                const valorFormateado = valorAutomatico.toFixed(2);
+
+                acomodosAutomaticosConfig.forEach(({ inputName, calcular }) => {
+                    const input = document.querySelector(`input[name="${inputName}"]`);
+                    if (!input) {
+                        return;
+                    }
+
+                    const tieneValor = String(input.value || '').trim() !== '';
+                    if (!input.dataset.autoInitialized) {
+                        input.dataset.manual = (!tieneValor || elValorCoincideConAutomatico(input.value, valorAutomatico)) ? 'false' : 'true';
+                        input.dataset.autoInitialized = 'true';
+                    }
+
+                    if (input.dataset.manual === 'true' || input.value === valorFormateado) {
+                        return;
+                    }
+
+                    input.value = valorFormateado;
+                    calcular();
+                });
+            }
+
+            function inicializarAcomodosAutomaticos() {
+                if (window.acomodosAutomaticosInicializados) {
+                    return;
+                }
+
+                acomodosAutomaticosConfig.forEach(({ inputName }) => {
+                    const input = document.querySelector(`input[name="${inputName}"]`);
+                    if (!input) {
+                        return;
+                    }
+
+                    input.addEventListener('input', function(event) {
+                        if (!event.isTrusted) {
+                            return;
+                        }
+
+                        input.dataset.manual = 'true';
+                    });
+                });
+
+                const altoInput = document.querySelector('input[name="alto"]');
+                if (altoInput) {
+                    altoInput.addEventListener('input', sincronizarAcomodosAutomaticos);
+                    altoInput.addEventListener('change', sincronizarAcomodosAutomaticos);
+
+                    const observer = new MutationObserver(function(mutations) {
+                        const altoCambio = mutations.some(function(mutation) {
+                            return mutation.attributeName === 'value';
+                        });
+
+                        if (altoCambio) {
+                            sincronizarAcomodosAutomaticos();
+                        }
+                    });
+
+                    observer.observe(altoInput, {
+                        attributes: true,
+                        attributeFilter: ['value']
+                    });
+                }
+
+                window.acomodosAutomaticosInicializados = true;
+            }
+
             function calcularAcomodoAncho() {
                 let total = 0;
                 for (let i = 1; i <= 3; i++) {
@@ -578,6 +686,7 @@ $esCorridaPiloto = false;
                         <td class="border border-gray-300 p-2">
                             <input type="number" step="0.01" name="acomodo_avance_medida_2"
                                 value="{{ $acomodo_avance_orillas_mm }}"
+                                data-manual="false"
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAvance()">
                         </td>
                         <td class="border border-gray-300 p-2">
@@ -1302,14 +1411,13 @@ $esCorridaPiloto = false;
             }
 
             function calcularPesoTotal(){
-                console.log('📐 calcularPesoTotal() iniciada...');
-
                 const moq = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
                 const insertos = parseFloat(document.querySelector('input[name="insertos"]').value) || 0;
                 const areaFormadoHoja = parseFloat(document.querySelector('input[name="area_formado_hoja"]').value) || 0;
                 const calibre = parseFloat(document.querySelector('input[name="calibre_costeo"]').value) || 0;
                 const pesoEspecifico = parseFloat(document.querySelector('input[name="peso_especifico"]').value) || 1.02;
                 const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
+                const coeficienteMermaDecimal = coeficienteMerma / 100;
 
                 console.log('📊 Valores entrada: MOQ=' + moq + ', insertos=' + insertos + ', area=' + areaFormadoHoja);
 
@@ -1325,10 +1433,10 @@ $esCorridaPiloto = false;
                 const hojas = moq / insertos;
                 const volumen = hojas * areaFormadoHoja * 10000 * (calibre / 393.7);
                 const pesoNeto = volumen * pesoEspecifico / 1000;
-                const pesoConMerma = pesoNeto * (1 + coeficienteMerma);
+                const pesoConMerma = pesoNeto * (1 + coeficienteMermaDecimal);
 
                 const resultado = Math.round(pesoConMerma * 10) / 10;
-                console.log('💾 Calculado: peso_total = ' + resultado.toFixed(1));
+
                 document.querySelector('input[name="peso_total"]').value = resultado.toFixed(1);
 
                 calcularPesoBrutoHoja();
@@ -1342,12 +1450,8 @@ $esCorridaPiloto = false;
             }
 
             function recalcularPesoTotal(){
-                console.log('🔵 recalcularPesoTotal() - FÓRMULA ALTERNATIVA');
-
                 const pesoNeto = parseFloat(document.querySelector('input[name="peso_neto"]').value) || 0;
                 const prm = parseFloat(document.querySelector('input[name="PRM"]').value) || 0;
-
-                console.log('📊 Entrada: peso_neto=' + pesoNeto.toFixed(2) + ', PRM=' + prm.toFixed(2));
 
                 // FÓRMULA ALTERNATIVA: peso_neto + PRM
                 const resultado = pesoNeto + prm;
@@ -3967,7 +4071,11 @@ function calcularParedMedia(){
                             sumaTotales += costoUnit;
                         });
 
-                        const margen = calcularMargenAdministrativo(sumaTotales);
+                        const margenInput = document.querySelector('input[name="resumen_margen_administrativo"]');
+                        const margenManual = margenInput?.dataset.manual === 'true';
+                        const margen = margenManual
+                            ? (parseFloat(margenInput.value) || 0)
+                            : calcularMargenAdministrativo(sumaTotales);
 
                         const totalFinal = Math.round((sumaTotales + margen) * 100) / 100;
 
@@ -3980,6 +4088,32 @@ function calcularParedMedia(){
                     function recalcularResumenCompleto() {
                         calcularProcesosAdicionales();
                         calcularResumenCostos();
+                    }
+
+                    function manejarCambioMargenAdministrativo(input) {
+                        if (!input) {
+                            return;
+                        }
+
+                        input.dataset.manual = 'true';
+                        calcularResumenCostos();
+                    }
+
+                    function inicializarMargenAdministrativoManual() {
+                        const margenInput = document.querySelector('input[name="resumen_margen_administrativo"]');
+                        if (!margenInput || margenInput.dataset.inicializado === 'true') {
+                            return;
+                        }
+
+                        const costoUnitarioActual = parseFloat(document.querySelector('input[name="resumen_total_costo_unit"]')?.value) || 0;
+                        const subtotalSinMargen = Math.max(0, costoUnitarioActual - (parseFloat(margenInput.value) || 0));
+                        const margenAutomatico = Math.round((subtotalSinMargen * 0.05) * 100) / 100;
+                        const margenActual = parseFloat(margenInput.value);
+
+                        margenInput.dataset.manual = Number.isFinite(margenActual) && Math.abs(margenActual - margenAutomatico) > 0.009
+                            ? 'true'
+                            : 'false';
+                        margenInput.dataset.inicializado = 'true';
                     }
                     
                     function calcularMargenAdministrativo(baseManual = null){
@@ -4031,8 +4165,10 @@ function calcularParedMedia(){
                     <tr class="bg-gray-50 font-bold">
                         <td colspan="3" class="text-right border border-gray-300 p-2">Margen Administrativo</td>
                         <td class="border border-gray-300 p-2">
-                            <input step="0.0001" name="resumen_margen_administrativo" readonly
+                            <input step="0.0001" name="resumen_margen_administrativo" 
                                 value="{{ old('resumen_margen_administrativo', $costeoRequisicion->resumen_margen_administrativo ?? '') }}"
+                                data-manual="false"
+                                oninput="manejarCambioMargenAdministrativo(this)"
                                 class="w-full bg-gray-50 p-2 text-center">
                         </td>
                     </tr>
@@ -4342,12 +4478,15 @@ function calcularParedMedia(){
     }
 
     function cargarDatos() {
+        inicializarMargenAdministrativoManual();
+        inicializarAcomodosAutomaticos();
+        sincronizarAcomodosAutomaticos();
         calcularPesoEspecifico(); //este si o si al cargar pagina o que se implemente el crud de materiales lo mejor
         asignarBolsa(); //este si o si, para que se cargue la bolsa al iniciar
         asignarCajasPorTarima(); //este si o si, para que se cargue el corrugado al iniciar 
         asignarTarima(); //este si o si, para que se cargue la tarima al iniciar dependiendo del liner o esquinero 
-        //calcularAcomodoAncho(); //calcula en automatico los totales de molde 
-        //calcularAcomodoAvance(); //calcula en automatico los totales de molde
+        calcularAcomodoAncho(); //calcula en automatico los totales de molde 
+        calcularAcomodoAvance(); //calcula en automatico los totales de molde
         calcularPedimentoHerramental(); //calcula en automatico los totales de pedimento herramental
         copiarCostosATotales(); //calcula en automatico los totales finales
         asignarLoteCompraEnResumenPiezas(); //asigna el lote de compra en las piezas del resumen de costos
