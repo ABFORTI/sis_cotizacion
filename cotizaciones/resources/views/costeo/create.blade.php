@@ -1,6 +1,7 @@
 ﻿@extends('layouts.app')
 @section('content')
 
+<!-- Loading Indicator Overlay - VERSIÓN PREMIUM -->
 <style>
     @keyframes spin {
         to { transform: rotate(360deg); }
@@ -3211,12 +3212,14 @@ function calcularParedMedia(){
                     const moldeAvanceForm = parseFloat(document.querySelector('input[name="molde_avance"]')?.value) || 0;
                     const altoValue = parseFloat(@json($pieza_alto)) || 0;
 
+                    // Condicionar la fuente de datos según insertos
                     let moldeAncho, moldeAvance;
                     if (insertos !== 1) {
-                        
+                        // Caso 1: insertos != 1 → usar valores del molde
                         moldeAncho = moldeAnchoForm;
                         moldeAvance = moldeAvanceForm;
                     } else {
+                        // Caso 2: insertos == 1 → usar valores originales
                         moldeAncho = ancho;
                         moldeAvance = largo;
                     }

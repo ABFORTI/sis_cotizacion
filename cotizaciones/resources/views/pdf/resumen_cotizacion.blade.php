@@ -289,7 +289,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="2" class="muted">No hay archivos adjuntos de la cotizacion.</td>
+                <td colspan="2" class="muted">No hay archivos adjuntos por parte de comercial</td>
             </tr>
         @endforelse
     </table>
