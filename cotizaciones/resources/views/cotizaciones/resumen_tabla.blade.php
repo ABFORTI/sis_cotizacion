@@ -38,389 +38,410 @@
         100% { box-shadow: 0 0 0 rgba(16, 185, 129, 0); }
     }
 </style>
+
 <div class="container mx-auto p-4">
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <!-- Header: logo left, folio/fecha right -->
-        <div class="flex-1 text-center">
-                    <h1 class="text-3xl font-bold text-blue-800">Resumen de Costos</h1>
-        </div>
-    <div class="flex items-start justify-between mb-4 header-mobile">
-        <div>
-            <!-- Ajusta la ruta del logo según tu proyecto -->
-            <img src="{{ asset('images/innovet-logo.png') }}" alt="Innovet" style="max-width: 220px; width: 100%; height: auto;">
-        </div>
-        <div class="text-right w-1/2">
-            <table class="ml-auto text-sm">
-                <tr>
-                    <td class="pr-2 text-gray-600 font-semibold">Folio:</td>
-                    <td class="font-bold font-semibold">{{ $cotizacion->no_proyecto }}</td>
-                </tr>
-                <tr>
-                    <td class="pr-2 text-gray-600 font-semibold">Fecha:</td>
-                    <td class="font-semibold">{{ $cotizacion->fecha }}</td>
-                </tr>
-            </table>
-            <div class="mt-2 flex justify-end gap-2 font-bold btn-container-mobile">
-                <!-- Botón para ir a cotizaciones -->
-                <a href="{{ route('cotizacion.form', $cotizacion) }}" class="inline-block bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-800 transition-colors text-center">
-                    <i class="fas fa-file"></i> Ver Resumen de Cotización</a>
+    <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div class="flex justify-center md:justify-start">
+                <h1 class="text-2xl md:text-3xl font-bold  text-center text-green-700">
+                    Resumen de Costos
+                </h1>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-4 w-full md:w-auto shadow-sm">
+                <table class="text-sm w-full">
+                    <tr>
+                        <td class="pr-2 text-gray-500 font-medium">Folio:</td>
+                        <td class="font-bold text-gray-800">{{ $cotizacion->no_proyecto }}</td>
+                    </tr>
+                    <tr>
+                        <td class="pr-2 text-gray-500 font-medium">Fecha:</td>
+                        <td class="font-semibold text-gray-700">{{ $cotizacion->fecha }}</td>
+                    </tr>
+                </table>
+                <div class="mt-4">
+                    <a href="{{ route('cotizacion.form', $cotizacion) }}" 
+                       class="flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-all shadow-sm">
+                        <i class="fas fa-file-alt"></i>
+                        Ver Cotización
+                    </a>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-        <!-- SECCIÓN: RESUMEN DE COSTOS (Como en Excel) -->
-
-        @if($errors->any())
-            <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-800">
-                <ul class="list-disc pl-5">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+<div class="container mx-auto p-4 bg-white rounded-2xl shadow-md border border-gray-200 p-6">
+    @php
+        $herramentales = [
+            'Molde' => $costeoRequisicion->total_molde,
+            'Empujador' => $costeoRequisicion->total_empujador,
+            'Suaje base' => $costeoRequisicion->costo_suaje_base,
+            'Muestras' => $costeoRequisicion->costo_muestras,
+            'Placa de fijación' => $costeoRequisicion->costo_placa_fijacion,
+            'Madera / Campaña' => $costeoRequisicion->costo_madera_campana,
+            'Prototipo' => $costeoRequisicion->costo_prototipo,
+            'Tornillería' => $costeoRequisicion->costo_tornilleria,
+            'Pedimento herramental' => $costeoRequisicion->costo_pedimento_herramental,
+        ];
+        $herramentalesActivos = collect($herramentales)->filter(fn ($valor) => !is_null($valor) && (float) $valor !== 0.0);
+    @endphp
+    <section id="herramental-section" class="summary-card p-5">
+        <div class="mb-4 flex flex-col gap-2 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
+            <div>
+                <h2 class="text-2xl font-semibold text-slate-900" style="color: #A41C24;">Resumen de Herramental</h2>
             </div>
-        @endif
-
-        <div class="mb-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
-            <section class="summary-card p-5">
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Resumen Comercial</p>
-                <h2 class="mt-2 text-2xl font-semibold text-slate-900">Costos del proyecto y herramentales</h2>
-                <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                    Ajusta los importes del resumen, revisa los totales calculados y guarda al final. El valor de herramentales mostrado en el panel lateral siempre refleja el monto persistido en ventas.
-                </p>
-            </section>
-
-            <aside class="summary-card p-5 {{ $highlightHerramental ? 'herramental-kpi-glow border-emerald-300' : '' }}">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">KPI Herramentales</p>
-                        <h3 class="mt-2 text-sm font-medium text-slate-600">Precio de herramentales guardado</h3>
-                    </div>
-                    @if($highlightHerramental)
-                        <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Actualizado</span>
-                    @endif
-                </div>
-                <p class="mt-6 text-4xl font-semibold tracking-tight text-slate-900">{{ $precioHerramentalesTexto }}</p>
-                <p class="mt-3 text-sm text-slate-500">
-                    @if(is_null($precioHerramentalesPersistido))
-                        Aun no existe un valor persistido en ventas para herramentales.
-                    @else
-                        Valor persistido en <span class="font-semibold text-slate-700">ventas_resumen_de_costos</span>.
-                    @endif
-                </p>
-            </aside>
         </div>
+        <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+            <table class="summary-table w-full text-center border-collapse border border-gray-400">
+                <thead class="bg-[#848484] text-white">
+                    <tr>
+                        <th class="border border-gray-300 p-2">Concepto</th>
+                        <th class="border border-gray-300 p-2">Costo total (MXN)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if($herramentalesActivos->isEmpty())
+                        <tr>
+                            <td colspan="2" class="border border-gray-300 p-4 text-sm text-slate-500">No hay conceptos con importe distinto de cero.</td>
+                        </tr>
+                    @else
+                        @foreach($herramentales as $concepto => $valor)
+                            @if($valor)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border border-gray-300 p-2 font-bold">{{ $concepto }}</td>
+                                    <td class="border border-gray-300 p-2 font-semibold text-green-900 text-center">$ {{ number_format($valor, 2) }}</td>
+                                </tr>
+                            @endif
+                        @endforeach
+                    @endif
+                </tbody>
+                <tfoot>
+                    <tr class="bg-gray-100 font-bold">
+                        <td class="border border-gray-300 p-2 text-right">Total Herramental</td>
+                        <td class="border border-gray-300 p-2 text-red-900 text-center">$ {{ number_format($costeoRequisicion->TOTAL_FINAL ?? 0, 2) }}</td>
+                    </tr>
+                    <tr class="bg-gray-50 font-bold">
+                        <td class="border border-gray-300 p-2 text-right">Margen</td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" step="0.01" id="herramental-margen" name="herramental_margen" form="resumen-save-form"
+                                    value="{{ old('herramental_margen', $ventasResumen->herramental_margen ?? 1) }}"
+                                    class="w-full border-gray-300 border rounded-md p-1 text-center"
+                                    oninput="calcularHerramental()">
+                        </td>
+                    </tr>
+                    <tr class="bg-green-100 font-bold">
+                        <td class="border border-gray-300 p-2 text-right">Total Herramental (Ventas)</td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" step="0.01" id="herramental-ventas" name="herramental_total_ventas" form="resumen-save-form"
+                                readonly value="{{ old('herramental_total_ventas', $ventasResumen->herramental_total_ventas ?? $costeoRequisicion->TOTAL_VENTAS ?? 0) }}"
+                                class="w-full bg-green-100 border-0 p-1 text-center text-green-900">
+                        </td>
+                    </tr>
+                    @if($costeoRequisicion->tiempo_herramientas)
+                        <tr>
+                            <td class="border border-gray-300 p-2 text-gray-600 font-medium">Tiempo de entrega herramentales</td>
+                            <td class="border border-gray-300 p-2 text-center text-gray-700">{{ $costeoRequisicion->tiempo_herramientas }}</td>
+                        </tr>
+                    @endif
+                </tfoot>
+            </table>
+        </div>
+    </section> 
+</div>
 
-        <form action="{{ route('cotizacion.resumen.store', $cotizacion->id) }}" method="POST" id="resumen-save-form"
+<div class="container mx-auto p-4 bg-white rounded-2xl shadow-md border border-gray-200 p-6">
+    <form action="{{ route('cotizacion.resumen.store', $cotizacion->id) }}" method="POST" id="resumen-save-form"
             data-loading="true"
             data-loading-title="Guardando resumen..."
             data-loading-message="Actualizando resumen de costos, por favor espera"
             data-loading-button-text="Guardando resumen, por favor espera...">
             @csrf
-            <section class="summary-card p-5">
-                <div class="mb-4 flex flex-col gap-2 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Seccion 1</p>
-                        <h2 class="text-2xl font-semibold text-slate-900">Costos del Proyecto</h2>
-                    </div>
-                    <p class="text-sm text-slate-500">Los campos de calculo permanecen en solo lectura y se actualizan automaticamente.</p>
+        <section class="summary-card p-5">
+            <div class="mb-4 flex flex-col gap-2 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <h2 class="text-2xl font-semibold text-slate-900" style="color: #A41C24;">Costos del Proyecto</h2>
                 </div>
-
+            </div>
                 <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-                <table class="summary-table w-full border-collapse text-center border border-gray-400">
-                <thead class="bg-[#848484] text-white">
-                    <tr>
-                        <th class="border border-gray-300 p-2">Concepto</th>
-                        <th class="border border-gray-300 p-2">Costo total<br><span class="text-xs font-normal">(MXN)</span></th>
-                        <th class="border border-gray-300 p-2">Piezas</th>
-                        <th class="border border-gray-300 p-2">Costo Unit<br><span class="text-xs font-normal">(MXN)</span></th>
-                        <th class="border border-gray-300 p-2">Margen</th>
-                        <th class="border border-gray-300 p-2">Precio venta<br><span class="text-xs font-normal">(MXN)</span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Procesos -->
-                    <tr>
-                        <td class="font-bold border border-gray-300 p-2">Procesos de Maquinaria</td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_procesos"
-                                value="{{ old('resumen_costo_procesos', $ventasResumen->resumen_costo_procesos ?? $costeoRequisicion->resumen_costo_procesos) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('procesos')">
-                        </td>
-                        <td class=" border border-gray-300 p-2">
-                            <input type="number" name="resumen_piezas_procesos"
-                                value="{{ old('resumen_piezas_procesos', $ventasResumen->resumen_piezas_procesos ?? $costeoRequisicion->resumen_piezas_procesos) }}"
-                                   class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('procesos')">
-                        </td>
-                        <td class=" border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_unit_procesos" readonly
-                                value="{{ old('resumen_costo_unit_procesos', $ventasResumen->resumen_costo_unit_procesos ?? $costeoRequisicion->resumen_costo_unit_procesos) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                        <td class=" border border-gray-300 p-2">
-                            <input type="number" step="1" name="resumen_margen_procesos" 
-                                value="{{ old('resumen_margen_procesos', $ventasResumen->resumen_margen_procesos ?? $costeoRequisicion->resumen_margen_procesos ?? '1') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('procesos')">
-                        </td>
-                        <td class=" border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_precio_venta_procesos" readonly
-                                value="{{ old('resumen_precio_venta_procesos', $ventasResumen->resumen_precio_venta_procesos ?? $costeoRequisicion->resumen_precio_venta_procesos) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                    </tr>
-
-                    <!-- Empaque -->
-                    <tr>
-                        <td class="font-bold border border-gray-300 p-2">Empaque</td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_empaque"
-                                value="{{ old('resumen_costo_empaque', $ventasResumen->resumen_costo_empaque ?? $costeoRequisicion->resumen_costo_empaque) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('empaque')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="resumen_piezas_empaque"
-                                value="{{ old('resumen_piezas_empaque', $ventasResumen->resumen_piezas_empaque ?? $costeoRequisicion->resumen_piezas_empaque) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('empaque')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_unit_empaque" readonly
-                                value="{{ old('resumen_costo_unit_empaque', $ventasResumen->resumen_costo_unit_empaque ?? $costeoRequisicion->resumen_costo_unit_empaque) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="1" name="resumen_margen_empaque" 
-                                value="{{ old('resumen_margen_empaque', $ventasResumen->resumen_margen_empaque ?? $costeoRequisicion->resumen_margen_empaque ?? '1') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('empaque')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_precio_venta_empaque" readonly
-                                value="{{ old('resumen_precio_venta_empaque', $ventasResumen->resumen_precio_venta_empaque ?? $costeoRequisicion->resumen_precio_venta_empaque) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                    </tr>
-
-                    <!-- Flete -->
-                    <tr>
-                        <td class="font-bold border border-gray-300 p-2">Flete</td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_flete_total"
-                                value="{{ old('resumen_costo_flete_total', $ventasResumen->resumen_costo_flete_total ?? $costeoRequisicion->resumen_costo_flete_total) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('flete')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="resumen_piezas_flete"
-                                value="{{ old('resumen_piezas_flete', $ventasResumen->resumen_piezas_flete ?? $costeoRequisicion->resumen_piezas_flete) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('flete')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_unit_flete" readonly
-                                value="{{ old('resumen_costo_unit_flete', $ventasResumen->resumen_costo_unit_flete ?? $costeoRequisicion->resumen_costo_unit_flete) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step=" 1" name="resumen_margen_flete" 
-                                value="{{ old('resumen_margen_flete', $ventasResumen->resumen_margen_flete ?? $costeoRequisicion->resumen_margen_flete ?? '1') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('flete')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_precio_venta_flete" readonly
-                                value="{{ old('resumen_precio_venta_flete', $ventasResumen->resumen_precio_venta_flete ?? $costeoRequisicion->resumen_precio_venta_flete) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                    </tr>
-                    <!-- Pedimento -->
-                    <tr>
-                        <td class="font-bold border border-gray-300 p-2">Pedimento</td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_pedimento"
-                                value="{{ old('resumen_costo_pedimento', $ventasResumen->resumen_costo_pedimento ?? $costeoRequisicion->resumen_costo_pedimento) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('pedimento')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="resumen_piezas_pedimento"
-                                value="{{ old('resumen_piezas_pedimento', $ventasResumen->resumen_piezas_pedimento ?? $costeoRequisicion->resumen_piezas_pedimento) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('pedimento')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_unit_pedimento" readonly
-                                value="{{ old('resumen_costo_unit_pedimento', $ventasResumen->resumen_costo_unit_pedimento ?? $costeoRequisicion->resumen_costo_unit_pedimento) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="1" name="resumen_margen_pedimento" 
-                                value="{{ old('resumen_margen_pedimento', $ventasResumen->resumen_margen_pedimento ?? $costeoRequisicion->resumen_margen_pedimento ?? '1') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('pedimento')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_precio_venta_pedimento" readonly
-                                value="{{ old('resumen_precio_venta_pedimento', $ventasResumen->resumen_precio_venta_pedimento ?? $costeoRequisicion->resumen_precio_venta_pedimento) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                    </tr>
-
-                    <!-- Inocuidad -->
-                    <tr>
-                        <td class="font-bold border border-gray-300 p-2">Inocuidad</td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_inocuidad"
-                                value="{{ old('resumen_costo_inocuidad', $ventasResumen->resumen_costo_inocuidad ?? $costeoRequisicion->resumen_costo_inocuidad) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('inocuidad')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="resumen_piezas_inocuidad"
-                                value="{{ old('resumen_piezas_inocuidad', $ventasResumen->resumen_piezas_inocuidad ?? $costeoRequisicion->resumen_piezas_inocuidad) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('inocuidad')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_unit_inocuidad" readonly
-                                value="{{ old('resumen_costo_unit_inocuidad', $ventasResumen->resumen_costo_unit_inocuidad ?? $costeoRequisicion->resumen_costo_unit_inocuidad) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="1" name="resumen_margen_inocuidad"
-                                value="{{ old('resumen_margen_inocuidad', $ventasResumen->resumen_margen_inocuidad ?? $costeoRequisicion->resumen_margen_inocuidad ?? '1') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('inocuidad')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_precio_venta_inocuidad" readonly
-                                value="{{ old('resumen_precio_venta_inocuidad', $ventasResumen->resumen_precio_venta_inocuidad ?? $costeoRequisicion->resumen_precio_venta_inocuidad ?? '') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                    </tr>
-
-                    <!-- Polipropileno -->
-                    <tr>
-                        <td class="font-bold border border-gray-300 p-2">Polipropileno</td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_polipropileno"
-                                value="{{ old('resumen_costo_polipropileno', $ventasResumen->resumen_costo_polipropileno ?? $costeoRequisicion->resumen_costo_polipropileno) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('polipropileno')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="resumen_piezas_polipropileno"
-                                value="{{ old('resumen_piezas_polipropileno', $ventasResumen->resumen_piezas_polipropileno ?? $costeoRequisicion->resumen_piezas_polipropileno) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('polipropileno')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_unit_polipropileno" readonly
-                                value="{{ old('resumen_costo_unit_polipropileno', $ventasResumen->resumen_costo_unit_polipropileno ?? $costeoRequisicion->resumen_costo_unit_polipropileno) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="1" name="resumen_margen_polipropileno"
-                                value="{{ old('resumen_margen_polipropileno', $ventasResumen->resumen_margen_polipropileno ?? $costeoRequisicion->resumen_margen_polipropileno ?? '1') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('polipropileno')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_precio_venta_polipropileno" readonly
-                                value="{{ old('resumen_precio_venta_polipropileno', $ventasResumen->resumen_precio_venta_polipropileno ?? $costeoRequisicion->resumen_precio_venta_polipropileno ?? '') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                    </tr>
-
-                    <!-- Estaticidad -->
-                    <tr>
-                        <td class="font-bold border border-gray-300 p-2">Estaticidad</td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_estaticidad"
-                                value="{{ old('resumen_costo_estaticidad', $ventasResumen->resumen_costo_estaticidad ?? $costeoRequisicion->resumen_costo_estaticidad) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('estaticidad')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="resumen_piezas_estaticidad"
-                                value="{{ old('resumen_piezas_estaticidad', $ventasResumen->resumen_piezas_estaticidad ?? $costeoRequisicion->resumen_piezas_estaticidad) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('estaticidad')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_unit_estaticidad" readonly
-                                value="{{ old('resumen_costo_unit_estaticidad', $ventasResumen->resumen_costo_unit_estaticidad ?? $costeoRequisicion->resumen_costo_unit_estaticidad) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="1" name="resumen_margen_estaticidad"
-                                value="{{ old('resumen_margen_estaticidad', $ventasResumen->resumen_margen_estaticidad ?? $costeoRequisicion->resumen_margen_estaticidad ?? '1') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('estaticidad')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_precio_venta_estaticidad" readonly
-                                value="{{ old('resumen_precio_venta_estaticidad', $ventasResumen->resumen_precio_venta_estaticidad ?? $costeoRequisicion->resumen_precio_venta_estaticidad ?? '') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                    </tr>
-
-                    <!-- Maquila -->
-                    <tr>
-                        <td class="font-bold border border-gray-300 p-2">Maquila</td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_maquila"
-                                value="{{ old('resumen_costo_maquila', $ventasResumen->resumen_costo_maquila ?? $costeoRequisicion->resumen_costo_maquila) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('maquila')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="resumen_piezas_maquila"
-                                value="{{ old('resumen_piezas_maquila', $ventasResumen->resumen_piezas_maquila ?? $costeoRequisicion->resumen_piezas_maquila) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('maquila')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_unit_maquila" readonly
-                                value="{{ old('resumen_costo_unit_maquila', $ventasResumen->resumen_costo_unit_maquila ?? $costeoRequisicion->resumen_costo_unit_maquila) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="1" name="resumen_margen_maquila"
-                                value="{{ old('resumen_margen_maquila', $ventasResumen->resumen_margen_maquila ?? $costeoRequisicion->resumen_margen_maquila ?? '1') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('maquila')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_precio_venta_maquila" readonly
-                                value="{{ old('resumen_precio_venta_maquila', $ventasResumen->resumen_precio_venta_maquila ?? $costeoRequisicion->resumen_precio_venta_maquila ?? '') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                    </tr>
-                    <!-- Etiqueta -->
-                    <tr>
-                        <td class="font-bold border border-gray-300 p-2">Etiqueta</td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.01" name="resumen_costo_etiqueta"
-                                value="{{ old('resumen_costo_etiqueta', $ventasResumen->resumen_costo_etiqueta ?? $costeoRequisicion->resumen_costo_etiqueta) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('etiqueta')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" name="resumen_piezas_etiqueta"
-                                value="{{ old('resumen_piezas_etiqueta', $ventasResumen->resumen_piezas_etiqueta ?? $costeoRequisicion->resumen_piezas_etiqueta) }}"
-                                class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('etiqueta')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_costo_unit_etiqueta" readonly
-                                value="{{ old('resumen_costo_unit_etiqueta', $ventasResumen->resumen_costo_unit_etiqueta ?? $costeoRequisicion->resumen_costo_unit_etiqueta) }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="1" name="resumen_margen_etiqueta"
-                                value="{{ old('resumen_margen_etiqueta', $ventasResumen->resumen_margen_etiqueta ?? $costeoRequisicion->resumen_margen_etiqueta ?? '1') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('etiqueta')">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.0001" name="resumen_precio_venta_etiqueta" readonly
-                                value="{{ old('resumen_precio_venta_etiqueta', $ventasResumen->resumen_precio_venta_etiqueta ?? $costeoRequisicion->resumen_precio_venta_etiqueta ?? '') }}"
-                                class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
-                        </td>
-                    </tr>
-                    
-                </tbody>
-                <tfoot>
-                    <tr class="bg-gray-50 font-bold">
-                        <td colspan="2" class="text-right border border-gray-300 p-2">Margen Administrativo</td>
-                        <td class="border border-gray-300 p-2"><input type="number" step="0.01" name="resumen_margen_administrativo_aux" 
-                            value="{{ old('resumen_margen_administrativo_aux', $ventasResumen->resumen_margen_administrativo_aux ?? $costeoRequisicion->resumen_margen_administrativo_aux ?? '.05') }}"
-                            class="w-full bg-gray-50 p-2 text-center" oninput="calcularTotales()">
-                        </td>
-                        <td class="border border-gray-300 p-2">
-                            <input step="0.0001" name="resumen_margen_administrativo" readonly
-                                value="{{ old('resumen_margen_administrativo', $ventasResumen->resumen_margen_administrativo ?? $costeoRequisicion->resumen_margen_administrativo ?? '') }}"
-                                class="w-full bg-gray-50 p-2 text-center">
-                        </td>
-                        <td class="border border-gray-300 p-2">-</td>
-                        <td class="border border-gray-300 p-2">-</td>
+                    <table class="summary-table w-full border-collapse text-center border border-gray-400">
+                        <thead class="bg-[#848484] text-white">
+                            <tr>
+                                <th class="border border-gray-300 p-2">Concepto</th>
+                                <th class="border border-gray-300 p-2">Costo total<br><span class="text-xs font-normal">(MXN)</span></th>
+                                <th class="border border-gray-300 p-2">Piezas</th>
+                                <th class="border border-gray-300 p-2">Costo Unit<br><span class="text-xs font-normal">(MXN)</span></th>
+                                <th class="border border-gray-300 p-2">Margen</th>
+                                <th class="border border-gray-300 p-2">Precio venta<br><span class="text-xs font-normal">(MXN)</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="font-bold border border-gray-300 p-2">Procesos de Maquinaria</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_procesos"
+                                        value="{{ old('resumen_costo_procesos', $ventasResumen->resumen_costo_procesos ?? $costeoRequisicion->resumen_costo_procesos) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('procesos')">
+                                </td>
+                                <td class=" border border-gray-300 p-2">
+                                    <input type="number" name="resumen_piezas_procesos"
+                                        value="{{ old('resumen_piezas_procesos', $ventasResumen->resumen_piezas_procesos ?? $costeoRequisicion->resumen_piezas_procesos) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('procesos')">
+                                </td>
+                                <td class=" border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_unit_procesos" readonly
+                                        value="{{ old('resumen_costo_unit_procesos', $ventasResumen->resumen_costo_unit_procesos ?? $costeoRequisicion->resumen_costo_unit_procesos) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                                <td class=" border border-gray-300 p-2">
+                                    <input type="number" step="1" name="resumen_margen_procesos" 
+                                        value="{{ old('resumen_margen_procesos', $ventasResumen->resumen_margen_procesos ?? $costeoRequisicion->resumen_margen_procesos ?? '1') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('procesos')">
+                                </td>
+                                <td class=" border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_precio_venta_procesos" readonly
+                                        value="{{ old('resumen_precio_venta_procesos', $ventasResumen->resumen_precio_venta_procesos ?? $costeoRequisicion->resumen_precio_venta_procesos) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold border border-gray-300 p-2">Empaque</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_empaque"
+                                        value="{{ old('resumen_costo_empaque', $ventasResumen->resumen_costo_empaque ?? $costeoRequisicion->resumen_costo_empaque) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('empaque')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" name="resumen_piezas_empaque"
+                                        value="{{ old('resumen_piezas_empaque', $ventasResumen->resumen_piezas_empaque ?? $costeoRequisicion->resumen_piezas_empaque) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('empaque')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_unit_empaque" readonly
+                                        value="{{ old('resumen_costo_unit_empaque', $ventasResumen->resumen_costo_unit_empaque ?? $costeoRequisicion->resumen_costo_unit_empaque) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="1" name="resumen_margen_empaque" 
+                                        value="{{ old('resumen_margen_empaque', $ventasResumen->resumen_margen_empaque ?? $costeoRequisicion->resumen_margen_empaque ?? '1') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('empaque')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_precio_venta_empaque" readonly
+                                        value="{{ old('resumen_precio_venta_empaque', $ventasResumen->resumen_precio_venta_empaque ?? $costeoRequisicion->resumen_precio_venta_empaque) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold border border-gray-300 p-2">Flete</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_flete_total"
+                                        value="{{ old('resumen_costo_flete_total', $ventasResumen->resumen_costo_flete_total ?? $costeoRequisicion->resumen_costo_flete_total) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('flete')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" name="resumen_piezas_flete"
+                                        value="{{ old('resumen_piezas_flete', $ventasResumen->resumen_piezas_flete ?? $costeoRequisicion->resumen_piezas_flete) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('flete')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_unit_flete" readonly
+                                        value="{{ old('resumen_costo_unit_flete', $ventasResumen->resumen_costo_unit_flete ?? $costeoRequisicion->resumen_costo_unit_flete) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step=" 1" name="resumen_margen_flete" 
+                                        value="{{ old('resumen_margen_flete', $ventasResumen->resumen_margen_flete ?? $costeoRequisicion->resumen_margen_flete ?? '1') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('flete')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_precio_venta_flete" readonly
+                                        value="{{ old('resumen_precio_venta_flete', $ventasResumen->resumen_precio_venta_flete ?? $costeoRequisicion->resumen_precio_venta_flete) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold border border-gray-300 p-2">Pedimento</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_pedimento"
+                                        value="{{ old('resumen_costo_pedimento', $ventasResumen->resumen_costo_pedimento ?? $costeoRequisicion->resumen_costo_pedimento) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('pedimento')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" name="resumen_piezas_pedimento"
+                                        value="{{ old('resumen_piezas_pedimento', $ventasResumen->resumen_piezas_pedimento ?? $costeoRequisicion->resumen_piezas_pedimento) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('pedimento')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_unit_pedimento" readonly
+                                        value="{{ old('resumen_costo_unit_pedimento', $ventasResumen->resumen_costo_unit_pedimento ?? $costeoRequisicion->resumen_costo_unit_pedimento) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="1" name="resumen_margen_pedimento" 
+                                        value="{{ old('resumen_margen_pedimento', $ventasResumen->resumen_margen_pedimento ?? $costeoRequisicion->resumen_margen_pedimento ?? '1') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('pedimento')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_precio_venta_pedimento" readonly
+                                        value="{{ old('resumen_precio_venta_pedimento', $ventasResumen->resumen_precio_venta_pedimento ?? $costeoRequisicion->resumen_precio_venta_pedimento) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold border border-gray-300 p-2">Inocuidad</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_inocuidad"
+                                        value="{{ old('resumen_costo_inocuidad', $ventasResumen->resumen_costo_inocuidad ?? $costeoRequisicion->resumen_costo_inocuidad) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('inocuidad')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" name="resumen_piezas_inocuidad"
+                                        value="{{ old('resumen_piezas_inocuidad', $ventasResumen->resumen_piezas_inocuidad ?? $costeoRequisicion->resumen_piezas_inocuidad) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('inocuidad')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_unit_inocuidad" readonly
+                                        value="{{ old('resumen_costo_unit_inocuidad', $ventasResumen->resumen_costo_unit_inocuidad ?? $costeoRequisicion->resumen_costo_unit_inocuidad) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="1" name="resumen_margen_inocuidad"
+                                        value="{{ old('resumen_margen_inocuidad', $ventasResumen->resumen_margen_inocuidad ?? $costeoRequisicion->resumen_margen_inocuidad ?? '1') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('inocuidad')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_precio_venta_inocuidad" readonly
+                                        value="{{ old('resumen_precio_venta_inocuidad', $ventasResumen->resumen_precio_venta_inocuidad ?? $costeoRequisicion->resumen_precio_venta_inocuidad ?? '') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold border border-gray-300 p-2">Polipropileno</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_polipropileno"
+                                        value="{{ old('resumen_costo_polipropileno', $ventasResumen->resumen_costo_polipropileno ?? $costeoRequisicion->resumen_costo_polipropileno) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('polipropileno')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" name="resumen_piezas_polipropileno"
+                                        value="{{ old('resumen_piezas_polipropileno', $ventasResumen->resumen_piezas_polipropileno ?? $costeoRequisicion->resumen_piezas_polipropileno) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('polipropileno')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_unit_polipropileno" readonly
+                                        value="{{ old('resumen_costo_unit_polipropileno', $ventasResumen->resumen_costo_unit_polipropileno ?? $costeoRequisicion->resumen_costo_unit_polipropileno) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="1" name="resumen_margen_polipropileno"
+                                        value="{{ old('resumen_margen_polipropileno', $ventasResumen->resumen_margen_polipropileno ?? $costeoRequisicion->resumen_margen_polipropileno ?? '1') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('polipropileno')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_precio_venta_polipropileno" readonly
+                                        value="{{ old('resumen_precio_venta_polipropileno', $ventasResumen->resumen_precio_venta_polipropileno ?? $costeoRequisicion->resumen_precio_venta_polipropileno ?? '') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold border border-gray-300 p-2">Estaticidad</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_estaticidad"
+                                        value="{{ old('resumen_costo_estaticidad', $ventasResumen->resumen_costo_estaticidad ?? $costeoRequisicion->resumen_costo_estaticidad) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('estaticidad')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" name="resumen_piezas_estaticidad"
+                                        value="{{ old('resumen_piezas_estaticidad', $ventasResumen->resumen_piezas_estaticidad ?? $costeoRequisicion->resumen_piezas_estaticidad) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('estaticidad')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_unit_estaticidad" readonly
+                                        value="{{ old('resumen_costo_unit_estaticidad', $ventasResumen->resumen_costo_unit_estaticidad ?? $costeoRequisicion->resumen_costo_unit_estaticidad) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="1" name="resumen_margen_estaticidad"
+                                        value="{{ old('resumen_margen_estaticidad', $ventasResumen->resumen_margen_estaticidad ?? $costeoRequisicion->resumen_margen_estaticidad ?? '1') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('estaticidad')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_precio_venta_estaticidad" readonly
+                                        value="{{ old('resumen_precio_venta_estaticidad', $ventasResumen->resumen_precio_venta_estaticidad ?? $costeoRequisicion->resumen_precio_venta_estaticidad ?? '') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold border border-gray-300 p-2">Maquila</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_maquila"
+                                        value="{{ old('resumen_costo_maquila', $ventasResumen->resumen_costo_maquila ?? $costeoRequisicion->resumen_costo_maquila) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('maquila')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" name="resumen_piezas_maquila"
+                                        value="{{ old('resumen_piezas_maquila', $ventasResumen->resumen_piezas_maquila ?? $costeoRequisicion->resumen_piezas_maquila) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('maquila')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_unit_maquila" readonly
+                                        value="{{ old('resumen_costo_unit_maquila', $ventasResumen->resumen_costo_unit_maquila ?? $costeoRequisicion->resumen_costo_unit_maquila) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="1" name="resumen_margen_maquila"
+                                        value="{{ old('resumen_margen_maquila', $ventasResumen->resumen_margen_maquila ?? $costeoRequisicion->resumen_margen_maquila ?? '1') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('maquila')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_precio_venta_maquila" readonly
+                                        value="{{ old('resumen_precio_venta_maquila', $ventasResumen->resumen_precio_venta_maquila ?? $costeoRequisicion->resumen_precio_venta_maquila ?? '') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold border border-gray-300 p-2">Etiqueta</td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.01" name="resumen_costo_etiqueta"
+                                        value="{{ old('resumen_costo_etiqueta', $ventasResumen->resumen_costo_etiqueta ?? $costeoRequisicion->resumen_costo_etiqueta) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('etiqueta')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" name="resumen_piezas_etiqueta"
+                                        value="{{ old('resumen_piezas_etiqueta', $ventasResumen->resumen_piezas_etiqueta ?? $costeoRequisicion->resumen_piezas_etiqueta) }}"
+                                        class="w-full border-gray-300 border rounded-md p-1" oninput="calcularFila('etiqueta')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_costo_unit_etiqueta" readonly
+                                        value="{{ old('resumen_costo_unit_etiqueta', $ventasResumen->resumen_costo_unit_etiqueta ?? $costeoRequisicion->resumen_costo_unit_etiqueta) }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="1" name="resumen_margen_etiqueta"
+                                        value="{{ old('resumen_margen_etiqueta', $ventasResumen->resumen_margen_etiqueta ?? $costeoRequisicion->resumen_margen_etiqueta ?? '1') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1" oninput="calcularFila('etiqueta')">
+                                </td>
+                                <td class="border border-gray-300 p-2">
+                                    <input type="number" step="0.0001" name="resumen_precio_venta_etiqueta" readonly
+                                        value="{{ old('resumen_precio_venta_etiqueta', $ventasResumen->resumen_precio_venta_etiqueta ?? $costeoRequisicion->resumen_precio_venta_etiqueta ?? '') }}"
+                                        class="w-full bg-gray-50 border-gray-300 border rounded-md p-1">
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray-50 font-bold">
+                                <td colspan="2" class="text-right border border-gray-300 p-2">Margen Administrativo</td>
+                                <td class="border border-gray-300 p-2"><input type="number" step="0.01" name="resumen_margen_administrativo_aux" 
+                                 value="{{ old('resumen_margen_administrativo_aux', $ventasResumen->resumen_margen_administrativo_aux ?? $costeoRequisicion->resumen_margen_administrativo_aux ?? '.05') }}"
+                                    class="w-full bg-gray-50 p-2 text-center" oninput="calcularTotales()">
+                            </td>
+                            <td class="border border-gray-300 p-2">
+                                <input step="0.0001" name="resumen_margen_administrativo" readonly
+                                    value="{{ old('resumen_margen_administrativo', $ventasResumen->resumen_margen_administrativo ?? $costeoRequisicion->resumen_margen_administrativo ?? '') }}"
+                                    class="w-full bg-gray-50 p-2 text-center">
+                            </td>
+                            <td class="border border-gray-300 p-2">-</td>
+                            <td class="border border-gray-300 p-2">-</td>
                     </tr>
                     
                     <tr class="bg-blue-100 font-bold">
@@ -448,11 +469,11 @@
                         </td>
                     </tr>
                     <tr class="bg-blue-100 font-bold">
-                        <td colspan="4" class="text-right border border-gray-300 p-2">Total de Ventas</td>
+                        <td colspan="4" class="text-right border border-gray-300 p-2">Precio de venta</td>
                         <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.001" name="resumen_total_precio_venta_aux" title="Ingrese multiplicador de precio de venta"
+                            <input type="hidden" step="0.0001" name="resumen_total_precio_venta_aux"
                                 value="{{ old('resumen_total_precio_venta_aux', $ventasResumen->resumen_total_precio_venta_aux ?? $costeoRequisicion->resumen_total_precio_venta_aux ?? '.5') }}"
-                                class="w-full bg-blue-100 p-2 text-center" oninput="calcularTotales()">
+                                readonly>
                         </td>
                         <td class="border border-gray-300 p-2">
                             <input step="0.0001" name="resumen_total_precio_venta" readonly
@@ -462,101 +483,70 @@
                     </tr>
                 </tfoot>
             </table>
-                </div>
-
-            <div class="mt-5 flex items-center justify-end gap-3 rounded-2xl bg-slate-900 px-4 py-4 text-white">
-                <span class="text-base font-bold text-white">Total Final de la Cotización (MXN):</span>
-                <input type="number" name="precio_venta_final" step="0.01" readonly
-                    class="form-input w-48 rounded-md border-2 border-cyan-400 bg-cyan-50 p-2 text-lg font-bold text-slate-900"
-                    value="{{ old('precio_venta_final', $ventasResumen->precio_venta_final ?? $costeoRequisicion->resumen_total_precio_venta ?? '') }}">
             </div>
+            <input type="hidden" name="lote_compra" value="{{ old('lote_compra', $ventasResumen->lote_compra ?? optional($cotizacion->especificacionProyecto)->lote_compra ?? 1) }}">
+            <input type="hidden" name="costo_total" value="{{ old('costo_total', $ventasResumen->costo_total ?? '') }}">
             </section>
         </form>
+    
+</div>    
 
+<div class="container mx-auto p-4 bg-white rounded-2xl shadow-md border border-gray-200 p-6">
+   
+        <form action="{{ route('cotizacion.resumen.store', $cotizacion->id) }}" method="POST" id="resumen-display-form"
+            data-loading="true"
+            data-loading-title="Guardando resumen..."
+            data-loading-message="Actualizando resumen de costos, por favor espera"
+            data-loading-button-text="Guardando resumen, por favor espera...">
+            @csrf
+            <section class="summary-card p-5">
+               
 
-        {{-- ===== RESUMEN DE HERRAMENTAL ===== --}}
-            <div class="mt-6">
-                @php
-                    $herramentales = [
-                        'Molde' => $costeoRequisicion->total_molde,
-                        'Empujador' => $costeoRequisicion->total_empujador,
-                        'Suaje base' => $costeoRequisicion->costo_suaje_base,
-                        'Muestras' => $costeoRequisicion->costo_muestras,
-                        'Placa de fijación' => $costeoRequisicion->costo_placa_fijacion,
-                        'Madera / Campaña' => $costeoRequisicion->costo_madera_campana,
-                        'Prototipo' => $costeoRequisicion->costo_prototipo,
-                        'Tornillería' => $costeoRequisicion->costo_tornilleria,
-                        'Pedimento herramental' => $costeoRequisicion->costo_pedimento_herramental,
-                    ];
-                    $herramentalesActivos = collect($herramentales)->filter(fn ($valor) => !is_null($valor) && (float) $valor !== 0.0);
-                @endphp
-                <section id="herramental-section" class="summary-card p-5">
-                    <div class="mb-4 flex flex-col gap-2 border-b border-slate-200 pb-4 md:flex-row md:items-end md:justify-between">
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Seccion 2</p>
-                            <h2 class="text-2xl font-semibold text-slate-900">Resumen de Herramental</h2>
-                        </div>
-                        <p class="text-sm text-slate-500">El total de ventas se calcula en formulario y el KPI superior muestra el valor ya guardado.</p>
-                    </div>
-                    <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-                    <table class="summary-table w-full text-center border-collapse border border-gray-400">
-                        <thead class="bg-[#848484] text-white">
-                            <tr>
-                                <th class="border border-gray-300 p-2">Concepto</th>
-                                <th class="border border-gray-300 p-2">Costo total<br><span class="text-xs font-normal">(MXN)</span></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if($herramentalesActivos->isEmpty())
-                                <tr>
-                                    <td colspan="2" class="border border-gray-300 p-4 text-sm text-slate-500">No hay conceptos con importe distinto de cero.</td>
-                                </tr>
-                            @else
-                                @foreach($herramentales as $concepto => $valor)
-                                    @if($valor)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="border border-gray-300 p-2 font-bold">{{ $concepto }}</td>
-                                        <td class="border border-gray-300 p-2 font-semibold text-blue-900 text-right">$ {{ number_format($valor, 2) }}</td>
-                                    </tr>
-                                    @endif
-                                @endforeach
-                            @endif
-                        </tbody>
-                        <tfoot>
-                            <tr class="bg-blue-100 font-bold">
-                                <td class="border border-gray-300 p-2 text-right">Total Herramental</td>
-                                <td class="border border-gray-300 p-2 text-blue-900 text-right">$ {{ number_format($costeoRequisicion->TOTAL_FINAL ?? 0, 2) }}</td>
-                            </tr>
-                            <tr class="bg-gray-50 font-bold">
-                                <td class="border border-gray-300 p-2 text-right">Margen</td>
-                                <td class="border border-gray-300 p-2">
-                                    <input type="number" step="0.01" id="herramental-margen" name="herramental_margen" form="resumen-save-form"
-                                        value="{{ old('herramental_margen', $ventasResumen->herramental_margen ?? 1) }}"
-                                        class="w-full border-gray-300 border rounded-md p-1 text-right"
-                                        oninput="calcularHerramental()">
-                                </td>
-                            </tr>
-                            <tr class="bg-green-100 font-bold">
-                                <td class="border border-gray-300 p-2 text-right">Total Herramental (Ventas)</td>
-                                <td class="border border-gray-300 p-2">
-                                    <input type="number" step="0.01" id="herramental-ventas" name="herramental_total_ventas" form="resumen-save-form"
-                                        readonly
-                                        value="{{ old('herramental_total_ventas', $ventasResumen->herramental_total_ventas ?? $costeoRequisicion->TOTAL_VENTAS ?? 0) }}"
-                                        class="w-full bg-green-100 border-0 p-1 text-right text-green-900">
-                                </td>
-                            </tr>
-                            @if($costeoRequisicion->tiempo_herramientas)
-                            <tr>
-                                <td class="border border-gray-300 p-2 text-gray-600 font-medium">Tiempo de entrega herramentales</td>
-                                <td class="border border-gray-300 p-2 text-center text-gray-700">{{ $costeoRequisicion->tiempo_herramientas }}</td>
-                            </tr>
-                            @endif
-                        </tfoot>
-                    </table>
-                    </div>
-                </section>
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
+                <table class="summary-table w-full border-collapse text-center border border-gray-400">
+                
+                <tbody>
+
+                    
+                    <tr class="bg-blue-100 font-bold">
+                        <td colspan="3" class="text-right border border-gray-300 p-2">Venta total</td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" step="0.0001" name="precio_venta_final" form="resumen-save-form" readonly
+                                value="{{ old('precio_venta_final', $ventasResumen->precio_venta_final ?? '') }}"
+                                class="w-full bg-blue-100 p-2 text-center">
+                        </td>
+                        <td class="border border-gray-300 p-2">-</td>
+                        <td class="border border-gray-300 p-2">-</td>
+                    </tr>
+                    
+                    <tr class="bg-gray-50 font-bold">
+                        <td colspan="4" class="text-right border border-gray-300 p-2">Margen Bruto pedido</td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" step="0.0001" name="margen_bruto_display"
+                                value="0"
+                                oninput="actualizarMargenBrutoPedido(true)"
+                                class="w-full bg-gray-50 p-2 text-center">
+                        </td>
+                        <td class="border border-gray-300 p-2">
+                            <input type="number" step="0.0001" name="margen_bruto_porcentaje_display" readonly
+                                value="0"
+                                class="w-full bg-gray-50 p-2 text-center">
+                        </td>
+                    </tr>
+                    
+                    
+                </tbody>
+            </table>
             </div>
 
+         
+            </section>
+        </form>
+    
+</div>
+
+<div class="container mx-auto p-4">
+    <div class="bg-white rounded-2xl shadow-md border border-gray-200 p-6">
         {{-- ===== COMENTARIOS DEL ÁREA DE COSTEOS ===== --}}
         @if($costeoRequisicion && $costeoRequisicion->comentarios)
         <div class="mt-4">
@@ -583,12 +573,53 @@
                 </button>
             </div>
         </div>
-
     </div>
 </div>
+</div>
+
+        
 <script>
 // Debounce helper to avoid spamming calcularTotales
 let calcularTotalesTimer = null;
+
+function getInputByName(name) {
+    return document.querySelector(`[name="${name}"]`);
+}
+
+function getNumberByName(name) {
+    return parseFloat(getInputByName(name)?.value) || 0;
+}
+
+function setNumberValue(input, value, decimals = 4) {
+    if (!input) return;
+    input.value = Number.isFinite(value) ? value.toFixed(decimals) : '';
+}
+
+function actualizarMargenBrutoPedido(esManual = false, margenBrutoCalculado = null, ventaTotalCalculada = null) {
+    const inputMargenBruto = getInputByName('margen_bruto_display');
+    const inputMargenBrutoPorcentaje = getInputByName('margen_bruto_porcentaje_display');
+    const inputVentaTotal = getInputByName('precio_venta_final');
+
+    if (!inputMargenBruto || !inputMargenBrutoPorcentaje) return;
+
+    if (esManual) {
+        inputMargenBruto.dataset.manualOverride = 'true';
+    }
+
+    const ventaTotal = ventaTotalCalculada ?? (parseFloat(inputVentaTotal?.value) || 0);
+    const tieneOverrideManual = inputMargenBruto.dataset.manualOverride === 'true';
+    const margenBruto = tieneOverrideManual
+        ? (parseFloat(inputMargenBruto.value) || 0)
+        : (margenBrutoCalculado ?? 0);
+    const porcentajeMargen = ventaTotal > 0 ? margenBruto / ventaTotal : 0;
+
+    if (!tieneOverrideManual) {
+        setNumberValue(inputMargenBruto, margenBruto, 4);
+    }
+
+    setNumberValue(inputMargenBrutoPorcentaje, porcentajeMargen, 4);
+}
+
 function scheduleCalcularTotales(delay = 120) {
     if (calcularTotalesTimer) clearTimeout(calcularTotalesTimer);
     calcularTotalesTimer = setTimeout(() => {
@@ -654,48 +685,41 @@ function calcularTotales() {
     ];
     
     let totalCostoUnit = 0;
-    let totalPrecioVenta = 0;
-    const margenAdministrativoAux = parseFloat(document.querySelector('[name="resumen_margen_administrativo_aux"]').value) || 0;
+    let totalPrecioVentaConceptos = 0;
+    const margenAdministrativoAux = getNumberByName('resumen_margen_administrativo_aux');
 
     conceptos.forEach(c => {
-        totalCostoUnit += parseFloat(
-            document.querySelector(`[name="resumen_costo_unit_${c}"]`)?.value
-        ) || 0;
+        totalCostoUnit += getNumberByName(`resumen_costo_unit_${c}`);
 
-        totalPrecioVenta += parseFloat(
-            document.querySelector(`[name="resumen_precio_venta_${c}"]`)?.value
-        ) || 0;
+        totalPrecioVentaConceptos += getNumberByName(`resumen_precio_venta_${c}`);
     });
 
-    const resumen_margen_administrativo = document.querySelector('[name="resumen_margen_administrativo"]');
-    const inputTotalCosto = document.querySelector('[name="resumen_total_costo_unit"]');
-    const inputPrecioVentaFinal = document.querySelector('[name="resumen_total_precio_venta"]');
-    const resumen_total_comision_final = document.querySelector('[name="resumen_total_comision_final"]');
-    const precio_venta_final = document.querySelector('[name="precio_venta_final"]');
-    const lote_compra = Number(@json($ventasResumen->lote_compra ?? optional($cotizacion->especificacionProyecto)->lote_compra ?? 1));
-    const resumen_total_precio_venta_aux = parseFloat(document.querySelector('[name="resumen_total_precio_venta_aux"]').value) || 0;
+    const resumenMargenAdministrativo = getInputByName('resumen_margen_administrativo');
+    const inputTotalCosto = getInputByName('resumen_total_costo_unit');
+    const inputPrecioVenta = getInputByName('resumen_total_precio_venta');
+    const inputPrecioVentaAux = getInputByName('resumen_total_precio_venta_aux');
+    const inputComisionCalculada = getInputByName('resumen_total_comision_final');
+    const inputVentaTotal = getInputByName('precio_venta_final');
+    const inputCostoTotal = getInputByName('costo_total');
+    const loteCompra = Number(@json($ventasResumen->lote_compra ?? optional($cotizacion->especificacionProyecto)->lote_compra ?? 1)) || getNumberByName('lote_compra') || 0;
+    const margenAdministrativo = totalCostoUnit * margenAdministrativoAux;
+    const comisionCalculada = getNumberByName('resumen_total_comision') * totalCostoUnit;
+    const precioVenta = totalPrecioVentaConceptos + comisionCalculada + margenAdministrativo;
+    const costoTotalPedido = totalCostoUnit * loteCompra;
+    const ventaTotal = precioVenta * loteCompra;
+    const margenBruto = ventaTotal - costoTotalPedido;
 
-    if (inputTotalCosto) {
-        const resultado = margenAdministrativoAux * totalCostoUnit;
-        resumen_margen_administrativo.value = resultado.toFixed(4);
-        const suma = totalCostoUnit + resultado;
-        inputTotalCosto.value = suma.toFixed(4);
-    }
-
-    if (inputPrecioVentaFinal) {
-        totalPrecioVenta += parseFloat(resumen_total_comision_final.value) || 0;
-        inputPrecioVentaFinal.value = (totalPrecioVenta*resumen_total_precio_venta_aux).toFixed(4);
-        precio_venta_final.value = (inputPrecioVentaFinal.value*lote_compra).toFixed(4);
-    }
+    setNumberValue(resumenMargenAdministrativo, margenAdministrativo, 4);
+    setNumberValue(inputTotalCosto, totalCostoUnit, 4);
+    setNumberValue(inputComisionCalculada, comisionCalculada, 4);
+    setNumberValue(inputPrecioVenta, precioVenta, 4);
+    setNumberValue(inputPrecioVentaAux, precioVenta, 4);
+    setNumberValue(inputCostoTotal, costoTotalPedido, 4);
+    setNumberValue(inputVentaTotal, ventaTotal, 4);
+    actualizarMargenBrutoPedido(false, margenBruto, ventaTotal);
 }
 
 function calcularComision() {
-    // Implementar si es necesario
-    const resumenTotalCostoUnit = parseFloat(document.querySelector('input[name="resumen_total_costo_unit"]').value) || 0;
-    const resumenTotalComisionInput = parseFloat(document.querySelector('input[name="resumen_total_comision"]').value) || 0;
-    const comision = resumenTotalCostoUnit * resumenTotalComisionInput; 
-    document.querySelector('input[name="resumen_total_comision_final"]').value = comision.toFixed(2);
-    // Schedule totals recalculation (debounced)
     scheduleCalcularTotales();
 }
 
@@ -715,18 +739,7 @@ function calcularHerramental() {
 
 
 function calcularCostoTotalYPrecioVenta() {
-    const resumen_total_costo_unit = parseFloat(document.querySelector('input[name="resumen_total_costo_unit"]').value) || 0;
-    const lote_compra = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
-    const coeficiente_merma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
-
-    const totalCosto = resumen_total_costo_unit * (lote_compra + (lote_compra * (coeficiente_merma / 100)));
-    const precioVentaFinal = parseFloat(document.querySelector('input[name="resumen_total_precio_venta"]').value) || 0;
-
-    const costoInput = document.querySelector('input[name="costo_total"]');
-    if (costoInput) costoInput.value = isFinite(totalCosto) ? totalCosto.toFixed(2) : '';
-
-    const precioInput = document.querySelector('input[name="precio_venta_final"]');
-    if (precioInput) precioInput.value = isFinite(precioVentaFinal) ? precioVentaFinal.toFixed(2) : '';
+    calcularTotales();
 }
 
 
