@@ -6,9 +6,12 @@ use App\Models\Cotizacion;
 use App\Models\CosteoRequisicion;
 use App\Models\CosteoCorridaPiloto;
 use App\Models\ProcesosCosteo;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class CosteoRequisicionController extends Controller
 {
@@ -25,6 +28,64 @@ class CosteoRequisicionController extends Controller
 
     public function store(Request $request, $cotizacionId)
     {
+        try {
+            [$cotizacion, $esCorridaPiloto] = $this->persistCosteo($request, $cotizacionId);
+
+            if ($esCorridaPiloto) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Corrida Piloto guardada exitosamente.',
+                    'pdfUrl' => route('cotizacion.resumen.costos.pdf', $cotizacionId)
+                ]);
+            }
+
+            return redirect()->route('cotizaciones.index', $cotizacionId)
+                ->with('success', 'Costeo guardado exitosamente.');
+        } catch (\Exception $e) {
+            $esCorridaPiloto = $request->has('btn_corrida_piloto') && $request->btn_corrida_piloto == 'corrida_piloto';
+
+            if ($esCorridaPiloto) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al guardar la corrida piloto: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Error al guardar el costeo: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    public function storeAndDownloadPdf(Request $request, $cotizacionId)
+    {
+        try {
+            [$cotizacion, $esCorridaPiloto] = $this->persistCosteo($request, $cotizacionId);
+
+            if ($esCorridaPiloto) {
+                throw ValidationException::withMessages([
+                    'boton-guardar-costeo' => 'La descarga de PDF de costeo no aplica para corrida piloto.'
+                ]);
+            }
+
+            $pdfData = $this->validatePdfPayload($request, $cotizacion);
+            $fileName = 'Resumen_Costeo_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', (string) $cotizacion->no_proyecto) . '.pdf';
+
+            return $this->buildPdfDownloadResponse($pdfData, $fileName);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'No fue posible generar el PDF.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al guardar el costeo y generar el PDF: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    private function persistCosteo(Request $request, $cotizacionId): array
+    {
         $cotizacion = Cotizacion::findOrFail($cotizacionId);
         $numberOrZero = static function ($value) {
             return ($value === null || $value === '' || !is_numeric($value)) ? 0 : $value;
@@ -37,7 +98,7 @@ class CosteoRequisicionController extends Controller
         DB::beginTransaction();
 
         try {
-            $validated = $request->validate([
+            $request->validate([
                 'insertos' => 'nullable|numeric|min:0',
             ]);
             $esCorridaPiloto = $request->has('btn_corrida_piloto') && $request->btn_corrida_piloto == 'corrida_piloto';
@@ -335,31 +396,91 @@ class CosteoRequisicionController extends Controller
 
             DB::commit();
 
-            // Si es corrida piloto, devolver respuesta JSON para manejar con JavaScript
-            if ($esCorridaPiloto) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Corrida Piloto guardada exitosamente.',
-                    'pdfUrl' => route('cotizacion.resumen.costos.pdf', $cotizacionId)
-                ]);
-            }
-
-            return redirect()->route('cotizaciones.index', $cotizacionId)
-                ->with('success', 'Costeo guardado exitosamente.');
+            return [$cotizacion, $esCorridaPiloto];
         } catch (\Exception $e) {
             DB::rollBack();
-
-            if ($esCorridaPiloto) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error al guardar la corrida piloto: ' . $e->getMessage()
-                ], 500);
-            }
-
-            return redirect()->back()
-                ->with('error', 'Error al guardar el costeo: ' . $e->getMessage())
-                ->withInput();
+            throw $e;
         }
+    }
+
+    private function validatePdfPayload(Request $request, Cotizacion $cotizacion): array
+    {
+        $rawPayload = $request->input('pdf_resumen_payload');
+
+        if (!is_string($rawPayload) || trim($rawPayload) === '') {
+            throw ValidationException::withMessages([
+                'pdf_resumen_payload' => 'No se recibió el resumen final para generar el PDF.'
+            ]);
+        }
+
+        try {
+            $payload = json_decode($rawPayload, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
+            throw ValidationException::withMessages([
+                'pdf_resumen_payload' => 'El resumen final no tiene un formato JSON válido.'
+            ]);
+        }
+
+        $validated = validator($payload, [
+            'meta' => 'required|array',
+            'meta.titulo' => 'nullable|string|max:120',
+            'meta.fecha' => 'nullable|string|max:30',
+            'meta.folio' => 'nullable|string|max:100',
+            'meta.proyecto' => 'nullable|string|max:255',
+            'rows' => 'required|array|min:1',
+            'rows.*.concepto' => 'required|string|max:120',
+            'rows.*.costo_total' => 'nullable|numeric',
+            'rows.*.piezas' => 'nullable|numeric',
+            'rows.*.costo_unitario' => 'nullable|numeric',
+            'summary' => 'required|array',
+            'summary.costo_unitario' => 'nullable|numeric',
+            'summary.margen_administrativo' => 'nullable|numeric',
+            'summary.total_final' => 'nullable|numeric',
+        ])->validate();
+
+        $rows = array_map(function (array $row): array {
+            return [
+                'concepto' => $row['concepto'],
+                'costo_total' => round((float) ($row['costo_total'] ?? 0), 2),
+                'piezas' => round((float) ($row['piezas'] ?? 0), 2),
+                'costo_unitario' => round((float) ($row['costo_unitario'] ?? 0), 2),
+            ];
+        }, $validated['rows']);
+
+        return [
+            'meta' => [
+                'titulo' => $validated['meta']['titulo'] ?? 'Resumen de Costeo',
+                'fecha' => $validated['meta']['fecha'] ?? now()->format('d/m/Y'),
+                'folio' => $validated['meta']['folio'] ?? $cotizacion->no_proyecto,
+                'proyecto' => $validated['meta']['proyecto'] ?? optional($cotizacion)->nombre_del_proyecto,
+            ],
+            'rows' => $rows,
+            'summary' => [
+                'costo_unitario' => round((float) ($validated['summary']['costo_unitario'] ?? 0), 2),
+                'margen_administrativo' => round((float) ($validated['summary']['margen_administrativo'] ?? 0), 2),
+                'total_final' => round((float) ($validated['summary']['total_final'] ?? 0), 2),
+            ],
+        ];
+    }
+
+    private function buildPdfDownloadResponse(array $pdfData, string $fileName)
+    {
+        $html = view('pdf.costeo', $pdfData)->render();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        return response($dompdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+        ]);
     }
 
     public function show($id)

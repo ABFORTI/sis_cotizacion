@@ -102,6 +102,11 @@ if ($infoTermoformado) {
 $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
 @endphp
 
+@php
+$costoUnitario = optional($cotizacion->ventasResumen)->resumen_total_costo_unit
+    ?? optional($cotizacion->costeoRequisicion)->resumen_total_costo_unit;
+@endphp
+
 @section('content')
 <div>
     <div class="container mx-auto px-4 py-6 font-sans text-sm">            
@@ -120,12 +125,12 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                 </div>
                 <div class="flex-shrink-0 flex flex-col space-y-2">
                     <div class="mt-2 flex justify-end gap-2 font-bold btn-container-mobile">
-                    <a href="{{ route('cotizacion.pdf.completo', $cotizacion->id) }}"  target="_blank" class="inline-block bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors text-center">
-                        <i class="fas fa-file-pdf"></i> Descargar PDF
-                    </a>
-                    <a href="{{ route('cotizacion.excel.completo', $cotizacion->id) }}" class="inline-block bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 transition-colors text-center">
-                        <i class="fas fa-file-excel"></i> Descargar Excel
-                    </a>
+                        <button type="button" id="btn-generar-pdf" class="inline-block bg-red-600 text-white px-4 py-2 rounded text-sm hover:bg-red-700 transition-colors text-center">
+                            <i class="fas fa-file-pdf"></i> Descargar PDF
+                        </button>
+                        <a href="{{ route('cotizacion.excel.completo', $cotizacion->id) }}" class="inline-block bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700 transition-colors text-center">
+                            <i class="fas fa-file-excel"></i> Descargar Excel
+                        </a>
                     </div>
                 </div>
             </div>
@@ -194,11 +199,15 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
                             {{ $espec->pieza_alto ?? '' }} mm
                             @endif
                         </td>
+                        <td class="p-1 border border-black bg-gray-100 font-bold">Costo unitario:</td>
+                        <td colspan="3" class="p-1 border border-black bg-white">
+                            {{ $costoUnitario !== null ? '$ ' . number_format((float) $costoUnitario, 2) : 'N/C' }}
+                        </td>
                     </tr>
                     <tr>
                         <td class="p-1 border border-black bg-gray-200 font-bold">Fabricación de prototipo:</td>
                         <td colspan="3" class="p-1 border border-black bg-white">{{ $cotizacion->cotizacionAdicional-> prototipo ?? '' }}</td>
-                        <td rowspan="4" class="p-1 border border-black bg-gray-100 font-bold align-top">Otra Información</td>
+                        <td rowspan="4" class="p-1 border border-black bg-gray-200 font-bold align-top">Otra Información</td>
                         <td colspan="3" rowspan="4" class="p-0 border border-black bg-white align-top">
                             <textarea
                                 id="datos_criticos_input" 
@@ -576,10 +585,24 @@ $defaultClienteProporciona = implode(', ', $clienteProporcionaItems);
             function generarDocumento(tipo) {
                 // 1. Lee el valor ACTUAL del textarea
                 var datosCriticos = document.getElementById('datos_criticos_input').value;
+                var cavidades = document.querySelector('input[name="cavidades"]')?.value || '';
+                var pokaYoke = document.getElementById('poka_yoke_input')?.value || '';
+                var acomodoPieza = document.querySelector('input[name="acomodo_pieza"]')?.value || '';
+                var contenedorCliente = document.getElementById('contenedor_cliente_input')?.value || '';
+                var medidasContenedor = document.getElementById('medidas_contenedor_input')?.value || '';
+                var estibaContenedor = document.querySelector('input[name="estiba_contenedor"]')?.value || '';
+                var clienteProporciona = document.getElementById('cliente_proporciona_input')?.value || '';
 
                 // 2. Prepara el parámetro para la URL (esta es tu "variable aparte")
                 var params = new URLSearchParams();
                 params.append('datos_criticos_adicionales', datosCriticos);
+                params.append('cavidades', cavidades);
+                params.append('poka_yoke', pokaYoke);
+                params.append('acomodo_pieza', acomodoPieza);
+                params.append('contenedor_cliente', contenedorCliente);
+                params.append('medidas_contenedor', medidasContenedor);
+                params.append('estiba_contenedor', estibaContenedor);
+                params.append('cliente_proporciona', clienteProporciona);
 
                 var baseUrl = '';
 

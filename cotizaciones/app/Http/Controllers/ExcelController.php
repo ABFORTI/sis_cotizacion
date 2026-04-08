@@ -9,6 +9,7 @@ use App\Support\CotizacionConfig;
 use App\Support\ExcelStyleFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
@@ -154,15 +155,49 @@ class ExcelController extends Controller {
                 'cajaCliente',
                 'costeoRequisicion',
                 'especificacionEmpaque',
-                'resumen',
-                'archivosAdjuntos'
+                'resumen.archivos',
+                'archivosAdjuntos',
+                'ventasResumen',
+                'termoformado'
             ])->findOrFail($id);
 
-            $service = new PdfReportService($cotizacion);
-            $this->llenarCostoePdf($service, $request);
+            $resumen = $cotizacion->resumen;
+            $datosCriticosAdicionales = $request->input(
+                'datos_criticos_adicionales',
+                optional($cotizacion->especificacionEmpaque)->datos_criticos
+            );
+            $resumenPdfData = [
+                'cavidades' => $request->input('cavidades', optional($cotizacion->especificacionProyecto)->cavidades),
+                'poka_yoke' => $request->input('poka_yoke', optional($resumen)->poka_yoke ?? 'No'),
+                'acomodo_pieza' => $request->input('acomodo_pieza', optional($resumen)->acomodo_pieza),
+                'contenedor_cliente' => $request->input('contenedor_cliente', optional($resumen)->contenedor_cliente),
+                'medidas_contenedor' => $request->input('medidas_contenedor', optional($resumen)->medidas_contenedor),
+                'estiba_contenedor' => $request->input('estiba_contenedor', optional($resumen)->estiba_contenedor),
+                'cliente_proporciona' => $request->input('cliente_proporciona', optional($resumen)->cliente_proporciona),
+            ];
 
-            $fileName = 'Costeo_' . $cotizacion->no_proyecto . '.pdf';
-            return $service->download($fileName);
+            $html = view('pdf.resumen_cotizacion', compact(
+                'cotizacion',
+                'resumen',
+                'datosCriticosAdicionales',
+                'resumenPdfData'
+            ))->render();
+
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isRemoteEnabled', true);
+
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($html, 'UTF-8');
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+
+            $fileName = 'Resumen_Costeo_' . $cotizacion->no_proyecto . '.pdf';
+
+            return response($dompdf->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $fileName . '"'
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Error al generar PDF de costeo',
@@ -617,6 +652,17 @@ class ExcelController extends Controller {
                 ]));
             }
             $sheet->getRowDimension($row)->setRowHeight(25);
+
+            if (!Schema::hasTable('procesos_costeo')) {
+                $row += 2;
+                $sheet->setCellValue('A' . $row, 'La tabla de procesos no existe en esta base de datos. Se omitió esa sección en la exportación.');
+                $sheet->mergeCells('A' . $row . ':E' . $row);
+                $sheet->getStyle('A' . $row)->applyFromArray(ExcelStyleFactory::custom([
+                    'italic' => true,
+                    'color' => '6B7280',
+                ]));
+                return;
+            }
 
             $costeos = \App\Models\CosteoRequisicion::where('cotizaciones', $cotizacion->id)->get();
 

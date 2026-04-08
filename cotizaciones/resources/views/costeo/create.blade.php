@@ -1,7 +1,6 @@
 ﻿@extends('layouts.app')
 @section('content')
 
-<!-- Loading Indicator Overlay - VERSIÓN PREMIUM -->
 <style>
     @keyframes spin {
         to { transform: rotate(360deg); }
@@ -254,8 +253,9 @@ $esCorridaPiloto = false;
         <h1 class="text-3xl font-bold mb-6 text-center">Calculo de Costeo</h1>
     @endif
     
-    <form action="{{ route('costeo.store', $cotizacion->id) }}" method="POST" id="costeoForm">
+    <form action="{{ route('costeo.store', $cotizacion->id) }}" method="POST" id="costeoForm" data-pdf-download-url="{{ route('costeo.store.pdf', $cotizacion->id) }}">
         @csrf  
+        <input type="hidden" name="pdf_resumen_payload" id="pdfResumenPayload">
         @if($esCorridaPiloto)
             <input type="hidden" name="btn_corrida_piloto" value="corrida_piloto">
         @endif
@@ -3201,24 +3201,22 @@ function calcularParedMedia(){
                 }
 
                 function calcularMedidasHerramentales(force = false) {
-                    // Obtener valor de insertos
+   
                     const insertos = parseFloat(document.querySelector('input[name="insertos"]')?.value) || 0;
 
-                    // Obtener valores actuales del formulario
+
                     const largo = parseFloat(document.querySelector('input[name="largo"]')?.value) || 0;
                     const ancho = parseFloat(document.querySelector('input[name="ancho"]')?.value) || 0;
                     const moldeAnchoForm = parseFloat(document.querySelector('input[name="molde_ancho"]')?.value) || 0;
                     const moldeAvanceForm = parseFloat(document.querySelector('input[name="molde_avance"]')?.value) || 0;
                     const altoValue = parseFloat(@json($pieza_alto)) || 0;
 
-                    // Condicionar la fuente de datos según insertos
                     let moldeAncho, moldeAvance;
                     if (insertos !== 1) {
-                        // Caso 1: insertos != 1 → usar valores del molde
+                        
                         moldeAncho = moldeAnchoForm;
                         moldeAvance = moldeAvanceForm;
                     } else {
-                        // Caso 2: insertos == 1 → usar valores originales
                         moldeAncho = ancho;
                         moldeAvance = largo;
                     }
@@ -4308,12 +4306,12 @@ function calcularParedMedia(){
                     Cancelar
                 </a>
                 @if ($esCorridaPiloto)
-                <button type="submit"
+                <button type="submit" name="boton-guardar-corrida-piloto"
                     class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-medium">
                     Guardar y Descargar PDF de Corrida Piloto
                 </button>
                 @else
-                <button type="submit"
+                <button type="submit" name="boton-guardar-costeo"
                     class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-medium">
                     Guardar Costeo
                 </button>
@@ -4522,6 +4520,114 @@ function calcularParedMedia(){
         });
     }
 
+    function roundForPdf(value, decimals = 2) {
+        const numericValue = parseFloat(value);
+
+        if (!Number.isFinite(numericValue)) {
+            return 0;
+        }
+
+        const factor = 10 ** decimals;
+        return Math.round(numericValue * factor) / factor;
+    }
+
+    function getInputValueByName(name) {
+        return document.querySelector(`input[name="${name}"]`)?.value ?? '';
+    }
+
+    function construirResumenPdfPayload() {
+        const rows = [
+            {
+                concepto: 'Procesos de Maquinaria',
+                costo_total: roundForPdf(getInputValueByName('resumen_costo_procesos')),
+                piezas: roundForPdf(getInputValueByName('resumen_piezas_procesos')),
+                costo_unitario: roundForPdf(getInputValueByName('resumen_costo_unit_procesos')),
+            },
+            {
+                concepto: 'Empaque',
+                costo_total: roundForPdf(getInputValueByName('resumen_costo_empaque')),
+                piezas: roundForPdf(getInputValueByName('resumen_piezas_empaque')),
+                costo_unitario: roundForPdf(getInputValueByName('resumen_costo_unit_empaque')),
+            },
+            {
+                concepto: 'Flete',
+                costo_total: roundForPdf(getInputValueByName('resumen_costo_flete_total')),
+                piezas: roundForPdf(getInputValueByName('resumen_piezas_flete')),
+                costo_unitario: roundForPdf(getInputValueByName('resumen_costo_unit_flete')),
+            },
+            {
+                concepto: 'Pedimento',
+                costo_total: roundForPdf(getInputValueByName('resumen_costo_pedimento')),
+                piezas: roundForPdf(getInputValueByName('resumen_piezas_pedimento')),
+                costo_unitario: roundForPdf(getInputValueByName('resumen_costo_unit_pedimento')),
+            },
+            {
+                concepto: 'Total Procesos Adicionales',
+                costo_total: roundForPdf(getInputValueByName('resumen_costo_adicionales_en_resumen')),
+                piezas: roundForPdf(getInputValueByName('resumen_piezas_adicionales_en_resumen')),
+                costo_unitario: roundForPdf(getInputValueByName('resumen_costo_unit_adicionales_en_resumen')),
+            }
+        ];
+
+        return {
+            meta: {
+                titulo: 'Resumen de Costeo',
+                fecha: new Date().toLocaleDateString('es-MX'),
+                folio: getInputValueByName('no_proyecto'),
+                proyecto: getInputValueByName('nombre_del_proyecto'),
+            },
+            rows,
+            summary: {
+                costo_unitario: roundForPdf(getInputValueByName('resumen_total_costo_unit')),
+                margen_administrativo: roundForPdf(getInputValueByName('resumen_margen_administrativo')),
+                total_final: roundForPdf(getInputValueByName('costo_total')),
+            }
+        };
+    }
+
+    function sincronizarResumenPdfPayload() {
+        const payloadInput = document.getElementById('pdfResumenPayload');
+
+        if (!payloadInput) {
+            return '';
+        }
+
+        const payload = construirResumenPdfPayload();
+        const jsonPayload = JSON.stringify(payload);
+        payloadInput.value = jsonPayload;
+
+        return jsonPayload;
+    }
+
+    function extraerNombreArchivo(contentDisposition) {
+        if (!contentDisposition) {
+            return 'Resumen_Costeo.pdf';
+        }
+
+        const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+        if (utf8Match && utf8Match[1]) {
+            return decodeURIComponent(utf8Match[1]);
+        }
+
+        const asciiMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+        return asciiMatch && asciiMatch[1] ? asciiMatch[1] : 'Resumen_Costeo.pdf';
+    }
+
+    function descargarBlobPdf(blob, fileName) {
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+
+        link.href = downloadUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        window.setTimeout(() => {
+            window.URL.revokeObjectURL(downloadUrl);
+        }, 1000);
+    }
+
     function mostrarLoadingOverlay() {
         const overlay = document.getElementById('loadingOverlay');
         if (!overlay) {
@@ -4624,6 +4730,7 @@ function calcularParedMedia(){
             }
 
             normalizarFormularioAntesDeGuardar(form);
+            sincronizarResumenPdfPayload();
 
             if (esCorridaPiloto) {
 
@@ -4662,7 +4769,53 @@ function calcularParedMedia(){
                     restaurarBotonGuardar(form, submitBtn);
                 });
             } else {
-                bloquearBotonGuardar(form, e.submitter || null);
+                e.preventDefault();
+
+                const submitBtn = bloquearBotonGuardar(form, e.submitter || null);
+                const formData = new FormData(form);
+                const submitter = e.submitter || null;
+
+                if (submitter?.name) {
+                    formData.append(submitter.name, submitter.value || '1');
+                }
+
+                fetch(form.dataset.pdfDownloadUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/pdf, application/json'
+                    }
+                })
+                .then(async response => {
+                    const contentType = response.headers.get('Content-Type') || '';
+
+                    if (!response.ok) {
+                        if (contentType.includes('application/json')) {
+                            const errorData = await response.json();
+                            const firstError = errorData.errors
+                                ? Object.values(errorData.errors).flat()[0]
+                                : null;
+
+                            throw new Error(firstError || errorData.message || 'No fue posible generar el PDF.');
+                        }
+
+                        throw new Error('No fue posible generar el PDF.');
+                    }
+
+                    const blob = await response.blob();
+                    const fileName = extraerNombreArchivo(response.headers.get('Content-Disposition'));
+
+                    descargarBlobPdf(blob, fileName);
+                    alert('Costeo guardado y PDF generado correctamente.');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(error.message || 'Error al guardar el costeo y generar el PDF.');
+                })
+                .finally(() => {
+                    restaurarBotonGuardar(form, submitBtn);
+                });
             }
         });
     });

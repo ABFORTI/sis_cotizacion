@@ -65,8 +65,7 @@ class ResumenController extends Controller
                 $originalName = $file->getClientOriginalName();
                 $path = $file->store('resumen_adjuntos', 'public');
 
-                ResumenArchivo::create([
-                    'resumen_id'      => $resumen->id,
+                $resumen->archivos()->create([
                     'nombre_original' => $originalName,
                     'path'            => $path,
                 ]);

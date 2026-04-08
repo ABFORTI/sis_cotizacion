@@ -110,6 +110,9 @@ Route::middleware(['auth', 'rol.todos'])->group(function () {
     Route::post('/requisicion/{id}/costeo', [CosteoRequisicionController::class, 'store'])
         ->name('costeo.store');
 
+    Route::post('/requisicion/{id}/costeo/pdf', [CosteoRequisicionController::class, 'storeAndDownloadPdf'])
+        ->name('costeo.store.pdf');
+
     Route::patch('/requisicion/{id}/costeo', [CosteoRequisicionController::class, 'update'])
         ->name('costeo.update');
 
