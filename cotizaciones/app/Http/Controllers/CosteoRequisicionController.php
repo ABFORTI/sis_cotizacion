@@ -100,6 +100,8 @@ class CosteoRequisicionController extends Controller
         try {
             $request->validate([
                 'insertos' => 'nullable|numeric|min:0',
+                'divisor_ancho' => 'nullable|numeric|min:1',
+                'divisor_avance' => 'nullable|numeric|min:1',
             ]);
             $esCorridaPiloto = $request->has('btn_corrida_piloto') && $request->btn_corrida_piloto == 'corrida_piloto';
 
@@ -131,6 +133,8 @@ class CosteoRequisicionController extends Controller
                 'usuario_id' => Auth::id(),
                 'calibre_costeo' => $request->calibre_costeo,
                 'insertos' => $request->insertos,
+                'divisor_ancho' => $request->input('divisor_ancho', 1),
+                'divisor_avance' => $request->input('divisor_avance', 1),
                 'acomodo_ancho_medida_cantidad' => $avance1,
                 'acomodo_ancho_medida_total' => $request->acomodo_ancho_total_1,
                 'acomodo_ancho_orillas_mm' => $request->acomodo_ancho_medida_2,

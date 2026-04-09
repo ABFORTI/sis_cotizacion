@@ -2100,12 +2100,12 @@ $esCorridaPiloto = false;
 
                 <tbody>
                     <tr class="border-b h-14">
-                        <td> <input type="number" name="molde_ancho_copia" class="w-full border rounded px-1 py-1 text-right" disabled> </td>
+                        <td> <input type="number" name="molde_ancho_copia" class="w-full border rounded px-1 py-1 text-right"> </td>
                         <td> <input type="number" step="0.01" name="ajuste_ancho" value="{{old('ajuste_ancho', $costeoRequisicion->ajuste_ancho)}}" class="w-full border rounded px-1 py-1 text-right" oninput="calcularMedidasBloques()"></td>
                         <td><input type="number" step="0.01" name="medida_bloque_ancho" value="{{old('medida_bloque_ancho', $costeoRequisicion->medida_bloque_ancho)}}" class="w-full border rounded px-1 py-1 text-right"></td>
                     </tr>
                     <tr class="border-b h-14">
-                        <td><input type="number" name="molde_avance_copia" class="w-full border rounded px-1 py-1 text-right" disabled></td>
+                        <td><input type="number" name="molde_avance_copia" class="w-full border rounded px-1 py-1 text-right"></td>
                         <td><input type="number" step="0.01" name="ajuste_avance" class="w-full border rounded px-1 py-1 text-right" value="{{old('ajuste_avance', $costeoRequisicion->ajuste_avance)}}" oninput="calcularMedidasBloques()"></td>
                         <td><input type="number" step="0.01" name="medida_bloque_avance" class="w-full border rounded px-1 py-1 text-right" value="{{old('medida_bloque_avance', $costeoRequisicion->medida_bloque_avance)}}"></td>
                         <td>

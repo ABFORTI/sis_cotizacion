@@ -1,7 +1,6 @@
 ﻿@extends('layouts.app')
 @section('content')
 
-<!-- Loading Indicator Overlay - VERSIÓN PREMIUM -->
 <style>
     @keyframes spin {
         to { transform: rotate(360deg); }
@@ -163,6 +162,8 @@ $acomodo_avance_medianiles_cantidad = oldValue('acomodo_avance_medianiles_cantid
 $acomodo_avance_medianiles_total = oldValue('acomodo_avance_medianiles_total', $costeoRequisicion);
 $molde_ancho = oldValue('molde_ancho', $costeoRequisicion);
 $molde_avance = oldValue('molde_avance', $costeoRequisicion);
+$divisor_ancho = old('divisor_ancho', $costeoRequisicion->divisor_ancho ?? 1);
+$divisor_avance = old('divisor_avance', $costeoRequisicion->divisor_avance ?? 1);
 $hoja_ancho = oldValue('hoja_ancho', $costeoRequisicion);
 $hoja_avance = oldValue('hoja_avance', $costeoRequisicion);
 $placa_de_enfriamiento = oldValue('placa_de_enfriamiento', $costeoRequisicion);
@@ -431,14 +432,14 @@ $esCorridaPiloto = false;
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularInsertos(), calcularMedianilesAncho(), calcularAcomodoAncho()">
                         </td>
                         <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.01" name="acomodo_ancho_total_1" readonly
+                            <input type="number" step="1" name="acomodo_ancho_total_1" readonly
                                 value="{{$pieza_alto}}" class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
                     </tr>
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Orillas</td>
                         <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.01" name="acomodo_ancho_medida_2"
+                            <input type="number" step="1" name="acomodo_ancho_medida_2"
                                 value="{{ $acomodo_ancho_orillas_mm }}"
                                 data-manual="false"
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAncho()">
@@ -449,7 +450,7 @@ $esCorridaPiloto = false;
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAncho()">
                         </td>
                         <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.01" name="acomodo_ancho_total_2" readonly
+                            <input type="number" step="1" name="acomodo_ancho_total_2" readonly
                                 value="{{ $acomodo_ancho_orillas_total }}"
                                 class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
@@ -457,7 +458,7 @@ $esCorridaPiloto = false;
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Medianiles</td>
                         <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.01" name="acomodo_ancho_medida_3"
+                            <input type="number" step="1" name="acomodo_ancho_medida_3"
                                 value="{{ $acomodo_ancho_medianiles_mm }}"
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAncho()">
                         </td>
@@ -467,7 +468,7 @@ $esCorridaPiloto = false;
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAncho()">
                         </td>
                         <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.01" name="acomodo_ancho_total_3" readonly
+                            <input type="number" step="1" name="acomodo_ancho_total_3" readonly
                                 value="{{ $acomodo_ancho_medianiles_total }}"
                                 class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
@@ -475,7 +476,7 @@ $esCorridaPiloto = false;
                     <tr class="bg-gray-50">
                         <td class="font-bold border border-gray-300 p-2" colspan="3">Total Ancho Molde</td>
                         <td class="border border-gray-300 p-2">
-                            <input step="0.01" name="total_ancho_molde" class="w-full p-2 font-bold cursor-not-allowed" value="{{ $molde_ancho }}" readonly>
+                            <input step="1" name="total_ancho_molde" class="w-full p-2 font-bold cursor-not-allowed" value="{{ $molde_ancho }}" readonly>
                         </td>
                     </tr>
                 </tbody>
@@ -667,7 +668,7 @@ $esCorridaPiloto = false;
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Pieza</td>
                         <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.01" name="acomodo_avance_medida_1"
+                            <input type="number" step="1" name="acomodo_avance_medida_1"
                                 value="{{ $pieza_largo}}"
                                 class="w-full border-gray-300 border rounded-md p-1" readonly>
                         </td>
@@ -677,7 +678,7 @@ $esCorridaPiloto = false;
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularInsertos(), calcularMedianilesAvance(), calcularAcomodoAvance()">
                         </td>
                         <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.01" name="acomodo_avance_total_1" readonly
+                            <input type="number" step="1" name="acomodo_avance_total_1" readonly
                                 value="{{ $acomodo_avance_medida_total }}"
                                 class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed">
                         </td>
@@ -685,7 +686,7 @@ $esCorridaPiloto = false;
                     <tr>
                         <td class="font-bold border border-gray-300 p-2">Orillas</td>
                         <td class="border border-gray-300 p-2">
-                            <input type="number" step="0.01" name="acomodo_avance_medida_2"
+                            <input type="number" step="1" name="acomodo_avance_medida_2"
                                 value="{{ $acomodo_avance_orillas_mm }}"
                                 data-manual="false"
                                 class="w-full border-gray-300 border rounded-md p-1" oninput="calcularAcomodoAvance()">
@@ -793,6 +794,8 @@ $esCorridaPiloto = false;
                                 calcularAvanceHoja(); 
                                 actualizarCostosMaquina(); 
                                 actualizarAmortizacion();
+                                toggleDivisores();
+                                calcularMedidasHerramentales(true);
                             "
                         >
                             <option value="" disabled selected>Selecciona una máquina</option>
@@ -1331,10 +1334,7 @@ $esCorridaPiloto = false;
                 validarPesoMerma();
             }
 
-            /**
-             * Valida coherencia entre peso_merma, PRM y coeficiente_merma
-             * Muestra alerta si hay inconsistencias
-             */
+
             function validarPesoMerma() {
                 const pesoMerma = parseFloat(document.querySelector('input[name="peso_merma"]').value) || 0;
                 const prm = parseFloat(document.querySelector('input[name="PRM"]').value) || 0;
@@ -1345,7 +1345,7 @@ $esCorridaPiloto = false;
                 const messageDiv = document.getElementById('messagePesoMerma');
 
                 if (!alertDiv || !messageDiv) {
-                    console.log('ℹ️ Elementos de validación no encontrados en DOM');
+                    console.log('Elementos de validación no encontrados en DOM');
                     return true;
                 }
 
@@ -1420,10 +1420,8 @@ $esCorridaPiloto = false;
                 const coeficienteMerma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
                 const coeficienteMermaDecimal = coeficienteMerma / 100;
 
-                console.log('📊 Valores entrada: MOQ=' + moq + ', insertos=' + insertos + ', area=' + areaFormadoHoja);
 
                 if (insertos <= 0 || areaFormadoHoja <= 0) {
-                    console.warn('⚠️ Valores inválidos: insertos=' + insertos + ', area=' + areaFormadoHoja);
                     document.querySelector('input[name="peso_total"]').value = '0.0';
                     calcularPesoBrutoHoja();
                     calcularPesoMerma();
@@ -1447,7 +1445,6 @@ $esCorridaPiloto = false;
                     calcularCostoAmortizacionMaquinaria2();
                     calcularResumenCostos();
                 @endif
-                console.log('✅ calcularPesoTotal() completada');
             }
 
             function recalcularPesoTotal(){
@@ -1457,19 +1454,12 @@ $esCorridaPiloto = false;
                 // FÓRMULA ALTERNATIVA: peso_neto + PRM
                 const resultado = pesoNeto + prm;
 
-                console.log('💾 Calculando: peso_total = peso_neto + PRM = ' + pesoNeto.toFixed(2) + ' + ' + prm.toFixed(2) + ' = ' + resultado.toFixed(1));
-
-                // Asignar nuevo valor
                 document.querySelector('input[name="peso_total"]').value = resultado.toFixed(1);
-                console.log('✅ peso_total = ' + resultado.toFixed(1));
 
-                // Actualizar campos dependientes
-                console.log('🔄 Actualizando campos dependientes...');
                 calcularPesoBrutoHoja();
                 calcularPesoMerma();
                 calcularPrecioPorKg();
 
-                // Si es corrida piloto, actualizar costos
                 @if($esCorridaPiloto)
                     if (typeof calcularCostoAmortizacionMaquinaria2 === 'function') {
                         calcularCostoAmortizacionMaquinaria2();
@@ -1478,8 +1468,6 @@ $esCorridaPiloto = false;
                         calcularResumenCostos();
                     }
                 @endif
-
-                console.log('✅ FINALIZADO - Todos los valores actualizados');
             }
 
             function calcularPZRM() {
@@ -1510,21 +1498,15 @@ $esCorridaPiloto = false;
                 }
             }
 
-            // ========================================
-            // Event Listener para botón "Recalcular"
-            // ========================================
             document.addEventListener('DOMContentLoaded', function() {
-                console.log('✅ DOMContentLoaded - Inicializando botón Recalcular');
                 const btnRecalcular = document.getElementById('btnRecalcularPesoTotal');
                 if (btnRecalcular) {
                     btnRecalcular.addEventListener('click', function(e) {
                         e.preventDefault();
-                        console.log('🔘 Click en botón Recalcular');
                         recalcularPesoTotal();
                     });
-                    console.log('✅ Event listener agregado exitosamente');
                 } else {
-                    console.warn('⚠️ Botón con ID "btnRecalcularPesoTotal" no encontrado');
+                    console.warn('Botón con ID no encontrado');
                 }
             });
         </script>
@@ -3076,6 +3058,54 @@ function calcularParedMedia(){
                     </div>
                 </div>
             </div>
+            <div id="contenedor-divisores-herramentales" class="hidden md:col-span-2 rounded-xl p-4">
+                <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                    <div>
+                        <h4 class="text-sm font-semibold text-blue-900">Divisores dinámicos para herramentales</h4>
+                        <p class="mt-1 text-xs text-blue-800/80">
+                            Se usan únicamente con GF-1 o GF-2 cuando el cálculo trabaja con un inserto.
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 md:min-w-[420px] md:grid-cols-3">
+                        <div class="space-y-1">
+                            <label for="divisor_ancho" class="text-sm font-medium text-gray-700">Divisor Ancho</label>
+                            <input
+                                type="number"
+                                id="divisor_ancho"
+                                name="divisor_ancho"
+                                min="1"
+                                step="1"
+                                value="{{ $divisor_ancho }}"
+                                class="w-full rounded-lg border border-blue-200 bg-white p-2 text-gray-700 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-300"
+                            >
+                        </div>
+                        <div class="space-y-1">
+                            <label for="divisor_avance" class="text-sm font-medium text-gray-700">Divisor Avance</label>
+                            <input
+                                type="number"
+                                id="divisor_avance"
+                                name="divisor_avance"
+                                min="1"
+                                step="1"
+                                value="{{ $divisor_avance }}"
+                                class="w-full rounded-lg border border-blue-200 bg-white p-2 text-gray-700 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-300"
+                            >
+                        </div>
+                        <div class="space-y-1">
+                            <label for="multiplicador_kilos" class="text-sm font-medium text-gray-700">Multiplicador x Kilos</label>
+                            <input
+                                type="number"
+                                id="multiplicador_kilos"
+                                name="multiplicador_kilos"
+                                min="1"
+                                step="1"
+                                value="{{ old('multiplicador_kilos', 4) }}"
+                                class="w-full rounded-lg border border-blue-200 bg-white p-2 text-gray-700 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-300"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
             <table name="tablaMedidasHerramentales" class="w-full text-sm text-center border border-gray-200 rounded-lg overflow-hidden">
                 <thead class="bg-[#848484] text-white">
                     <tr class="border-b font-semibold">
@@ -3097,8 +3127,8 @@ function calcularParedMedia(){
                         <td><input type="number" step="0.01" name="medida_bloque_ancho" value="{{old('medida_bloque_ancho', $costeoRequisicion->medida_bloque_ancho)}}" class="w-full border rounded px-1 py-1 text-center"></td>
                         <td>
                             <input type="number" name="kilos"
-                                class="w-full h-full border rounded-none text-center block cursor-not-allowed bg-gray-200" readonly
-                                style="box-sizing: border-box;" value="{{old('kilos', $costeoRequisicion->kilos)}}">
+                                class="w-full h-full border rounded-none text-center block cursor-not-allowed bg-gray-200" 
+                                style="box-sizing: border-box;" value="{{old('kilos', $costeoRequisicion->kilos)}}" data-base="{{old('kilos', $costeoRequisicion->kilos)}}" readonly>
                         </td>
                     </tr>
                     <tr class="border-b h-14">
@@ -3124,8 +3154,148 @@ function calcularParedMedia(){
                     return document.querySelector(`input[name="${name}"]`);
                 }
 
+                function getValue(selector) {
+                    return parseFloat(document.querySelector(selector)?.value) || 0;
+                }
+
                 function obtenerNumeroMedidas(name) {
-                    return parseFloat(obtenerInputMedidas(name)?.value) || 0;
+                    return getValue(`input[name="${name}"]`);
+                }
+
+                function obtenerInputKilos() {
+                    return document.querySelector('input[name="kilos"]');
+                }
+
+                function obtenerInputMultiplicadorKilos() {
+                    return document.getElementById('multiplicador_kilos');
+                }
+
+                function normalizarMultiplicadorKilos(value) {
+                    if (value === '' || value === null || typeof value === 'undefined') {
+                        return 1;
+                    }
+
+                    const numero = parseFloat(value);
+
+                    if (!Number.isFinite(numero)) {
+                        return 1;
+                    }
+
+                    return Math.max(1, numero);
+                }
+
+                function sincronizarBaseKilos(baseCalculada = null) {
+                    const inputKilos = obtenerInputKilos();
+                    if (!inputKilos) {
+                        return 0;
+                    }
+
+                    const base = baseCalculada ?? (parseFloat(inputKilos.dataset.base) || parseFloat(inputKilos.value) || 0);
+                    inputKilos.dataset.base = base.toFixed(2);
+                    return base;
+                }
+
+                function actualizarKilosConMultiplicador() {
+                    const inputKilos = obtenerInputKilos();
+                    const inputMultiplicador = obtenerInputMultiplicadorKilos();
+
+                    if (!inputKilos || !inputMultiplicador) {
+                        return;
+                    }
+
+                    const base = sincronizarBaseKilos();
+                    const multiplicador = normalizarMultiplicadorKilos(inputMultiplicador.value);
+                    const resultado = base * multiplicador;
+
+                    inputKilos.value = Number.isFinite(resultado) ? resultado.toFixed(2) : '0.00';
+
+                    if (typeof calcularCostoMaterialMolde === 'function') {
+                        calcularCostoMaterialMolde();
+                    }
+                }
+
+                function esMaquinaConDivisores(maquina) {
+                    return ['GF-1', 'GF-2'].includes(maquina);
+                }
+
+                function normalizarDivisor(value) {
+                    if (value === '' || value === null || typeof value === 'undefined') {
+                        return 1;
+                    }
+
+                    const numero = parseFloat(value);
+
+                    if (!Number.isFinite(numero)) {
+                        return 1;
+                    }
+
+                    return Math.max(1, numero);
+                }
+
+                function sanitizarInputDivisor(input, forceValue = false) {
+                    if (!input) {
+                        return 1;
+                    }
+
+                    const valorNormalizado = normalizarDivisor(input.value);
+
+                    if (forceValue || input.value !== '' || valorNormalizado === 1) {
+                        input.value = valorNormalizado.toFixed(2);
+                    }
+
+                    return valorNormalizado;
+                }
+
+                function obtenerMedidasBase({ insertos, maquina, largo, ancho, moldeAnchoForm, moldeAvanceForm }) {
+                    if (insertos !== 1) {
+                        return {
+                            moldeAncho: moldeAnchoForm,
+                            moldeAvance: moldeAvanceForm,
+                        };
+                    }
+
+                    if (!esMaquinaConDivisores(maquina)) {
+                        return {
+                            moldeAncho: ancho,
+                            moldeAvance: largo,
+                        };
+                    }
+
+                    const divisorAncho = sanitizarInputDivisor(document.querySelector('input[name="divisor_ancho"]'));
+                    const divisorAvance = sanitizarInputDivisor(document.querySelector('input[name="divisor_avance"]'));
+
+                    return {
+                        moldeAncho: ancho / divisorAncho,
+                        moldeAvance: largo / divisorAvance,
+                    };
+                }
+
+                function toggleDivisores() {
+                    const contenedor = document.getElementById('contenedor-divisores-herramentales');
+                    const maquina = document.querySelector('#maquina_principal')?.value || '';
+                    const insertos = getValue('input[name="insertos"]');
+                    const mostrar = esMaquinaConDivisores(maquina) && insertos === 1;
+
+                    if (!contenedor) {
+                        return mostrar;
+                    }
+
+                    contenedor.classList.toggle('hidden', !mostrar);
+
+                    ['divisor_ancho', 'divisor_avance'].forEach(name => {
+                        const input = document.querySelector(`input[name="${name}"]`);
+                        if (!input) {
+                            return;
+                        }
+
+                        input.disabled = !mostrar;
+
+                        if (mostrar) {
+                            sanitizarInputDivisor(input, true);
+                        }
+                    });
+
+                    return mostrar;
                 }
 
                 function limpiarResultadosMedidasHerramentales() {
@@ -3161,7 +3331,6 @@ function calcularParedMedia(){
                         return;
                     }
 
-                    console.info('[Herramentales] Recalculo por ajuste manual.', { origen });
                     calcularMedidasBloques();
                 }
 
@@ -3190,7 +3359,6 @@ function calcularParedMedia(){
                 }
 
                 function marcarMedidasComoPendientes(origen = 'manual', limpiar = true) {
-                    console.info('[Herramentales] Medidas pendientes.', { origen, limpiar, medidasCalculadas });
                     medidasCalculadas = false;
                     habilitarEdicionAjustes(false);
 
@@ -3202,31 +3370,34 @@ function calcularParedMedia(){
                 }
 
                 function calcularMedidasHerramentales(force = false) {
-   
-                    const insertos = parseFloat(document.querySelector('input[name="insertos"]')?.value) || 0;
-
-
-                    const largo = parseFloat(document.querySelector('input[name="largo"]')?.value) || 0;
-                    const ancho = parseFloat(document.querySelector('input[name="ancho"]')?.value) || 0;
-                    const moldeAnchoForm = parseFloat(document.querySelector('input[name="molde_ancho"]')?.value) || 0;
-                    const moldeAvanceForm = parseFloat(document.querySelector('input[name="molde_avance"]')?.value) || 0;
+                    const insertos = getValue('input[name="insertos"]');
+                    const largo = getValue('input[name="largo"]');
+                    const ancho = getValue('input[name="ancho"]');
+                    const moldeAnchoForm = getValue('input[name="molde_ancho"]');
+                    const moldeAvanceForm = getValue('input[name="molde_avance"]');
                     const altoValue = parseFloat(@json($pieza_alto)) || 0;
-
-                    // Condicionar la fuente de datos según insertos
-                    let moldeAncho, moldeAvance;
-                    if (insertos !== 1) {
-                        // Caso 1: insertos != 1 → usar valores del molde
-                        moldeAncho = moldeAnchoForm;
-                        moldeAvance = moldeAvanceForm;
-                    } else {
-                        // Caso 2: insertos == 1 → usar valores originales
-                        moldeAncho = ancho;
-                        moldeAvance = largo;
-                    }
+                    const maquina = document.querySelector('#maquina_principal')?.value || '';
+                    const { moldeAncho, moldeAvance } = obtenerMedidasBase({
+                        insertos,
+                        maquina,
+                        largo,
+                        ancho,
+                        moldeAnchoForm,
+                        moldeAvanceForm,
+                    });
                     const moldeAlto = altoValue;
 
                     console.group('[Herramentales] calcularMedidasHerramentales');
-                    console.log('Entrada', { insertos, moldeAncho, moldeAvance, moldeAlto, force, medidasCalculadas, DEBUG: {largo, ancho, moldeAnchoForm, moldeAvanceForm} });
+                    console.log('Entrada', {
+                        insertos,
+                        maquina,
+                        moldeAncho,
+                        moldeAvance,
+                        moldeAlto,
+                        force,
+                        medidasCalculadas,
+                        DEBUG: { largo, ancho, moldeAnchoForm, moldeAvanceForm }
+                    });
 
                     if (medidasCalculadas && !force) {
                         console.info('Cálculo omitido: ya existe una corrida vigente.');
@@ -3264,17 +3435,6 @@ function calcularParedMedia(){
                     medidasCalculadas = true;
                     habilitarEdicionAjustes(true);
                     actualizarEstadoGuardadoHerramentales();
-
-                    console.log('Salida', {
-                        ajusteAncho: obtenerNumeroMedidas('ajuste_ancho'),
-                        ajusteAvance: obtenerNumeroMedidas('ajuste_avance'),
-                        ajusteAlto: obtenerNumeroMedidas('ajuste_alto'),
-                        medidaBloqueAncho: obtenerNumeroMedidas('medida_bloque_ancho'),
-                        medidaBloqueAvance: obtenerNumeroMedidas('medida_bloque_avance'),
-                        medidaBloqueAlto: obtenerNumeroMedidas('medida_bloque_alto'),
-                        kilos: obtenerNumeroMedidas('kilos'),
-                        constanteEmpujador: obtenerNumeroMedidas('constante_empujador')
-                    });
                     console.groupEnd();
                 }
 
@@ -3323,7 +3483,8 @@ function calcularParedMedia(){
                     const volumen = anchoMetros * avanceMetros * ajusteAlto;
                     const resultado = Math.ceil(volumen * factorDensidad);
 
-                    document.querySelector('input[name="kilos"]').value = resultado.toFixed(2);
+                    sincronizarBaseKilos(resultado);
+                    actualizarKilosConMultiplicador();
                     calcularConstanteEmpujador();
                     calcularCostoMaterialMolde();
                     calcularCostoMaterialEmpujador();
@@ -3339,6 +3500,69 @@ function calcularParedMedia(){
 
                 document.addEventListener('DOMContentLoaded', function() {
                     marcarMedidasComoPendientes('carga_inicial_herramentales', false);
+
+                    const inputInsertos = document.querySelector('input[name="insertos"]');
+                    const inputLargo = document.querySelector('input[name="largo"]');
+                    const inputAncho = document.querySelector('input[name="ancho"]');
+                    const divisorAnchoInput = document.querySelector('input[name="divisor_ancho"]');
+                    const divisorAvanceInput = document.querySelector('input[name="divisor_avance"]');
+                    const inputMultiplicadorKilos = obtenerInputMultiplicadorKilos();
+
+                    toggleDivisores();
+                    sincronizarBaseKilos();
+                    actualizarKilosConMultiplicador();
+
+                    if (inputMultiplicadorKilos) {
+                        inputMultiplicadorKilos.addEventListener('input', function() {
+                            actualizarKilosConMultiplicador();
+                        });
+
+                        inputMultiplicadorKilos.addEventListener('change', function() {
+                            this.value = normalizarMultiplicadorKilos(this.value).toFixed(0);
+                            actualizarKilosConMultiplicador();
+                        });
+
+                        inputMultiplicadorKilos.addEventListener('blur', function() {
+                            this.value = normalizarMultiplicadorKilos(this.value).toFixed(0);
+                            actualizarKilosConMultiplicador();
+                        });
+                    }
+
+                    [divisorAnchoInput, divisorAvanceInput].forEach(input => {
+                        if (!input) {
+                            return;
+                        }
+
+                        input.addEventListener('input', function() {
+                            if (this.value === '0') {
+                                this.value = '1.00';
+                            }
+
+                            calcularMedidasHerramentales(true);
+                        });
+
+                        input.addEventListener('change', function() {
+                            sanitizarInputDivisor(this, true);
+                            calcularMedidasHerramentales(true);
+                        });
+
+                        input.addEventListener('blur', function() {
+                            sanitizarInputDivisor(this, true);
+                        });
+                    });
+
+                    [inputInsertos, inputLargo, inputAncho].forEach(input => {
+                        if (!input) {
+                            return;
+                        }
+
+                        ['input', 'change'].forEach(eventName => {
+                            input.addEventListener(eventName, () => {
+                                toggleDivisores();
+                                calcularMedidasHerramentales(true);
+                            });
+                        });
+                    });
                 });
             </script>
             <div class="mt-8 border-t pt-6">
@@ -4350,7 +4574,6 @@ function calcularParedMedia(){
                             document.getElementById('boton-enviar').innerHTML =
                                 '<span class="text-green-700 font-semibold">✅ Enviada a Ventas</span>';
                             
-                            // Mostrar mensaje de éxito con el modal (reutilizando el mismo modal)
                             showSuccessMessage(data.success);
                         } else if (data.warning) {
                             showSuccessMessage(data.warning);
@@ -4363,7 +4586,6 @@ function calcularParedMedia(){
 </script>
 
 <script>
-    // ============ FUNCIONES GLOBALES PARA LOADING MODAL ============
     function bloquearBotonGuardar(form, submitter = null) {
         if (typeof activateLoadingForForm === 'function') {
             activateLoadingForForm(form, submitter, {
