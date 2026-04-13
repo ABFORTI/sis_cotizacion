@@ -91,14 +91,7 @@
                 >
                     Ingresar
                 </button>
-
-                {{-- Register --}}
-                <p class="text-center text-sm text-gray-600 mt-4">
-                    ¿No tienes una cuenta?
-                    <a href="{{ route('register') }}" class="text-green-600 hover:underline font-medium">
-                        Regístrate
-                    </a>
-                </p>
+                
             </form>
         </div>
 

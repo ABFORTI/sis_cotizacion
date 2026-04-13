@@ -562,15 +562,27 @@
         </div>
         @endif
 
-        <div class="sticky bottom-4 mt-8 flex justify-end">
-            <div class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white/95 px-5 py-4 shadow-xl backdrop-blur">
-                <div class="hidden text-right sm:block">
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Herramentales guardados</p>
-                    <p class="text-lg font-semibold text-slate-900">{{ $precioHerramentalesTexto }}</p>
+        <div class="sticky bottom-4 mt-8 flex justify-end z-50">
+            <div class="flex w-full max-w-md items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white/90 px-5 py-4 shadow-xl backdrop-blur-md">
+                <div class="text-right hidden sm:block">
+                    <p class="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
+                        Herramentales guardados
+                    </p>
+                    <p class="text-xl font-bold text-green-600">
+                        {{ $precioHerramentalesTexto }}
+                    </p>
                 </div>
-                <button type="submit" form="resumen-save-form" class="inline-flex items-center justify-center rounded-xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">
+                <button 
+                    type="submit" 
+                    form="resumen-save-form"
+                    class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 active:scale-95"
+                >
                     Guardar Resumen
                 </button>
+
+                <span class="hidden sm:inline-flex items-center text-xs font-medium text-orange-500">
+                    ● Cambios pendientes
+                </span>
             </div>
         </div>
     </div>
