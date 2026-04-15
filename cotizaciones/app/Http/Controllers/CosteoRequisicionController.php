@@ -19,6 +19,7 @@ class CosteoRequisicionController extends Controller
     {
         $cotizacion = Cotizacion::with([
             'especificacionProyecto',
+            'especificacionEmpaque',
             'requisicionCotizacion',
             'costeoRequisicion'
         ])->findOrFail($cotizacionId);
@@ -117,7 +118,9 @@ class CosteoRequisicionController extends Controller
                 'Otros' => 1.35
             ];
             $material = $request->material;
-            $peso_especifico = $tablaPesos[$material] ?? null;
+            $peso_especifico = is_numeric($request->peso_especifico)
+                ? (float) $request->peso_especifico
+                : ($tablaPesos[$material] ?? null);
 
 
             // Intercambiar valores solo si el usuario hizo clic en el botón

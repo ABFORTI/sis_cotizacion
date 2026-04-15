@@ -120,6 +120,8 @@ $especificacion_proyecto = optional($requisicion->especificacionProyecto);
 $frecuencia_compra = oldValue('frecuencia_compra', $especificacion_proyecto);
 $lote_compra = oldValue('lote_compra', $especificacion_proyecto);
 $material = oldValue('material', $especificacion_proyecto);
+$material_otro = oldValue('material_otro', $especificacion_proyecto);
+$material_mostrado = $material === 'Otros' && filled($material_otro) ? $material_otro : $material;
 $calibre = oldValue('calibre', $especificacion_proyecto);
 $color = oldValue('color', $especificacion_proyecto);
 $franja_color = oldValue('franja_color', $especificacion_proyecto);
@@ -137,6 +139,8 @@ $cajas_corrugado = oldValue('cajas_corrugado', $especificacionEmpaque);
 $bolsa_plastico = oldValue('bolsa_plastico', $especificacionEmpaque);
 $esquineros = oldValue('esquineros', $especificacionEmpaque);
 $liner = oldValue('liner', $especificacionEmpaque);
+$otras_especificaciones_empaque = oldValue('otras_especificaciones_empaque', $especificacionEmpaque);
+$datos_criticos = oldValue('datos_criticos', $especificacionEmpaque);
 
 
 $pedimento_virtual = oldValue('pedimento_virtual', optional($requisicion->cotizacionAdicional));
@@ -192,6 +196,9 @@ $opciones = [
 ];
 
 $peso_especifico = oldValue('peso_especifico', $costeoRequisicion);
+if (($peso_especifico === null || $peso_especifico === '') && $material === 'Otros') {
+    $peso_especifico = 1.35;
+}
 $area_formado_hoja = oldValue('area_formado_hoja', $costeoRequisicion);
 $cantidad_hojas = oldValue('cantidad_hojas', $costeoRequisicion);
 $peso_pieza = oldValue('peso_pieza', $costeoRequisicion);
@@ -231,17 +238,10 @@ $total_piezas_turno_suaje = oldValue('total_piezas_turno_suaje', $costeoRequisic
 $total_dias_turnos_suaje = oldValue('total_dias_turnos_suaje', $costeoRequisicion);
 $costo_suaje = oldValue('costo_suaje', $costeoRequisicion);
 
+    $esCorridaPiloto = isset($forzarCorridaPiloto)
+        ? (bool) $forzarCorridaPiloto
+        : (request()->has('btn_corrida_piloto') && request()->input('btn_corrida_piloto') === 'corrida_piloto');
 @endphp
-
-@if(request()->has('btn_corrida_piloto') && request()->input('btn_corrida_piloto') === 'corrida_piloto')
-@php
-$esCorridaPiloto = true;
-@endphp
-@else
-@php
-$esCorridaPiloto = false;
-@endphp
-@endif
 
 <div class="container mx-auto p-4">
     <a href="{{ route('cotizaciones.index') }}"
@@ -325,7 +325,8 @@ $esCorridaPiloto = false;
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div class="space-y-1">
                             <label class="text-sm font-medium text-gray-600">Material</label>
-                            <input type="text" name="material" value="{{ $material }}"
+                            <input type="hidden" name="material" value="{{ $material }}">
+                            <input type="text" value="{{ $material_mostrado }}"
                                 class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed"
                                 readonly>
                         </div>
@@ -350,27 +351,45 @@ $esCorridaPiloto = false;
                         </div>
                     </div>
                     <div class="mt-8 border-t pt-6">
-                    <h3 class="text-md font-semibold text-gray-700 mb-4">
-                        Dimensiones
-                    </h3>
-                    <div class="grid grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div class="space-y-1">
-                            <label class="text-sm font-medium text-gray-600">Largo (mm):</label>
-                            <input  type="number" step="0.01" name="largo" value="{{ $pieza_largo }}"
-                            class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-sm font-medium text-gray-600">Ancho (mm):</label>
-                            <input type="number" step="0.01" name="ancho" value="{{ $pieza_ancho }}"
-                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-sm font-medium text-gray-600">Alto (mm):</label>
-                            <input type="number" step="0.01" name="alto" value="{{ $pieza_alto }}"
-                                class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
-                        </div>
-                    </div>    
-                </div>
+                        <h3 class="text-md font-semibold text-gray-700 mb-4">
+                            Dimensiones
+                        </h3>
+                        <div class="grid grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-600">Largo (mm):</label>
+                                <input  type="number" step="0.01" name="largo" value="{{ $pieza_largo }}"
+                                    class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-600">Ancho (mm):</label>
+                                <input type="number" step="0.01" name="ancho" value="{{ $pieza_ancho }}"
+                                    class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-600">Alto (mm):</label>
+                                <input type="number" step="0.01" name="alto" value="{{ $pieza_alto }}"
+                                    class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
+                            </div>
+                        </div>    
+                    </div>
+                    <div class="mt-8 border-t pt-6">
+                        <h3 class="text-md font-semibold text-gray-700 mb-4">
+                            Comentarios y otras especificaciones
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-600">Otras especificaciones</label>
+                                <input  type="text" name="otras_especificaciones" value="{{$otras_especificaciones_empaque ?? 'N/A'}}"
+                                    class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-600">Comentarios adicionales</label>
+                                <input type="text" name="comentarios" value="{{ $datos_criticos ?? 'N/A' }}"
+                                    class="w-full bg-gray-200 border border-gray-200 rounded-lg p-2 text-gray-700 cursor-not-allowed" readonly>
+                            </div>
+                        </div>    
+                    </div>
+                    
         </fieldset>
 
         <fieldset class="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
@@ -1147,7 +1166,9 @@ $esCorridaPiloto = false;
                     HDPE: 1.02,
                     PP: 0.93,
                     "PET ESD": 1.35,
-                    "PET-POLIPROPILENO": 1.3
+                    "PET-POLIPROPILENO": 1.3,
+                    "PET-GRADO-ALIMENTICIO": 1.35,
+                    Otros: 1.35
                 };
 
                 const materialInput = document.querySelector('input[name="material"]');
@@ -1156,7 +1177,13 @@ $esCorridaPiloto = false;
                 if (!materialInput || !pesoInput) return;
 
                 const clave = materialInput.value.trim();
+                const pesoActual = parseFloat(pesoInput.value);
                 const pesoEspecifico = tablaPesos[clave] ?? '';
+
+                if (clave === 'Otros' && Number.isFinite(pesoActual)) {
+                    calcularPesoEstimadoPieza();
+                    return;
+                }
 
                 pesoInput.value = pesoEspecifico;
                 calcularPesoEstimadoPieza();
