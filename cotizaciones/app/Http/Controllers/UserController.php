@@ -8,27 +8,23 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    /**
-     * Muestra la lista de usuarios (solo para Admin).
-     */
+
     public function index(Request $request)
     {
         $query = User::query();
 
-        // 🔍 Búsqueda por nombre o email
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
-        }
+        }       
 
-        // 🎯 Filtro por rol
         if ($roleFilter = $request->input('role_filter')) {
             $query->where('role', $roleFilter);
         }
 
-        // 📊 Ordenamiento
+
         $sort = $request->input('sort', 'name_asc');
         switch ($sort) {
             case 'name_asc':
@@ -76,7 +72,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:admin,ventas,costeos',
+            'role' => 'required|in:admin,ventas,gerente_ventas,costeos',
         ]);
 
         User::create([
@@ -89,23 +85,19 @@ class UserController extends Controller
         return redirect()->route('administrador.index')->with('success', 'Usuario creado correctamente.');
     }
 
-    /**
-     * Formulario para editar usuario existente.
-     */
+
     public function edit(User $usuario)
     {
         return view('administrador.edit', compact('usuario'));
     }
 
-    /**
-     * Actualiza los datos del usuario.
-     */
+   
     public function update(Request $request, User $usuario)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $usuario->id,
-            'role' => 'required|in:admin,ventas,costeos',
+            'role' => 'required|in:admin,ventas,gerente_ventas,costeos',
             'password' => 'nullable|string|min:6|confirmed',
         ]);
 
@@ -122,9 +114,7 @@ class UserController extends Controller
         return redirect()->route('administrador.index')->with('success', 'Usuario actualizado correctamente.');
     }
 
-    /**
-     * Elimina un usuario.
-     */
+   
     public function destroy(User $usuario)
     {
         if ($usuario->id === auth()->id()) {

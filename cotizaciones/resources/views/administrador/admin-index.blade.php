@@ -46,6 +46,7 @@
                         >
                             <option value="">Todos los roles</option>
                             <option value="ventas" {{ request('role_filter') == 'ventas' ? 'selected' : '' }}>Ventas</option>
+                            <option value="gerente_ventas" {{ request('role_filter') == 'gerente_ventas' ? 'selected' : '' }}>Gerente de Ventas</option>
                             <option value="costeos" {{ request('role_filter') == 'costeos' ? 'selected' : '' }}>Costeos</option>
                             <option value="admin" {{ request('role_filter') == 'admin' ? 'selected' : '' }}>Admin</option>
                         </select>
@@ -97,7 +98,7 @@
                             <span class="font-semibold">· Búsqueda: "{{ request('search') }}"</span>
                         @endif
                         @if(request('role_filter'))
-                            <span class="font-semibold">· Rol: {{ ucfirst(request('role_filter')) }}</span>
+                            <span class="font-semibold">· Rol: {{ ucwords(str_replace('_', ' ', request('role_filter'))) }}</span>
                         @endif
                         @if(request('status_filter'))
                             <span class="font-semibold">· Estado: {{ ucfirst(str_replace('_', ' ', request('status_filter'))) }}</span>
@@ -171,8 +172,9 @@
                                 <div class="text-gray-500">{{ $cotizacion->user->email }}</div>
                                 <span class="inline-block px-2 py-1 text-xs rounded-full 
                                     {{ $cotizacion->user->role === 'admin' ? 'bg-red-100 text-red-800' : 
-                                    ($cotizacion->user->role === 'ventas' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') }}">
-                                    {{ ucfirst($cotizacion->user->role) }}
+                                    ($cotizacion->user->role === 'ventas' ? 'bg-blue-100 text-blue-800' : 
+                                    ($cotizacion->user->role === 'gerente_ventas' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800')) }}">
+                                    {{ ucwords(str_replace('_', ' ', $cotizacion->user->role)) }}
                                 </span>
                             </div>
                             @else

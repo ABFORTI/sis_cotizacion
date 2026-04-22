@@ -17,7 +17,7 @@
         <div class="button-container">
             <button type="submit" class="btn-submit">Crear Requisición</button>
             @auth
-            @if (Auth::user()->role === 'ventas')
+            @if (Auth::user()->isVentasLike())
             <a href="{{ route('home') }}" class="btn-cancel">Cancelar</a>
             @else
             <a href="{{ route('cotizaciones.index') }}" class="btn-cancel">Cancelar</a>

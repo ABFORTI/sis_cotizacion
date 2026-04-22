@@ -17,9 +17,12 @@
                 @auth
                 <span class="nav-user">Hola, {{ Auth::user()->name }}</span>
                 <br>
-                @if (Auth::user()->role === 'ventas' || Auth::user()->role === 'costeos')
+                @if (Auth::user()->isVentasLike() || Auth::user()->role === 'costeos')
                 <a href="/" class="nav-link">Inicio</a>
                 <a href="/cotizaciones" class="nav-link">Requisición de cotización</a>
+                @if (Auth::user()->isGerenteVentas())
+                <a href="{{ route('gerente.ventas.index') }}" class="nav-link">Supervisión Ventas</a>
+                @endif
                 @elseif (Auth::user()->role === 'admin')
                 <a href="/" class="nav-link">Inicio</a>
                 <a href="{{ route('administrador.admin.index') }}" class="nav-link admin-link">🛡️ Panel Admin</a>
@@ -38,9 +41,12 @@
             @auth
             <div class="mobile-user">Hola, {{ Auth::user()->name }}</div>
             
-            @if (Auth::user()->role === 'ventas' || Auth::user()->role === 'costeos')
+            @if (Auth::user()->isVentasLike() || Auth::user()->role === 'costeos')
                 <a href="/" class="mobile-nav-link">Inicio</a>
                 <a href="/cotizaciones" class="mobile-nav-link">Requisición de cotización</a>
+                @if (Auth::user()->isGerenteVentas())
+                <a href="{{ route('gerente.ventas.index') }}" class="mobile-nav-link">Supervisión Ventas</a>
+                @endif
             @elseif (Auth::user()->role === 'admin')
                 <a href="/" class="mobile-nav-link">Inicio</a>
                 <a href="{{ route('administrador.admin.index') }}" class="mobile-nav-link">🛡️ Panel Admin</a>

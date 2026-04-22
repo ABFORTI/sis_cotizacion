@@ -40,7 +40,7 @@ return new class extends Migration
         // Crear usuario administrador por defecto
         \DB::table('users')->insert([
             'name' => 'Administrador',
-            'email' => 'admin@innovet.com',
+            'email' => 'soporte@ab-forti.com',
             'password' => \Hash::make('admin1234'),
             'role' => 'admin',
             'email_verified_at' => now(),

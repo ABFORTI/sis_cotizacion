@@ -40,6 +40,14 @@ class CosteoRequisicionController extends Controller
                 ]);
             }
 
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Costeo guardado exitosamente.',
+                    'redirectUrl' => route('cotizaciones.index'),
+                ]);
+            }
+
             return redirect()->route('cotizaciones.index', $cotizacionId)
                 ->with('success', 'Costeo guardado exitosamente.');
         } catch (\Exception $e) {
@@ -49,6 +57,13 @@ class CosteoRequisicionController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Error al guardar la corrida piloto: ' . $e->getMessage()
+                ], 500);
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al guardar el costeo: ' . $e->getMessage(),
                 ], 500);
             }
 
@@ -186,13 +201,17 @@ class CosteoRequisicionController extends Controller
                     'precio_lamina' => $request->input('mp_base.precio_lamina', $request->precio_lamina),
                     'sugerencia_costos_mp' => $request->sugerencia_costos_mp,
                     'hojas_del_pedido' => $request->hojas_del_pedido,
-                    'nombre_maquina_termoformado' => $request->nombre_maquina_termoformado,
+                    'nombre_maquina_termoformado' => $textOrEmpty($request->nombre_maquina_termoformado) !== ''
+                        ? $request->nombre_maquina_termoformado
+                        : 'Máquina de Termoformado',
                     'no_personas_termoformado' => $request->no_personas_termoformado,
                     'bajadas_por_minuto_termoformado' => $request->bajadas_por_minuto_termoformado,
                     'total_hojas_turno_termoformado' => $request->total_hojas_turno_termoformado,
                     'total_dias_turnos_termoformado' => $request->total_dias_turnos_termoformado,
                     'costo_termoformado' => $request->costo_termoformado,
-                    'nombre_maquina_suaje' => $request->nombre_maquina_suaje,
+                    'nombre_maquina_suaje' => $textOrEmpty($request->nombre_maquina_suaje) !== ''
+                        ? $request->nombre_maquina_suaje
+                        : 'Máquina de Suaje',
                     'no_personas_suaje' => $request->no_personas_suaje,
                     'bajadas_por_minuto_suaje' => $request->bajadas_por_minuto_suaje,
                     'total_hojas_turno_suaje' => $request->total_hojas_turno_suaje,
@@ -236,11 +255,15 @@ class CosteoRequisicionController extends Controller
                     // COSTOS ADICIONALES
                     'costo_inocuidad' => $request->costo_inocuidad,
                     'costo_pared' => $request->costo_pared,
-                    'aplicacion_estaticida' => $request->aplicacion_estaticida,
+                    'aplicacion_estaticida' => in_array($request->aplicacion_estaticida, ['si', 'no'], true)
+                        ? $request->aplicacion_estaticida
+                        : 'no',
                     'no_personas_estaticida' => $request->no_personas_estaticida,
                     'piezas_por_hora_estaticida' => $request->piezas_por_hora_estaticida,
                     'costo_estaticida_total' => $request->costo_estaticida_total,
-                    'maquila' => $request->maquila,
+                    'maquila' => in_array($request->maquila, ['si', 'no'], true)
+                        ? $request->maquila
+                        : 'no',
                     'no_personas_maquila' => $request->no_personas_maquila,
                     'costo_maquila_total' => $request->costo_maquila_total,
 

@@ -44,8 +44,10 @@ class CotizacionController extends Controller
     }
 
     public function index(Request $request) {
+    $user = auth()->user();
+
     // Admin
-    if (auth()->user()->role === 'admin') {
+    if ($user->role === 'admin') {
         return redirect()->route('administrador.admin.index');
     }
 
@@ -55,11 +57,11 @@ class CotizacionController extends Controller
         'requisicionCotizacion'
     ]);
 
-    if (auth()->user()->role === 'ventas') {
-        $query->where('user_id', auth()->id());
+    if ($user->isVentasLike()) {
+        $query->where('user_id', $user->id);
     }
 
-    if (auth()->user()->role === 'costeos') {
+    if ($user->role === 'costeos') {
         $query->where('enviado_a_costeos', 1)
               ->where('oculta_para_costeos', false);
     }
@@ -73,7 +75,7 @@ class CotizacionController extends Controller
     }
 
     if ($estado = $request->estado_filter) {
-        if (auth()->user()->role === 'ventas') {
+        if ($user->isVentasLike()) {
             if ($estado === 'pendiente') {
                 $query->where('enviado_a_costeos', false);
             } elseif ($estado === 'enviada') {
@@ -82,7 +84,7 @@ class CotizacionController extends Controller
             } elseif ($estado === 'devuelta') {
                 $query->where('enviado_a_ventas', true);
             }
-        } elseif (auth()->user()->role === 'costeos') {
+        } elseif ($user->role === 'costeos') {
             if ($estado === 'pendiente') {
                 $query->where('enviado_a_costeos', false);
             } elseif ($estado === 'recibida') {
@@ -295,7 +297,7 @@ class CotizacionController extends Controller
     public function enviarACosteos(Cotizacion $cotizacion) {
         $usuario = Auth::user();
 
-        if (!in_array($usuario->role, ['ventas', 'admin'])) {
+        if (!in_array($usuario->role, ['ventas', 'gerente_ventas', 'admin'], true)) {
             abort(403, 'No tienes permiso para realizar esta acción.');
         }
 
@@ -703,7 +705,7 @@ class CotizacionController extends Controller
     public function clone(Cotizacion $cotizacion) {
         $usuario = Auth::user();
 
-        if (!in_array($usuario->role, ['ventas', 'admin'])) {
+        if (!in_array($usuario->role, ['ventas', 'gerente_ventas', 'admin'], true)) {
             abort(403, 'No tienes permiso para realizar esta acción.');
         }
 

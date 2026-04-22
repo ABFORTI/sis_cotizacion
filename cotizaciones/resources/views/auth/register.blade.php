@@ -174,11 +174,17 @@ button[type="submit"]:active {
         <div class="mb-4">
             <label for="rol_ventas" class=" block text-gray-700 mb-2">Selecciona tu rol:</label>
 
-            <div class="flex justify-center gap-6">
+            <div class="flex justify-center gap-6 flex-wrap">
                 <label for="rol_ventas" class="inline-flex items-center gap-x-1 text-gray-700 cursor-pointer mr-3">
                     <input type="radio" name="role" value="ventas" id="rol_ventas"
                         class="accent-blue-500" {{ old('role') === 'ventas' ? 'checked' : '' }}>
                     <span>Ventas</span>
+                </label>
+
+                <label for="rol_gerente_ventas" class="inline-flex items-center gap-x-1 text-gray-700 cursor-pointer mr-3">
+                    <input type="radio" name="role" value="gerente_ventas" id="rol_gerente_ventas"
+                        class="accent-blue-500" {{ old('role') === 'gerente_ventas' ? 'checked' : '' }}>
+                    <span>Gerente de Ventas</span>
                 </label>
 
                 <label for="rol_costeos" class="inline-flex items-center gap-x-1 text-gray-700 cursor-pointer">

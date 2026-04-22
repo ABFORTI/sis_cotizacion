@@ -47,4 +47,19 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+    public function cotizaciones()
+    {
+        return $this->hasMany(Cotizacion::class);
+    }
+
+    public function isVentasLike(): bool
+    {
+        return in_array($this->role, ['ventas', 'gerente_ventas'], true);
+    }
+
+    public function isGerenteVentas(): bool
+    {
+        return $this->role === 'gerente_ventas';
+    }
 }

@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'rol.costeos' => \App\Http\Middleware\RolCosteosMiddleware::class,
             'rol.admin' => \App\Http\Middleware\RolAdminMiddleware::class,
             'rol.todos' => \App\Http\Middleware\RolTodosMiddleware::class,
+            'rol.gerenteventas' => \App\Http\Middleware\RolGerenteVentasMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -33,7 +33,7 @@
                            w-full sm:w-56">
                     <option value="">Estados</option>
 
-                         @if(Auth::user()->role === 'ventas')
+                         @if(Auth::user()->isVentasLike())
                                 <option value="pendiente" {{ request('estado_filter') == 'pendiente' ? 'selected' : '' }}>📤 Pendiente envío</option>
                                 <option value="enviada" {{ request('estado_filter') == 'enviada' ? 'selected' : '' }}>✅ Enviada a Costeos</option>
                                 <option value="devuelta" {{ request('estado_filter') == 'devuelta' ? 'selected' : '' }}>🔄 Devuelta por Costeos</option>
@@ -49,7 +49,7 @@
                     </button>
                 </form>
 
-                @if(Auth::user()->role === 'ventas')
+                @if(Auth::user()->isVentasLike())
                     <a href="{{ route('cotizaciones.create') }}"
                         class="btn-submit px-5 py-2 whitespace-nowrap">
                         + Crear cotización
@@ -81,7 +81,7 @@
                         <!-- Envío a Costeos -->
                         <td class="text-align center px-4 py-3">
                             
-                            @if(Auth::user()->role === 'ventas')
+                            @if(Auth::user()->isVentasLike())
                                 @if($cotizacion->enviadoPorCosteos)
                                 <div class="mt-2  rounded p-2 flex flex-col items-center text-xs text-slate-500 gap-0.5">
                                     <span class="font-medium text-blue-600">
@@ -197,7 +197,7 @@
                         </td>
                         <td class="action-buttons text-center">
                             <div class="flex flex-col gap-2 items-center">
-                                @if(Auth::user()->role === 'ventas')
+                                @if(Auth::user()->isVentasLike())
                                     @if($cotizacion->enviado_a_ventas)
                                         <a href="{{ route('cotizacion.resumen.page', $cotizacion->id) }}" class="btn-view w-full">Ver resumen de Costos</a>
                                     @elseif($cotizacion->enviado_a_costeos)
@@ -249,7 +249,7 @@
 
                                 @endif
                                 @if(!$cotizacion->enviado_a_ventas)
-                                    @if(Auth::user()->role === 'ventas')
+                                    @if(Auth::user()->isVentasLike())
                                         <div class="grid h-56 grid-cols-3 content-center gap-4">
                                         @if(!$cotizacion->enviado_a_costeos)
                                             <a href="{{ route('cotizaciones.edit', $cotizacion) }}"

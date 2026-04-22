@@ -108,6 +108,7 @@
                         >
                             <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrador</option>
                             <option value="ventas" {{ old('role') == 'ventas' ? 'selected' : '' }}>Ventas</option>
+                            <option value="gerente_ventas" {{ old('role') == 'gerente_ventas' ? 'selected' : '' }}>Gerente de Ventas</option>
                             <option value="costeos" {{ old('role') == 'costeos' ? 'selected' : '' }}>Costeos</option>
                         </select>
                         @error('role')

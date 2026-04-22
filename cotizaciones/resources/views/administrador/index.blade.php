@@ -52,6 +52,7 @@
                             <option value="">Todos los roles</option>
                             <option value="admin" {{ request('role_filter') == 'admin' ? 'selected' : '' }}>Administrador</option>
                             <option value="ventas" {{ request('role_filter') == 'ventas' ? 'selected' : '' }}>Ventas</option>
+                            <option value="gerente_ventas" {{ request('role_filter') == 'gerente_ventas' ? 'selected' : '' }}>Gerente de Ventas</option>
                             <option value="costeos" {{ request('role_filter') == 'costeos' ? 'selected' : '' }}>Costeos</option>
                         </select>
                     </div>
@@ -104,7 +105,7 @@
                             <span class="font-semibold">· Búsqueda: "{{ request('search') }}"</span>
                         @endif
                         @if(request('role_filter'))
-                            <span class="font-semibold">· Rol: {{ ucfirst(request('role_filter')) }}</span>
+                            <span class="font-semibold">· Rol: {{ ucwords(str_replace('_', ' ', request('role_filter'))) }}</span>
                         @endif
                     </div>
                 </div>
@@ -142,7 +143,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-purple-100 text-sm font-medium">Roles Operativos</p>
-                        <p class="text-3xl font-bold mt-2">{{ $usuarios->whereIn('role', ['ventas', 'costeos'])->count() }}</p>
+                        <p class="text-3xl font-bold mt-2">{{ $usuarios->whereIn('role', ['ventas', 'gerente_ventas', 'costeos'])->count() }}</p>
                     </div>
                     <div class="bg-white bg-opacity-30 rounded-full p-4">
                         <i class="fa-solid fa-briefcase text-2xl"></i>
@@ -198,6 +199,10 @@
                                 @elseif($usuario->role === 'ventas')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                                         <i class="fa-solid fa-handshake mr-1"></i> Ventas
+                                    </span>
+                                @elseif($usuario->role === 'gerente_ventas')
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                                        <i class="fa-solid fa-chart-line mr-1"></i> Gerente de Ventas
                                     </span>
                                 @elseif($usuario->role === 'costeos')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">

@@ -16,9 +16,9 @@ class RolVentasMiddleware
      */
     public function handle($request, \Closure $next)
     {
-        $rolesPermitidos = ['ventas', 'costeos', 'admin'];
+        $rolesPermitidos = ['ventas', 'gerente_ventas', 'costeos', 'admin'];
 
-        if (Auth::check() && in_array(Auth::user()->role, $rolesPermitidos)) {
+        if (Auth::check() && in_array(Auth::user()->role, $rolesPermitidos, true)) {
             return $next($request);
         }
 

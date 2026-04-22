@@ -12,6 +12,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Mail;
 use App\Http\Controllers\ResumenController;
 use App\Http\Controllers\ArchivoAdjuntoController;
+use App\Http\Controllers\GerenteVentasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -180,6 +181,15 @@ Route::middleware(['auth', 'rol.admin'])->group(function () {
     Route::put('/administrador/{usuario}', [UserController::class, 'update'])->name('administrador.update');
     Route::delete('/administrador/{usuario}', [UserController::class, 'destroy'])->name('administrador.destroy');  
 });
+
+Route::middleware(['auth', 'rol.gerenteventas'])
+    ->prefix('gerente/ventas')
+    ->name('gerente.ventas.')
+    ->group(function () {
+        Route::get('/', [GerenteVentasController::class, 'index'])->name('index');
+        Route::get('/{user}/actividad', [GerenteVentasController::class, 'actividad'])->name('actividad');
+    });
+
 Route::middleware('auth')->group(function () {
     // 🔹 Vista de Matriz de Riesgos
     Route::get('/cotizaciones/{cotizacion}/matriz-riesgos', [CotizacionController::class, 'verMatrizRiesgos'])

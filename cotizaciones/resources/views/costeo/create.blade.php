@@ -168,6 +168,7 @@ $molde_ancho = oldValue('molde_ancho', $costeoRequisicion);
 $molde_avance = oldValue('molde_avance', $costeoRequisicion);
 $divisor_ancho = old('divisor_ancho', $costeoRequisicion->divisor_ancho ?? 1);
 $divisor_avance = old('divisor_avance', $costeoRequisicion->divisor_avance ?? 1);
+$multiplicador_kilos = old('multiplicador_kilos', $costeoRequisicion->multiplicador_kilos ?? 1);
 $hoja_ancho = oldValue('hoja_ancho', $costeoRequisicion);
 $hoja_avance = oldValue('hoja_avance', $costeoRequisicion);
 $placa_de_enfriamiento = oldValue('placa_de_enfriamiento', $costeoRequisicion);
@@ -258,6 +259,7 @@ $costo_suaje = oldValue('costo_suaje', $costeoRequisicion);
     <form action="{{ route('costeo.store', $cotizacion->id) }}" method="POST" id="costeoForm" data-pdf-download-url="{{ route('costeo.store.pdf', $cotizacion->id) }}">
         @csrf  
         <input type="hidden" name="pdf_resumen_payload" id="pdfResumenPayload">
+        <input type="hidden" name="costeo_action_type" id="costeoActionType" value="save">
         @if($esCorridaPiloto)
             <input type="hidden" name="btn_corrida_piloto" value="corrida_piloto">
         @endif
@@ -3119,14 +3121,14 @@ function calcularParedMedia(){
                             >
                         </div>
                         <div class="space-y-1">
-                            <label for="multiplicador_kilos" class="text-sm font-medium text-gray-700">Multiplicador x Kilos</label>
+                            <label for="multiplicador_kilos" class="text-sm font-medium text-gray-700">Multiplicador x Kilos (opcional)</label>
                             <input
                                 type="number"
                                 id="multiplicador_kilos"
                                 name="multiplicador_kilos"
                                 min="1"
                                 step="1"
-                                value="{{ old('multiplicador_kilos', 4) }}"
+                                value="{{ $multiplicador_kilos }}"
                                 class="w-full rounded-lg border border-blue-200 bg-white p-2 text-gray-700 shadow-sm focus:border-blue-400 focus:ring-2 focus:ring-blue-300"
                             >
                         </div>
@@ -3154,8 +3156,8 @@ function calcularParedMedia(){
                         <td><input type="number" step="0.01" name="medida_bloque_ancho" value="{{old('medida_bloque_ancho', $costeoRequisicion->medida_bloque_ancho)}}" class="w-full border rounded px-1 py-1 text-center"></td>
                         <td>
                             <input type="number" name="kilos"
-                                class="w-full h-full border rounded-none text-center block cursor-not-allowed bg-gray-200" 
-                                style="box-sizing: border-box;" value="{{old('kilos', $costeoRequisicion->kilos)}}" data-base="{{old('kilos', $costeoRequisicion->kilos)}}" readonly>
+                                class="w-full h-full border rounded-none text-center bg-gray-200" 
+                                style="box-sizing: border-box;" value="{{old('kilos', $costeoRequisicion->kilos)}}" data-base="{{old('kilos', $costeoRequisicion->kilos)}}">
                         </td>
                     </tr>
                     <tr class="border-b h-14">
@@ -3498,17 +3500,16 @@ function calcularParedMedia(){
                     calcularKilos();
                 }
 
+                function calcularKilosBaseExcel(ancho, avance, alto) {
+                    return Math.ceil(((ancho / 1000) * (avance / 1000) * alto * 2.82));
+                }
+
                 function calcularKilos() {
                     const ajusteAlto = parseFloat(document.querySelector('input[name="medida_bloque_alto"]').value) || 0;
                     const ajusteAvance = parseFloat(document.querySelector('input[name="medida_bloque_avance"]').value) || 0;
                     const ajusteAncho = parseFloat(document.querySelector('input[name="medida_bloque_ancho"]').value) || 0;
-                    
-                    const anchoMetros = ajusteAncho / 1000;
-                    const avanceMetros = ajusteAvance / 1000;
-                    const factorDensidad = 2.82;
 
-                    const volumen = anchoMetros * avanceMetros * ajusteAlto;
-                    const resultado = Math.ceil(volumen * factorDensidad);
+                    const resultado = calcularKilosBaseExcel(ajusteAncho, ajusteAvance, ajusteAlto);
 
                     sincronizarBaseKilos(resultado);
                     actualizarKilosConMultiplicador();
@@ -4410,7 +4411,7 @@ function calcularParedMedia(){
                         const coeficiente_merma = parseFloat(document.querySelector('input[name="coeficiente_merma"]').value) || 0;
                         let totalCosto = resumen_total_costo_unit * (lote_compra + (lote_compra * (coeficiente_merma / 100)));
                         const totalRedondeado = Math.round(totalCosto * 100) / 100;
-                        document.querySelector('input[name="costo_total"]').value = totalRedondeado.toFixed(2);
+                        return totalRedondeado;
                     }
                     </script>
                 <tfoot>
@@ -4458,7 +4459,19 @@ function calcularParedMedia(){
                     const lote_compra = parseFloat(document.querySelector('input[name="lote_compra"]').value) || 0;
                     let totalCosto = resumen_total_costo_unit * lote_compra;
                     const totalRedondeado = Math.round(totalCosto * 100) / 100;
-                    document.getElementById('costo_total').value = totalRedondeado.toFixed(2);
+                    const inputCostoTotal = document.getElementById('costo_total');
+
+                    if (inputCostoTotal) {
+                        inputCostoTotal.value = totalRedondeado.toFixed(2);
+                        inputCostoTotal.setAttribute('value', totalRedondeado.toFixed(2));
+                    }
+
+                    return totalRedondeado;
+                }
+
+                function asegurarCostoTotalActualizado() {
+                    const total = costototal();
+                    return Number.isFinite(total) ? total : 0;
                 }
             </script>
         </fieldset>
@@ -4541,74 +4554,147 @@ function calcularParedMedia(){
         </fieldset>
 
 
-        <!-- BOTONES MEJORADOS -->
-        <div class="flex justify-between items-center mt-6 space-x-4">
-            <div id="boton-enviar">
-                @if(!$cotizacion->enviado_a_ventas)
-                <button type="button"
-                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded font-medium"
-                    onclick="enviarAVentas({{ $cotizacion->id }})">
-                    📤 Enviar a Ventas
+        @if ($esCorridaPiloto)
+        <div class="mt-6 flex justify-end space-x-4">
+            <a href="{{ route('cotizaciones.index') }}"
+                class="bg-gray-500 hover:bg-gray-700 text-white px-6 py-3 rounded font-medium">
+                Cancelar
+            </a>
+            <button type="submit" name="boton-guardar-corrida-piloto"
+                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-medium">
+                Guardar y Descargar PDF de Corrida Piloto
+            </button>
+        </div>
+        @else
+        <div class="mt-8 rounded-xl border border-gray-200 ">
+            <div class="flex flex-col md:flex-row items-center justify-end gap-4">
+                <button type="button" id="btnGuardarCosteo"
+                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-medium"
+                    onclick="abrirModalAccionesCosteo()">
+                    Guardar costeo
                 </button>
-                @else
-                <span class="text-green-700 font-semibold">✅ Enviada a Ventas</span>
-                @endif
-            </div>
-            <div class="flex space-x-4">
+                <button type="button" id="btnImprimirResumen"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded font-medium"
+                    onclick="ejecutarAccionCosteo('print')">
+                    Imprimir resumen
+                </button>
                 <a href="{{ route('cotizaciones.index') }}"
-                    class="bg-gray-500 hover:bg-gray-700 text-white px-6 py-3 rounded font-medium">
+                    class="bg-gray-500 hover:bg-gray-700 text-white px-6 py-3 rounded font-medium text-center">
                     Cancelar
                 </a>
-                @if ($esCorridaPiloto)
-                <button type="submit" name="boton-guardar-corrida-piloto"
-                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-medium">
-                    Guardar y Descargar PDF de Corrida Piloto
-                </button>
-                @else
-                <button type="submit" name="boton-guardar-costeo"
-                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded font-medium">
-                    Guardar Costeo
-                </button>
-                @endif
             </div>
         </div>
+
+        <div id="modalAccionesCosteo" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+            <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl">
+                <h3 class="text-lg font-bold text-gray-800">¿Qué deseas realizar?</h3>
+                <div class="mt-6 flex flex-col gap-3">
+                    <button type="button"
+                        class="w-full rounded-lg bg-green-600 px-4 py-3 font-medium text-white hover:bg-green-700"
+                        onclick="ejecutarAccionCosteo('save_send')">
+                        Guardar y mandar a ventas
+                    </button>
+                    <button type="button"
+                        class="w-full rounded-lg bg-gray-200 px-4 py-3 font-medium text-gray-700 hover:bg-gray-300"
+                        onclick="cerrarModalAccionesCosteo()">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endif
     </form>
 </div>
 <script>
-    //funcion para enviar a ventas
     const enviarAVentasUrlTemplate = @json(route('cotizaciones.enviarAVentas', ['cotizacion' => '__ID__']));
+    const cotizacionesIndexUrl = @json(route('cotizaciones.index'));
+
+    function procesarEnvioAVentas(id, mostrarNotificacion = true) {
+        const endpoint = enviarAVentasUrlTemplate.replace('__ID__', id);
+
+        return fetch(endpoint, {
+                method: 'PATCH',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+            })
+            .then(async response => {
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'No fue posible enviar la cotización a Ventas.');
+                }
+
+                const botonEnviar = document.getElementById('boton-enviar');
+                if (data.success && botonEnviar) {
+                    botonEnviar.innerHTML = '<span class="text-green-700 font-semibold">✅ Enviada a Ventas</span>';
+                }
+
+                if (mostrarNotificacion) {
+                    if (data.success) {
+                        showSuccessMessage(data.success);
+                    } else if (data.warning) {
+                        showSuccessMessage(data.warning);
+                    }
+                }
+
+                return data;
+            });
+    }
 
     function enviarAVentas(id) {
         showConfirmModal(
             '¿Enviar cotización a Ventas?',
             '¿Estás seguro de enviar esta cotización al área de Ventas?',
             function() {
-                const endpoint = enviarAVentasUrlTemplate.replace('__ID__', id);
-
-                // Ejecutar el envío si se confirma
-                fetch(endpoint, {
-                        method: 'PATCH',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Cambiar el botón a "Enviada"
-                            document.getElementById('boton-enviar').innerHTML =
-                                '<span class="text-green-700 font-semibold">✅ Enviada a Ventas</span>';
-                            
-                            showSuccessMessage(data.success);
-                        } else if (data.warning) {
-                            showSuccessMessage(data.warning);
-                        }
-                    })
-                    .catch(error => console.error('Error:', error));
+                procesarEnvioAVentas(id, true)
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert(error.message || 'Error al enviar a Ventas.');
+                    });
             }
         );
+    }
+
+    function abrirModalAccionesCosteo() {
+        const modal = document.getElementById('modalAccionesCosteo');
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function cerrarModalAccionesCosteo() {
+        const modal = document.getElementById('modalAccionesCosteo');
+        if (!modal) {
+            return;
+        }
+
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    function ejecutarAccionCosteo(accion) {
+        const form = document.getElementById('costeoForm');
+        const actionInput = document.getElementById('costeoActionType');
+
+        if (!form || !actionInput) {
+            return;
+        }
+
+        actionInput.value = accion;
+        asegurarCostoTotalActualizado();
+
+        if (typeof sincronizarResumenPdfPayload === 'function') {
+            sincronizarResumenPdfPayload();
+        }
+
+        cerrarModalAccionesCosteo();
+        form.requestSubmit();
     }
 </script>
 
@@ -4741,6 +4827,7 @@ function calcularParedMedia(){
         copiarCostosATotales(); //calcula en automatico los totales finales
         asignarLoteCompraEnResumenPiezas(); //asigna el lote de compra en las piezas del resumen de costos
         calcularResumenCostos(); //este si o si al cargar pagina
+        asegurarCostoTotalActualizado();
     }
 
     function normalizarFormularioAntesDeGuardar(form) {
@@ -4763,13 +4850,31 @@ function calcularParedMedia(){
         calcularCostoEnergiaE2();
         calcularCostoMP();
         calcularCostoTotal();
-                calcularCostoTotalResumen();
+        copiarCostosATotales();
+        calcularResumenCostos();
+        asegurarCostoTotalActualizado();
 
         form.querySelectorAll('input[type="number"]').forEach(input => {
             if (input.value === '') {
                 input.value = 0;
             }
         });
+    }
+
+    function agregarCamposDeshabilitadosAFormData(form, formData) {
+        form.querySelectorAll('input:disabled, select:disabled, textarea:disabled').forEach(element => {
+            if (!element.name || formData.has(element.name)) {
+                return;
+            }
+
+            if ((element.type === 'checkbox' || element.type === 'radio') && !element.checked) {
+                return;
+            }
+
+            formData.append(element.name, element.value ?? '');
+        });
+
+        return formData;
     }
 
     function roundForPdf(value, decimals = 2) {
@@ -4843,6 +4948,8 @@ function calcularParedMedia(){
         if (!payloadInput) {
             return '';
         }
+
+        asegurarCostoTotalActualizado();
 
         const payload = construirResumenPdfPayload();
         const jsonPayload = JSON.stringify(payload);
@@ -4982,6 +5089,7 @@ function calcularParedMedia(){
             }
 
             normalizarFormularioAntesDeGuardar(form);
+            asegurarCostoTotalActualizado();
             sincronizarResumenPdfPayload();
 
             if (esCorridaPiloto) {
@@ -4989,7 +5097,12 @@ function calcularParedMedia(){
                 e.preventDefault();
 
                 const submitBtn = bloquearBotonGuardar(form, e.submitter || null);
-                const formData = new FormData(form);
+                const formData = agregarCamposDeshabilitadosAFormData(form, new FormData(form));
+                const inputCostoTotal = document.getElementById('costo_total');
+
+                if (inputCostoTotal) {
+                    formData.set('costo_total', inputCostoTotal.value || '0.00');
+                }
 
                 fetch(form.action, {
                     method: 'POST',
@@ -5023,20 +5136,25 @@ function calcularParedMedia(){
             } else {
                 e.preventDefault();
 
-                const submitBtn = bloquearBotonGuardar(form, e.submitter || null);
-                const formData = new FormData(form);
-                const submitter = e.submitter || null;
+                const accion = document.getElementById('costeoActionType')?.value || 'save';
+                const isPrintAction = accion === 'print';
 
-                if (submitter?.name) {
-                    formData.append(submitter.name, submitter.value || '1');
+                asegurarCostoTotalActualizado();
+
+                const submitBtn = bloquearBotonGuardar(form, e.submitter || null);
+                const formData = agregarCamposDeshabilitadosAFormData(form, new FormData(form));
+                const inputCostoTotal = document.getElementById('costo_total');
+
+                if (inputCostoTotal) {
+                    formData.set('costo_total', inputCostoTotal.value || '0.00');
                 }
 
-                fetch(form.dataset.pdfDownloadUrl, {
+                fetch(isPrintAction ? form.dataset.pdfDownloadUrl : form.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/pdf, application/json'
+                        'Accept': isPrintAction ? 'application/pdf, application/json' : 'application/json'
                     }
                 })
                 .then(async response => {
@@ -5049,23 +5167,59 @@ function calcularParedMedia(){
                                 ? Object.values(errorData.errors).flat()[0]
                                 : null;
 
-                            throw new Error(firstError || errorData.message || 'No fue posible generar el PDF.');
+                            throw new Error(firstError || errorData.message || (isPrintAction
+                                ? 'No fue posible generar el PDF.'
+                                : 'No fue posible guardar el costeo.'));
                         }
 
-                        throw new Error('No fue posible generar el PDF.');
+                        throw new Error(isPrintAction
+                            ? 'No fue posible generar el PDF.'
+                            : 'No fue posible guardar el costeo.');
                     }
 
-                    const blob = await response.blob();
-                    const fileName = extraerNombreArchivo(response.headers.get('Content-Disposition'));
+                    if (isPrintAction) {
+                        return {
+                            type: 'pdf',
+                            blob: await response.blob(),
+                            fileName: extraerNombreArchivo(response.headers.get('Content-Disposition')),
+                        };
+                    }
 
-                    descargarBlobPdf(blob, fileName);
-                    alert('Costeo guardado y PDF generado correctamente.');
+                    return {
+                        type: 'save',
+                        data: contentType.includes('application/json')
+                            ? await response.json()
+                            : { success: true, message: 'Costeo guardado exitosamente.', redirectUrl: cotizacionesIndexUrl }
+                    };
+                })
+                .then(async result => {
+                    if (result.type === 'pdf') {
+                        descargarBlobPdf(result.blob, result.fileName);
+                        alert('Resumen impreso y costeo guardado correctamente.');
+                        return;
+                    }
+
+                    if (accion === 'save_send') {
+                        const envio = await procesarEnvioAVentas({{ $cotizacion->id }}, false);
+                        alert(envio.success || result.data.message || 'Costeo guardado y enviado a Ventas correctamente.');
+                    } else {
+                        alert(result.data.message || 'Costeo guardado correctamente.');
+                    }
+
+                    window.location.href = result.data.redirectUrl || cotizacionesIndexUrl;
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert(error.message || 'Error al guardar el costeo y generar el PDF.');
+                    alert(error.message || (isPrintAction
+                        ? 'Error al imprimir el resumen.'
+                        : 'Error al guardar el costeo.'));
                 })
                 .finally(() => {
+                    const actionInput = document.getElementById('costeoActionType');
+                    if (actionInput) {
+                        actionInput.value = 'save';
+                    }
+
                     restaurarBotonGuardar(form, submitBtn);
                 });
             }

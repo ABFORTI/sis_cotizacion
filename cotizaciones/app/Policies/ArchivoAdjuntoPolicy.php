@@ -19,8 +19,8 @@ class ArchivoAdjuntoPolicy
             return true;
         }
 
-        // Ventas - puede ver sus propias cotizaciones
-        if ($user->role === 'ventas') {
+        // Ventas y Gerente de Ventas - pueden ver sus propias cotizaciones
+        if ($user->isVentasLike()) {
             return $cotizacion->user_id === $user->id;
         }
 
@@ -49,8 +49,8 @@ class ArchivoAdjuntoPolicy
             return true;
         }
 
-        // Ventas - puede eliminar sus propias cotizaciones
-        if ($user->role === 'ventas') {
+        // Ventas y Gerente de Ventas - pueden eliminar sus propias cotizaciones
+        if ($user->isVentasLike()) {
             return $cotizacion->user_id === $user->id;
         }
 
